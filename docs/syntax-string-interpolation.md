@@ -35,7 +35,9 @@ Because we care about backward compatibility, we need some new syntax in order t
    * `\` escapes `` ` ``, `{`, and itself `\`.
    * The pairs must be on the same line (unless a `\` escapes the newline) but expressions needn't be on the same line.
 2. An expression between the braces. This is the value that will be interpolated into the string.
+{% raw %}
    * Restriction: we explicitly reject `{{` as it is considered an attempt to escape and get a single `{` character at runtime.
+{% endraw %}
 3. Formatting specification may follow after the expression, delimited by an unambiguous character.
    * Restriction: the formatting specification must be constant at parse time.
    * In the absence of an explicit formatting specification, the `%*` token will be used.
@@ -98,11 +100,13 @@ print`Hello {name}`
 
 > Note: This restriction is likely temporary while we work through string interpolation DSLs, an ability to pass individual components of interpolated strings to a function.
 
+{% raw %}
 The restriction on `{{` exists solely for the people coming from languages e.g. C#, Rust, or Python which uses `{{` to escape and get the character `{` at runtime. We're also rejecting this at parse time too, since the proper way to escape it is `\{`, so:
 
 ```lua
 print(`{{1, 2, 3}} = {myCoolSet}`) -- parse error
 ```
+{% endraw %}
 
 If we did not apply this as a parse error, then the above would wind up printing as the following, which is obviously a gotcha we can and should avoid.
 

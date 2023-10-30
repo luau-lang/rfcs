@@ -1,0 +1,5 @@
+name: Luau RFCs
+url: https://rfcs.luau-lang.org
+markdown: kramdown
+kramdown:
+  input: GFM
