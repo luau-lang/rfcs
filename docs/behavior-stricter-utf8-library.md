@@ -2,20 +2,20 @@
 
 ## Summary
 
-`utf8.len` and other functions in UTF-8 library will do more rigorous validation of UTF-8 input, notably rejecting UTF-16 surrogates encoded into UTF-8.
+`utf8.len` and other functions in UTF-8 library will do more rigorous validation of UTF-8 input, rejecting UTF-16 surrogates encoded into UTF-8.
 
 ## Motivation
 
 We use the UTF-8 library `utf8` from Lua 5.3. The implementation of this library mostly correctly validates UTF-8 input and either throws errors (e.g. from `utf8.codes`) or returns `nil` (for `utf8.len`) for invalid input.
 
-However, certain invalid UTF-8 sequences are treated as valid. This notably includes surrogate characters encoded in UTF-8; for example, the string `"\237\160\128"` represents an attempt to encode the surrogate `0xD800` into UTF-8.
+However, certain invalid UTF-8 sequences are treated as valid. This specifically includes surrogate characters encoded in UTF-8; for example, the string `"\237\160\128"` represents an attempt to encode the surrogate `0xD800` into UTF-8.
 This is impossible to do in UTF-8; Lua 5.3 accepts this (`utf8.len` returns 1), and so does Luau.
 
-This creates issues for any other API that correctly validates UTF-8. Notably, Roblox extends Luau with a few extra functions, like `utf8.nfcnormalize`, that perform UTF-8 validation correctly and reject the aforementioned string.
+This creates issues for any other API that correctly validates UTF-8. For example, Roblox extends Luau with a few extra functions, like `utf8.nfcnormalize`, that perform UTF-8 validation correctly and reject the aforementioned string.
 As a result, due to Roblox extensions, the `utf8` library exposed in Roblox is inconsistent (this is also a problem in other Roblox-specific APIs like DataStores that reject invalid UTF-8 inputs that `utf8.len` accepts).
 We would also expect that in other environments, extra functions that handle UTF-8 inputs and validate them do the validation properly.
 
-Lua 5.4 fixes this by changing the default behavior of `utf8.len` and other UTF-8 functions to error when surrogates are present. It also fixes an issue in `utf8.codes` that failed to properly reject overlong UTF-8 sequences in certain cases; Luau already contains a partial fix to this issue.
+Lua 5.4 fixes this by changing the default behavior of `utf8.len` and other UTF-8 functions to error when surrogates are present. It also fixes an issue in `utf8.codes` that failed to properly reject overlong UTF-8 sequences in certain cases; Luau already contains a fix to this issue.
 
 ## Design
 
