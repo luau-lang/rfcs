@@ -36,6 +36,33 @@ local createElement = require("Roact/createElement")
 
 Aliases are overrides. Whenever the first component of a path exactly matches a pre-defined alias, it will be replaced before the path is resolved to a file.
 
+### Package management
+
+While package management itself is outside of the scope of this RFC, we want to make it possible for a package management solution to be developed in a way that integrates well with our require syntax.
+
+To require a Luau module under the current implementation, we must require it either by relative or absolute path:
+
+```lua
+-- Requiring Roact by absolute path
+local Roact = require("C:/LuauModules/Roact-v1.4.2")
+```
+
+If we wanted to change the location of this package on disk, we would have to modify all files that require the old path above, which essentially boils down to manual package management. This approach is tedious and prone to mistakes.
+
+To solve this, we introduce path and alias configuration in this RFC, which would allow for future package management software to maintain package paths and versions by directly modifying configuration files.
+
+This would also create simple and readable require statements for developers.
+
+```lua
+-- Suppose "@src" is an alias for the same directory as "../../../../../"
+
+-- Instead of this:
+local result = require("../../../../../HelperModules/graphing")
+
+-- We could have this:
+local result = require("@src/HelperModules/graphing")
+```
+
 ##### Versioning
 
 Aliases are simple bindings and aren't concerned with versioning. The intention is to allow package management software to leverage aliases by automatically adding and updating the alias map to reflect a package's dependencies. For manual versioning, a user could always "version" their aliases: `@MyModule-v1`, `@MyModule-v2`, etc.
