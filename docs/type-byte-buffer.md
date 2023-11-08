@@ -36,7 +36,7 @@ Each byte is initialized to 0.
 Instantiates the object from a string.
 The size of the buffer is fixed and equals to the length of the string.
 
-`buffer.tostring(): string`
+`buffer.tostring(b: buffer): string`
 
 Returns the buffer data as a string.
 
