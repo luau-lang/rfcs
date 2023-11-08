@@ -1,0 +1,14 @@
+name: 'Close stale PRs'
+on:
+  schedule:
+    - cron: '0 0 * * *'
+
+jobs:
+  stale:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/stale@v8
+        with:
+          stale-pr-message: 'This RFC has been stale for 30 days. It will be closed in 30 days if no further activity occurs.'
+          days-before-stale: 30
+          days-before-close: 30
