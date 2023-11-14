@@ -61,7 +61,7 @@ local function example()
 end
 ```
 
-Attributes with parameters are not included in this porposal because it's unclear what the syntax and limitations should be. However, the syntax proposed would not conflict with a future addition of parameters provided they used proper delimiters.
+Attributes with parameters are not included in this proposal because it's unclear what the syntax and limitations should be. However, the syntax proposed would not conflict with a future addition of parameters provided they used proper delimiters.
 
 User-defined attributes are not proposed because they are considered incompatible with Luau's goals of being a simple but safe-to-embed language. Since the compiler would at least in part be controlled by attributes, allowing them to be implemented by users would be either prohibitively complex or unsafe.
 
