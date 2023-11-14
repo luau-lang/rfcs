@@ -24,7 +24,7 @@ local sqrt = require("../MathHelperFunctions/sqrt")
 If we then launched the Luau CLI from the directory `/Users/JohnDoe/Projects/MyCalculator` and required `math.luau` as follows:
 
 ```lua
-> local math = require("/Users/JohnDoe/LuauModules/Math/math")
+local math = require("/Users/JohnDoe/LuauModules/Math/math")
 ```
 
 This would cause the following:
