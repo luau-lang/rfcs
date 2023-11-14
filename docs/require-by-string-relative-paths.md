@@ -48,10 +48,6 @@ Modules can be required relative to the requiring file's location in the filesys
 
 If we are trying to require a module called `MyModule.luau` in `C:/MyLibrary`:
 ```lua
--- From C:/MyLibrary/SomeModule.luau
-local MyModule = require("MyModule")
-
--- Same as above, identical behavior
 local MyModule = require("./MyModule")
 
 -- From C:/MyLibrary/SubDirectory/SubModule.luau
@@ -61,7 +57,7 @@ local MyModule = require("../MyModule")
 local MyModule = require("../MyLibrary/MyModule")
 ```
 
-Relative paths can begin with `./` or `../`, which denote the directory of the requiring file and its parent directory, respectively. When a relative path does begin with one of these prefixes, it will only be resolved relative to the requiring file. If these prefixes are not provided, path resolution will fallback to checking the paths in the `paths` configuration variable, as described later.
+Relative paths must begin with `./` or `../`, which denote the directory of the requiring file and its parent directory, respectively. When a relative path does begin with one of these prefixes, it will only be resolved relative to the requiring file. If these prefixes are not provided, path resolution will fallback to checking the paths in the `paths` configuration variable, as described later.
 
 When a require statement is executed directly in a REPL input prompt (not in a file), relative paths will be evaluated in relation to the pseudo-file `stdin`, located in the current working directory. If the code being executed is not tied to a file (e.g. using `loadstring`), executing any require statements in this code will result in an error.
 
