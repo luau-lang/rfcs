@@ -22,16 +22,16 @@ Aliases can be used to bind an absolute or relative path to a convenient, case-i
 }
 ```
 
-Based on the alias map above, you would be able to require Roact directly:
+Based on the alias map above, you would be able to require Roact directly with an `@` prefix:
 
 ```lua
-local Roact = require("Roact")
+local Roact = require("@Roact")
 ```
 
 Or even a sub-module:
 
 ```lua
-local createElement = require("Roact/createElement")
+local createElement = require("@Roact/createElement")
 ```
 
 Aliases are overrides. Whenever the first component of a path exactly matches a pre-defined alias, it will be replaced before the path is resolved to a file. Alias names are also restricted to the charset `[A-Za-z0-9.\-_]`.
@@ -211,8 +211,8 @@ For example, if we wanted to require `Roact` in `module.luau`, we could add the 
 
 Then, we could simply write the following in `module.luau`, and everything would work as intended:
 ```lua
-local Roact = require("Roact")
-local Component = require("Roact/Component")
+local Roact = require("@Roact")
+local Component = require("@Roact/Component")
 ```
 
 If we ever wanted to change the version of `Roact` used by `luau-aliases-project`, we would simply change the absolute path to `Roact` in `.luaurc`. By abstracting away the exact location of globally installed libraries like this, we get clean, readable code, and we make it easier for a future package manager to update dependencies by modifying `.luaurc` files.
