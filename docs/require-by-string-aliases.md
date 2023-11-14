@@ -14,7 +14,7 @@ Luau itself currently supports a basic require-by-string syntax that allows for 
 
 #### Aliases
 
-Aliases can be used to bind an absolute or relative path to a convenient, case-sensitive name that can be required directly.
+Aliases can be used to bind an absolute or relative path to a convenient, case-insensitive name that can be required directly. 
 
 ```json
 "aliases": {
@@ -34,7 +34,7 @@ Or even a sub-module:
 local createElement = require("Roact/createElement")
 ```
 
-Aliases are overrides. Whenever the first component of a path exactly matches a pre-defined alias, it will be replaced before the path is resolved to a file.
+Aliases are overrides. Whenever the first component of a path exactly matches a pre-defined alias, it will be replaced before the path is resolved to a file. Alias names are also restricted to the charset `[A-Za-z0-9.-_]`
 
 ### Package management
 
