@@ -246,7 +246,7 @@ This allows us to refer to other subprojects like this, regardless of the exact 
 local subproject1 = require("com.roblox.luau/subproject-1")
 ```
 ### Roblox Specifics
-In the Roblox engine, a similar aliasing system could be implemented. Assuming a central package management system were available, a Roblox Script could contain local Roact = require("Roact"), and everything would "just work".
+In the Roblox engine, a similar aliasing system could be implemented. Assuming a central package management system were available, a Roblox Script could contain local Roact = require("@Roact"), and everything would "just work".
 
 ## Drawbacks
 ## Backwards Compatibility
