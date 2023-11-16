@@ -138,19 +138,6 @@ local dependency = require("dependency")
 
 Using the `paths` array allows Luau developers to organize their projects however they like without compromising code readability.
 
-### Large-scale projects in Luau
-
-For large-scale Luau projects, we might imagine that every dependency of the project is a Luau project itself. We might use an organizational structure like this to create a clean hierarchy:
-
-```
-large-luau-project
-├── .luaurc
-├── subproject-1
-├── subproject-2
-└── subproject-3
-```
-
-
 ##### Current limitations of aliases
 
 - Aliases cannot reference other aliases. (However, this is compatible with this proposal and will likely be implemented in the future.)
