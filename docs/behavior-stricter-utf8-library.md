@@ -1,5 +1,7 @@
 # Stricter utf8 library validation
 
+**Status**: Implemented
+
 ## Summary
 
 `utf8.len` and other functions in UTF-8 library will do more rigorous validation of UTF-8 input, rejecting UTF-16 surrogates encoded into UTF-8.
