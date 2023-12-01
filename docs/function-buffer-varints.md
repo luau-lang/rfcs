@@ -53,7 +53,7 @@ The `buffer` library will receive 4 new functions:
 buffer.readleb128(b: buffer, offset: number): number
 buffer.readuleb128(b: buffer, offset: number): number
 
-buffer.readleb128(b: buffer, offset: number, value: number): ()
+buffer.writeleb128(b: buffer, offset: number, value: number): ()
 buffer.writeuleb128(b: buffer, offset: number, value: number): ()
 ```
 
