@@ -1,3 +1,4 @@
+
 # Varint Functions for Buffers
 
 ## Summary
@@ -42,8 +43,7 @@ local function readuleb128(stream)
   return result
 end
 ```
-
-The functions above are inefficient and difficult to understand compared to a native implementation. Implementations will also be needed for the corresponding signed functions.
+The functions above are inefficient and difficult to understand compared to a library implementation. In some very common examples such as network event compression or data decompression, these functions can be called hundreds or even thousands of times per second. Library implementations would solve all readability/complexity, performance, and compression efficiency problems.
 
 ## Design
 
@@ -61,10 +61,10 @@ Since other numbers in the buffer library have unsigned and signed implementatio
 
 ## Drawbacks
 
-The only drawback known is a marginal increase in built-in complexity. However, the performance benefit from having native implementations of these functions outweighs the negligible change in complexity and is not a serious concern.
+The only drawback known is a marginal increase in library complexity. However, the performance benefit from having library implementations of these functions outweighs the negligible change in complexity and is not a serious concern.
 
 ## Alternatives
 
-Serialization and deserialization for varints can be recreated directly in Luau. However, the algorithm for doing this may be complicated for less-experienced programmers as it involves bitwise operations. Additionally, the algorithm requires repeated buffer reads and calls to bitwise functions to function correctly, which is far less performant than it could be in native code.
+Serialization and deserialization for varints can be recreated directly in Luau. However, the algorithm for doing this may be complicated for less-experienced programmers as it involves bitwise operations. Additionally, the algorithm requires repeated buffer reads and calls to bitwise functions to function correctly, which is far less performant than a library implementation.
 
-It is also possible to have a function that serializes a number in the smallest amount of bits it can fit into. However, to read it, the amount of bits it was serialized in would also have to be included. This count of how many bytes to read would also have to be stored in the buffer, which adds an extra byte of unnecessary data.
+It is also possible to have a function that serializes a number in the smallest amount of bytes it can fit into. However, to read it, the amount of bytes would also have to be included. This size to read would also have to be stored in the buffer, which adds an extra byte of unnecessary data.
