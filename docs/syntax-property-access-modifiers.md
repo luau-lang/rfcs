@@ -54,6 +54,22 @@ type MixedMap = { read [string]: Animal, write [string]: Dog }
 type MixedArray = { read Animal, write Dog }
 ```
 
+Redundant record fields are still disallowed: Each field may have at most one
+read type and one write type:
+
+```lua
+type A = { read x: string, write x: "Hello" } -- OK
+type C = { read x: string, read x: "hello" }  -- ERROR
+type B = { x: string, read x: "hello" }       -- ERROR
+```
+
+We place no restriction on the relationship between the read and write type.
+The following is certainly a bad idea, but it is legal:
+
+```lua
+type T = { read n: number, write n: string }
+```
+
 This syntax is readable, matches the flavour of preexisting Luau syntax well,
 and is pretty easy to parse efficiently.
 
