@@ -34,7 +34,7 @@ Or even a sub-module:
 local createElement = require("@Roact/createElement")
 ```
 
-Aliases are overrides. Whenever the first component of a path exactly matches a pre-defined alias, it will be replaced before the path is resolved to a file. Alias names are also restricted to the charset `[A-Za-z0-9.\-_]`. We restrict the charset and make them case insensitive because we envision alias names to be primarily used as package names, which tend to be case insensitive and alphanumeric. Aliases must also begin with an `@`. 
+Aliases are overrides. Whenever the first component of a path exactly matches a pre-defined alias, it will be replaced before the path is resolved to a file. Alias names are also restricted to the charset `[A-Za-z0-9.\-_]`. We restrict the charset and make them case insensitive because we envision alias names to be primarily used as package names, which tend to be case insensitive and alphanumeric.
 
 ### Package management
 
@@ -248,7 +248,7 @@ This alias system introduces a new layer to require that wasn't previously there
 Rather than defining paths/alias maps in an external configuration file, we could alternatively define paths/aliases directly in the files that require them. For example, this could manifest itself through an extension of the `--!` comment syntax or introduce new syntax like `--@<ALIAS> = @<PATH>`.
 ```lua
 --@"Roact" = @"C:/LuauModules/Roact-v1.4.2"
-local Roact = require("@Roact")
+local Roact = require("Roact")
 
 -- Same as this:
 local Roact = require("C:/LuauModules/Roact-v1.4.2")
