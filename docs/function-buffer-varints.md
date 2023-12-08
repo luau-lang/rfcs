@@ -50,14 +50,16 @@ The functions above are inefficient and difficult to understand compared to a li
 The `buffer` library will receive 4 new functions:
 
 ```
-buffer.readleb128(b: buffer, offset: number): number
-buffer.readuleb128(b: buffer, offset: number): number
+buffer.readleb128(b: buffer, offset: number): (number, number)
+buffer.readuleb128(b: buffer, offset: number): (number, number)
 
-buffer.writeleb128(b: buffer, offset: number, value: number): ()
-buffer.writeuleb128(b: buffer, offset: number, value: number): ()
+buffer.writeleb128(b: buffer, offset: number, value: number): number
+buffer.writeuleb128(b: buffer, offset: number, value: number): number
 ```
 
 Since other numbers in the buffer library have unsigned and signed implementations, it also makes sense to include both options for varints.
+
+The functions take arguments similar to other read/write functions in the buffer library. However, they differ in that they return the amount of bytes that were read/written. In readleb128/readuleb128, this is the second return value. Having these functions return the count is necessary as it must be known in order for users to keep track of the buffer offset.
 
 ## Drawbacks
 
