@@ -34,7 +34,7 @@ Or even a sub-module:
 local createElement = require("@Roact/createElement")
 ```
 
-Aliases are overrides. Whenever the first component of a path exactly matches a pre-defined alias, it will be replaced before the path is resolved to a file. Alias names are also restricted to the charset `[A-Za-z0-9.\-_]`. We restrict the charset and make them case insensitive because we envision alias names to be primarily used as package names, which tend to be case insensitive and alphanumeric.They also must be preceded with an `@` symbol. 
+Aliases are overrides. Whenever the first component of a path exactly matches a pre-defined alias, it will be replaced before the path is resolved to a file. Alias names are also restricted to the charset `[A-Za-z0-9.\-_]`. We restrict the charset and make them case insensitive because we envision alias names to be primarily used as package names, which tend to be case insensitive and alphanumeric. They also must be preceded with an `@` symbol. 
 
 ### Package management
 
