@@ -156,7 +156,7 @@ or the type:
   type Vector2 = { x : number read, y : number read }
 ```
 
-The east-coast options are not easy-to-reade with names, but are
+The east-coast options are not easy-to-read with names, but are
 easier with symbols, especially since `T?` is already postfix, for
 example
 
