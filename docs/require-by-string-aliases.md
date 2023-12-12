@@ -34,7 +34,7 @@ Or even a sub-module:
 local createElement = require("@Roact/createElement")
 ```
 
-Aliases are overrides. Whenever the first component of a path exactly matches a pre-defined alias, it will be replaced before the path is resolved to a file. Alias names are also restricted to the charset `[A-Za-z0-9.\-_]`. We restrict the charset and make them case insensitive because we envision alias names to be primarily used as package names, which tend to be case insensitive and alphanumeric. 
+Aliases are overrides. Whenever the first component of a path exactly matches a pre-defined alias, it will be replaced before the path is resolved to a file. Alias names are also restricted to the charset `[A-Za-z0-9.\-_]`. We restrict the charset and make them case insensitive because we envision alias names to be primarily used as package names, which tend to be case insensitive and alphanumeric. They also must be preceded by an `@` symbol. 
 
 ### Package management
 
@@ -230,7 +230,7 @@ This way, each subproject directory can contain its own source code, dependencie
 
 This allows us to refer to other subprojects like this, regardless of the exact location of the requiring file in `large-luau-project`:
 ```lua
-local subproject1 = require("com.roblox.luau/subproject-1")
+local subproject1 = require("@com.roblox.luau/subproject-1")
 ```
 ### Roblox Specifics
 In the Roblox engine, a similar aliasing system could be implemented. Assuming a central package management system were available, a Roblox Script could contain local Roact = require("@Roact"), and everything would "just work".
@@ -251,7 +251,7 @@ Rather than defining paths/alias maps in an external configuration file, we coul
 local Roact = require("@Roact")
 
 -- Same as this:
-local Roact = require("@C:/LuauModules/Roact-v1.4.2")
+local Roact = require("C:/LuauModules/Roact-v1.4.2")
 ```
 
 Some potential issues with this approach:
