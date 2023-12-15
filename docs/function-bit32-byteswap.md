@@ -1,5 +1,7 @@
 # bit32.byteswap
 
+**Status**: Implemented
+
 ## Summary
 
 Add `bit32.byteswap` to swap the endianness of a 32-bit integer.

@@ -1,5 +1,7 @@
 # Byte buffer type
 
+**Status**: Implemented
+
 ## Summary
 
 A new built-in type to serve as a mutable array of bytes, with a library for reading and writing the contents.
