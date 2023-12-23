@@ -53,6 +53,8 @@ buffer.readi8(b, 0) == 3
 
 Because of the bounds checking requirements, implementation needs a loop to access the buffer bytes, which is potentially slower than what developers can do with existing functions when they know that it's safe to read a larger number and extract bits with bit32 functions.
 
+Because the max size of the buffer is 1GB, `bitOffset` cannot be handled as a 32-bit integer number like byte offset in other buffer functions.
+
 ## Alternatives
 
 A signed version of `readbits` is not proposed to simplify the design. Writing and reading signed values can be performed with a bias.
