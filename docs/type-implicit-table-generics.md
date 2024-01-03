@@ -17,11 +17,11 @@ At an application level, the current workaround for this is to wrap the table in
 local foo = {} :: { [F<any>]: G<any> }
 
 -- public
-local function <T>getFoo(k: F<T>): G<T>
+local function getFoo<T>(k: F<T>): G<T>
 	return foo[k]
 end
 
-local function <T>setFoo(k: F<T>, v: G<T>)
+local function setFoo<T>(k: F<T>, v: G<T>)
 	foo[k] = v
 end
 
