@@ -58,8 +58,8 @@ local foo = {} :: <T>{ [F<T>]: G<T> }
 This is not only simpler code, but shorter without all the duplication or extra api that comes with such a structure. Looking at the syntax, it reads very similarly to if it were a function:
 
 ```lua
-<T>{ [F<T>]: G<T> }
-<T>(F<T>) -> G<T>
+type A = <T>{ [F<T>]: G<T> }
+type B = <T>(F<T>) -> G<T>
 ```
 
 We believe that this implementation is a natural step in the direction towards a fuller Luau type-system, as it already has a functional cousin and practical use-cases. Concerns with api coherency, stylistic coherency, learning curve, acceptance, and more are all already answered with implicit function generics.
