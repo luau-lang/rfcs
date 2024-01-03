@@ -1,14 +1,14 @@
-# Implicit Table Generics
+# Polymorphic Table Types
 
 ## Summary
 
-We propose implementing implicit table generics of the form `<T>{ [F<T>] : G<T> }` analogous to already-existing implicit function generics `<T>(F<T>) -> G<T>`.
+We propose implementing polymorphic tables of the form `<T>{ [F<T>] : G<T> }` analogous to already-existing polymorphic functions `<T>(F<T>) -> G<T>`.
 
 ## Motivation
 
-The goal of this RFC is furthering type-safety and type-representation, especially in niche or performance-critical applications. Implicit function generics exist already in the form `<T>(F<T>) -> G<T>`, where `T` is inferred at the call site, with similar applications.
+The goal of this RFC is furthering type-safety and type-representation, especially in niche or performance-critical applications. polymorphic functions exist already in the form `<T>(F<T>) -> G<T>`, where `T` is inferred at the call site, with similar applications.
 
-At a type level, luau functions and tables are homomorphic as type mappings. One can view a table as a function mapping its keys to its values, or a function as a table with inputs as keys and outputs as values. This change resolves the hole left behind implementing implicit function generics while excluding implicit table generics, forcing type-safe applications to prefer functions over tables as maps.
+At a type level, luau functions and tables are homomorphic as type mappings. One can view a table as a function mapping its keys to its values, or a function as a table with inputs as keys and outputs as values. This change resolves the hole left behind implementing polymorphic functions while excluding polymorphic tables, forcing type-safe applications to prefer functions over tables as maps.
 
 At an application level, the current workaround for this is to wrap the table in a function getter like so:
 
@@ -37,7 +37,7 @@ If we are using a function then one might try and take advantage of the extra in
 
 3. The implementation is opaque and can be modified later without worry.
 4. Mutations require yet another function, a setter, with the cons listed before.
-5. Iteration requires yet another function, or at least stored result of an iterator, reinforcing the cons listed before.
+5. Iterations requires yet another function, or at least stored iterator, reinforcing the cons listed before.
 
 In short, tables are mutable and iterable, functions are not.
 
@@ -47,7 +47,7 @@ This proposal targets users already neck-deep in the type-system supporting libr
 
 ## Design
 
-We propose naturally extending this type-mapping capability to tables in the backwards-compatible form `<T>{ [F<T>]: G<T> }`. We recycle our familiar syntax of implicit function generics and use them in a very similar fashion. If one understands implicit function generics, they will understand this as well. It is backwards compatible as it is currently invalid syntax.
+We propose naturally extending this type-mapping capability to tables in the backwards-compatible form `<T>{ [F<T>]: G<T> }`. We recycle our familiar syntax of polymorphic functions and use them in a very similar fashion. If one understands polymorphic functions, they will understand this as well. It is backwards compatible as it is currently invalid syntax.
 
 To rewrite our previous code example using the new type:
 
@@ -62,16 +62,16 @@ type A = <T>{ [F<T>]: G<T> }
 type B = <T>(F<T>) -> G<T>
 ```
 
-We believe that this implementation is a natural step in the direction towards a fuller Luau type-system, as it already has a functional cousin and practical use-cases. Concerns with api coherency, stylistic coherency, learning curve, acceptance, and more are all already answered with implicit function generics.
+We believe that this implementation is a natural step in the direction towards a fuller Luau type-system, as it already has a functional cousin and practical use-cases. Concerns with api coherency, stylistic coherency, learning curve, acceptance, and more are all already answered with polymorphic functions.
 
 ## Drawbacks
 
 This change may include hidden complexities at an implementation level, but we imagine some relief as aspects of this feature have been implemented before and may potentially be recycled. In this same vein, there is not a worry of hurting the type solver's performance with this feature.
 
-There is little to no concern with feature-creep, as it is a necessity to achieve certain patterns used today while retaining type-safety, for the same reasons implicit function generics exist in their current form.
+There is little to no concern with feature-creep, as it is a necessity to achieve certain patterns used today while retaining type-safety, for the same reasons polymorphic functions exist in their current form.
 
 This feature does complicate the type solver and language, however it is done in the best case scenario as an opt-in complication only by those that need it, typically by tool maintainers and almost never typical users who are not well versed with luau types.
 
 ## Alternatives
 
-The alternatives presented, lying and compromising or using implicit function generics, have real and lasting effects that negatively contribute towards codebases in this predicament.
+The alternatives presented, lying and compromising or using polymorphic functions, have real and lasting effects that negatively contribute towards codebases in this predicament.
