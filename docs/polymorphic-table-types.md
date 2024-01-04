@@ -6,7 +6,7 @@ We propose implementing polymorphic tables of the form `<T>{ [F<T>] : G<T> }` an
 
 ## Motivation
 
-The goal of this RFC is furthering type-safety and type-representation, especially in niche or performance-critical applications. polymorphic functions exist already in the form `<T>(F<T>) -> G<T>`, where `T` is inferred at the call site, with similar applications.
+The goal of this RFC is furthering type-safety and type-representation, especially in niche or performance-critical applications. Polymorphic Functions exist already in the form `<T>(F<T>) -> G<T>`, where `T` is inferred at the call site, with similar applications.
 
 At a type level, luau functions and tables are homomorphic as type mappings. One can view a table as a function mapping its keys to its values, or a function as a table with inputs as keys and outputs as values. This change resolves the hole left behind implementing polymorphic functions while excluding polymorphic tables, forcing type-safe applications to prefer functions over tables as maps.
 
