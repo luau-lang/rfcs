@@ -83,12 +83,13 @@ local a = components[A]
 -- { [Factory<any>]: any? }[Factory<'Bar'>] ==> any?
 local b = components[B]
 ```
-We've lost our type information of `a` and `b` in the last table step!
-- "Why not use a getter?"
-  - Mentioned before, API bloat or performance concerns, getting components from this table usually happens during iterations and thousands of times a frame.
 
-- "Why not implement better metamethod inference?"
-  - The `components` table guarantees users may define their own metatables. Metatables are not an elegant, reliable, or wholly-acceptable solution to this lack of types. However better inference is always a good thing! This is a great idea for a *different* RFC.
+We've lost our type information of `a` and `b` in the last table step!
+
+-   "Why not use a getter?"
+    -   Mentioned before, API bloat or performance concerns, getting components from this table usually happens during iterations and thousands of times a frame.
+-   "Why not implement better metamethod inference?"
+    -   The `components` table guarantees users may define their own metatables. Metatables are not an elegant, reliable, or wholly-acceptable solution to this lack of types. However better inference is always a good thing! This is a great idea for a _different_ RFC.
 
 ## Design
 
@@ -131,6 +132,7 @@ We believe that this implementation is a natural step in the direction towards a
 `function` $\cong$ `table`
 
 ### Inferability
+
 In order for T to be inferable, it must appear in the argument of a function or key of table. If it is not present, the mapped type is left as a free-type, denoted `a`, `b`, ...
 
 ```lua
@@ -148,6 +150,7 @@ In order for T to be inferable, it must appear in the argument of a function or 
 ```
 
 ### Indexers
+
 At the time of this RFC, table types only support a single indexer excluding string keys. This is as complex as a table may be:
 
 ```lua
