@@ -49,7 +49,7 @@ This proposal targets users already neck-deep in the type-system supporting libr
 
 ### Specific Indexer Pattern
 
-We'll demonstrate using a minified ECS api from a library currently in production, getting components from an entity. This library depends on accessing components from tables using their constructors as indexers. The constructors contain the type information of the component, so it is theoretically possible to infer the type of the resulting component from the constructor, but this is not possible as of now because polymorphic tables don't exist.
+We'll demonstrate getting components from an entity using a minified ECS api from a library currently in production. This library depends on accessing components from tables using their constructors as indexers. The constructors contain the type information of the component, so it is theoretically possible to infer the type of the resulting component from the constructor, but this is not possible as of now because polymorphic tables don't exist.
 
 ```lua
 -- <C>(() -> C) -> Factory<C>
