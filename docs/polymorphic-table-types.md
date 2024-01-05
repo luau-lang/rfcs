@@ -94,6 +94,8 @@ We've lost our type information of `a` and `b` in the last table step!
 
 We propose naturally extending this type-mapping capability to tables in the backwards-compatible form `<T>{ [F<T>]: G<T> }`. We recycle our familiar syntax of polymorphic functions and use them in a very similar fashion. If one understands polymorphic functions, they will understand this as well. It is backwards compatible as it is currently invalid syntax.
 
+### General Accessor Solution
+
 To rewrite our previous code examples using the new type:
 
 ```lua
@@ -106,6 +108,8 @@ This is not only simpler code, but shorter without all the duplication or extra 
 type A = <T>{ [F<T>]: G<T> }
 type B = <T>(F<T>) -> G<T>
 ```
+
+### Specific Accessor Solution
 
 Back to the ECS example, we change the type of `components` to be what it should have been all along:
 
@@ -122,17 +126,56 @@ local b = components[B]
 
 And perfect intellisense is now achieved without a single typecast or getter (per component). It was simple too, encouraging the simplest solution in the process.
 
-We believe that this implementation is a natural step in the direction towards a fuller Luau type-system, as it already has a functional cousin and practical use-cases. Concerns with api coherency, stylistic coherency, learning curve, acceptance, and more are all already answered with polymorphic functions. If you want to understand the behavior of a polymorphic table, simply look to the behavior of polymorphic functions as they will have the exact same properties.
+We believe that this implementation is a natural step in the direction towards a fuller Luau type-system, as it already has a functional cousin and practical use-cases. Concerns with api coherency, stylistic coherency, learning curve, acceptance, and more already answered with polymorphic functions. If you want to understand the behavior of a polymorphic table, simply look to the behavior of polymorphic functions as they will have the exact same properties.
 
 `function` $\cong$ `table`
 
+### Inferability
+In order for T to be inferable, it must appear in the argument of a function or key of table. If it is not present, the mapped type is left as a free-type, denoted `a`, `b`, ...
+
 ```lua
-<T>(any) -> T implies T = never
-<T>{ [any]: T } implies T = never
+-- T is inferable
+<T>(any) -> (any) -> ... -> (T) -> G<T>
+
+-- T is inferable
+<T>{ [any]: { [any]: ... { [T]: G<T> } } }
+
+-- T = a
+<T>(any) -> T
+
+-- T = a
+<T>{ [any]: T }
 ```
+
+### Indexers
+At the time of this RFC, table types only support a single accessor excluding string keys. This is as complex as a table may be:
+
 ```lua
-<T>(any) -> (T) -> G<T> implies T is inferable
-<T>{ [any]: { [T]: G<T> } } implies T is inferable
+<T, U...> {
+	string1: F,
+	string2: G,
+	...,
+	[H<T, U...>]: I<T, U...>,
+}
+```
+
+However, if this is to change, the expected behavior of multiple indexers is:
+
+```lua
+<T, U, V> {
+	string1: F, -- Precedence over indexers
+
+	[number]: boolean, -- Precedence over generic indexers, a generic indexer may not be a specific indexer
+
+	-- U = a, ignored in favor of later generic indexer, warning about multiple generic indexers
+	[T]: U,
+
+	-- T = a, ignored in favor of later generic indexer, warning about multiple generic indexers
+	[U]: T,
+
+	-- V is inferable, used because last generic indexer, V ~= number because specific indexer
+	[V]: V,
+}
 ```
 
 ## Drawbacks
@@ -143,7 +186,7 @@ There is little to no concern with feature-creep, as it is a necessity to achiev
 
 This feature does complicate the type solver and language, however it is done in the best case scenario as an opt-in complication only by those that need it, typically by tool maintainers and almost never typical users who are not well versed with luau types.
 
-Native code generation will most likely not be able to optimize any more than it would `{ [any]: any }`.
+Native code generation will most likely not be able to optimize tables of this type any more than it would `{ [any]: any }`.
 
 ## Alternatives
 
