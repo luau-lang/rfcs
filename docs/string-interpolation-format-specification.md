@@ -12,7 +12,7 @@ Most languages allow for format specifiers such as python f-strings or printf in
 
 Under the hood, this will just be syntactic sugar in addition to the current implementation of interpolated strings. Before, interpolated strings were passed to `string.format` with no format was speified, but now we will also pass the optional format specifier. We decided on `,` to act as the delimiter for format specification.
 
-To give some examples, this is how it would look like in code
+To give some examples, this is how it would look like in code:
 
 ```lua
 balance = 100.2035
@@ -25,6 +25,8 @@ number = 12345
 print(`12345 is 0x{number,x} in hex!`)
 ```
 `12345 is 0x3039 in hex!`
+
+This will support most additions that could be made to `string.format` in the future as well. 
 
 ## Drawbacks
 
