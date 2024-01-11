@@ -10,7 +10,7 @@ Most languages allow for format specifiers such as python f-strings or printf in
 
 ## Design
 
-Under the hood, this will just be syntactic sugar in addition to the current implementation of interpolated strings. Before, interpolated strings were passed to `string.format` with no format was speified, but now we will also pass the optional format specifier. We decided on `,` to act as the delimiter for format specification.
+Under the hood, this will just be syntactic sugar in addition to the current implementation of interpolated strings. Before, interpolated strings were passed to `string.format` with no format was specified, but now we will also pass the optional format specifier. We decided on `,` to act as the delimiter for format specification.
 
 To give some examples, this is how it would look like in code:
 
