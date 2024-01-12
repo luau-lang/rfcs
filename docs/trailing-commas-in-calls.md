@@ -88,7 +88,8 @@ function f(
 ```
 
 Trailing comma is not allowed after `...` as it is never correct to put more arguments after the ellipsis. This is consistent with:
-- JavaScript - Supports `function f(a, b,)`, but `function f(...a,) {}` results in "Rest parameter must be last formal parameter".
+- JavaScript supports `function f(a, b,)`, but `function f(...a,) {}` results in "Rest parameter must be last formal parameter".
+- Rust supports `Struct { a, ..Default::default() }`, but not `Struct { a, ..Default::default(), }`
 
 Though this is not universally agreed upon:
 - Rust's unstable C variadics support `unsafe extern "C" fn f(a: u32, ...,) {}`, though this syntax is not finalized.
