@@ -2,7 +2,7 @@
 
 ## Summary
 
-We need syntax to match the semantics of read-only and writed-only modifiers for table properties and indexers.
+We need syntax to match the semantics of read-only and write-only modifiers for table properties and indexers.
 
 ## Motivation
 
@@ -76,10 +76,10 @@ and is pretty easy to parse efficiently.
 ## Drawbacks
 
 We expect it to be very commonplace to have table types containing read-only
-functions.  This syntax is a little bit verbose and maybe not intuitive for that
+functions.  This syntax is a little bit verbose and maybe unintuitive for that
 use case.
 
-`read` and `write` are also really useful method names.  It's a little bit
+`read` and `write` are also very useful method names.  It's a little bit
 awkward to talk about a table that has a `read` or a `write` method:
 
 ```lua
@@ -164,7 +164,7 @@ example
   type Foo = { p: number?+ }
 ```
 
-### How to parse or serialize properties with differing read- and write-types?
+### How do we talk about properties with differing read- and write-types?
 
 One corner case is that type inference may deduce different read- and
 write-types, which need to be presented to the user. For example the
