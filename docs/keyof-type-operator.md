@@ -93,13 +93,11 @@ The remaining bit of complexity is the question of what to do for types that do
 not necessarily have one consistent set of keys. For instance, if you consider
 the type `{ x: number, y: number } | { a: number, y: number }`, you might wonder
 what you would get out of `keyof`. One reasonable answer is `"y"` since that is
-the least common subset of keys present in the components of the union. Another
-reasonable, albeit more conservative, answer is to simply say that the operator
-fails to resolve in this situation. This RFC proposes, admittedly somewhat
-arbitrarily, that we take the conservative stance of failing to resolve since it
-is easier to permit more behavior later than to rule out more later. That being
-said, one of the main points of interest in discussion of this feature is if
-there are any immediate use-cases for this.
+the greatest common subset of keys present in the components of the union.
+Another reasonable, albeit more conservative, answer is to simply say that the
+operator fails to resolve in this situation. This RFC proposes that we return
+the greatest common subset of keys since this corresponds to the set of keys
+that are allowed by indexing operations on tables of that type.
 
 ## Drawbacks
 
@@ -110,7 +108,7 @@ the new type inference engine for Luau, and as such, there is little remaining
 drawback to implementing this. In fact, the implementation is already all done
 in the new type inference engine and amounts to less than 200 lines of code
 including comments. So, beyond looking for motivating examples for potentially
-computing the least common subset of keys for unions of tables and the small
+computing the greatest common subset of keys for unions of tables and the small
 amount of work that implementing that might entail, the author of this RFC hopes
 that this effort is simply an easy win for OOP in Luau supported by the
 technical credit built up by implementing the new type inference engine.
@@ -123,6 +121,6 @@ order to keep things simpler, but both have corresponding operations in the
 language, and seem useful, and almost all of the work to implement them is
 shared. So, doing less here doesn't really save us anything. The other
 alternative is surrounding the choice of what to do when the set of keys are not
-identical across unions of tables. The proposal here was to fail to reduce, and
-thus to produce a type error, but the alternative of providing the least common
-subset seems perfectly reasonable as well.
+identical across unions of tables. The proposal here was to provide the greatest
+common subset of keys, but the alternative of failing to reduce and thus
+producing a type error seems perfectly reasonable as well.
