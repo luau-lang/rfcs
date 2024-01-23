@@ -6,7 +6,7 @@
 This RFC proposes the addition of new functions to the buffer API:
 
 - `buffer.readleb128` 
-- `buffer.readleb128`
+- `buffer.writeleb128`
 - `buffer.readuleb128`
 - `buffer.writeuleb128` 
 
