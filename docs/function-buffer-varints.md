@@ -21,13 +21,21 @@ The following are implementations of ULEB-128 reading/writing in Luau:
 ```lua
 local function writeuleb128(stream, offset, value)
   local start = offset
+  local length = buffer.len(stream)
 	
-  while value >= 0x80 do
-    buffer.writeu8(stream, offset, bit32.bor(bit32.band(value, 0x7f), 0x80))
-    value = bit32.rshift(value, 7)
-    offset = offset + 1
+  while true do
+	if offset >= length then
+		error("buffer access out of bounds")
+	end
+	if value >= 0x80 then
+		buffer.writeu8(stream, offset, bit32.bor(bit32.band(value, 0x7f), 0x80))
+		value = bit32.rshift(value, 7)
+		offset = offset + 1
+	else
+		buffer.writeu8(stream, offset, value)
+		break
+	end
   end
-  buffer.writeu8(stream, offset, value)
 
   return (offset - start) + 1
 end
@@ -40,9 +48,9 @@ local function readuleb128(stream, offset)
     local start = offset
 
     repeat
-        local byte = buffer.readu8(stream, offset)
-        result = bit32.bor(result, bit32.lshift(bit32.band(byte, 0x7f), shift))
-        shift, offset = shift + 7, offset + 1
+	local byte = buffer.readu8(stream, offset)
+	result = bit32.bor(result, bit32.lshift(bit32.band(byte, 0x7f), shift))
+	shift, offset = shift + 7, offset + 1
     until byte < 0x80 or length <= offset
 
     return result, offset - start
