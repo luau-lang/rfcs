@@ -19,30 +19,36 @@ One of the top use cases for buffers is compressing and serializing data as smal
 The following are implementations of ULEB-128 reading/writing in Luau:
 
 ```lua
-local function writeuleb128(stream, value)
+local function writeuleb128(stream, offset, value)
+  local start = offset
+	
   while value >= 0x80 do
-    buffer.writeu8(bit32.bor(bit32.band(value, 0x7f), 0x80))
+    buffer.writeu8(stream, offset, bit32.bor(bit32.band(value, 0x7f), 0x80))
     value = bit32.rshift(value, 7)
+    offset = offset + 1
   end
-  buffer.writeu8(value)
+  buffer.writeu8(stream, offset, value)
+
+  return (offset - start) + 1
 end
 ```
 
 ```lua
-local function readuleb128(stream)
-  local result = 0
-  local bits = 0
-  while true do
-    local byte = buffer.readu8(stream)
-    result = bit32.bor(result, bit32.lshift(bit32.band(byte, 0x7f), bits))
-    if byte < 0x80 then
-      break
-    end
-    bits = bits + 7
-  end
-  return result
+local function readuleb128(stream, offset)
+    local result, shift = 0, 0
+    local length = buffer.len(stream)
+    local start = offset
+
+    repeat
+        local byte = buffer.readu8(stream, offset)
+        result = bit32.bor(result, bit32.lshift(bit32.band(byte, 0x7f), shift))
+        shift, offset = shift + 7, offset + 1
+    until byte < 0x80 or length <= offset
+
+    return result, offset - start
 end
 ```
+
 The functions above are inefficient and difficult to understand compared to a library implementation. In some very common examples such as network event compression or data decompression, these functions can be called hundreds or even thousands of times per second. Library implementations would solve all readability/complexity, performance, and compression efficiency problems.
 
 ## Design
