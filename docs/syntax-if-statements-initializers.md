@@ -50,7 +50,7 @@ end
 
 `Output: true`
 
-When declaring multiple values inside of a condition, only the first condition will be evaluated.
+When declaring multiple values inside of a condition, all of the variables will be evaluated.
 
 Example:
 
@@ -60,6 +60,7 @@ local function foo()
 end
 
 if local a,b = foo() then
+else
     print'Hello World, from Luau!'
 end
 ```
