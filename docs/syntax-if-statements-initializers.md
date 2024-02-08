@@ -84,7 +84,7 @@ if local a, b = foo() in b > a then
 end
 ```
 
-While Luau is a verbose language that uses keywords for the majority of its syntax, another approach is using semicolons as a separator. This can work well because statements can use semicolons as a separator, which will retain consistency with the language.
+While Luau is a verbose language that uses keywords for the majority of its syntax, another approach is using semicolons as a separator. This can work well because statements can use semicolons as a separator, which will retain consistency with the language. The same can be said for the comma, which would be consistent with for loop syntax.
 
 ```lua
 if local a, b = foo(); b > a then
