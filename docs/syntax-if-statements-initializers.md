@@ -67,6 +67,26 @@ end
 
 `Output: Hello World, from Luau!`
 
+If statement initializers are also allowed in `elseif` conditions.
+
+Example:
+
+```lua
+local a = false
+local function foo()
+    local b = a
+    a = true
+    return b
+end
+
+if local a = foo() then
+elseif local b = foo() then
+    print(b)
+end
+```
+
+`Output: true`
+
 # Drawbacks
 
 Parser recovery may be more fragile due to the `local` keyword.
