@@ -12,7 +12,7 @@ The reduced scope pollution improves register space in extreme cases (or auto-ge
 
 # Design
 
-If statements with initializers must match (following the Luau grammar) `'if' 'local' bindinglist ['=' explist] 'then'` and `'local' bindinglist ['=' explist] where exp 'then'` syntax. Parenthesis are also allowed around the initializer for consistency with other expressions. The variables declared by the initializer are only available to the block of that condition and will be undefined to the `elseif` conditions and blocks as well as the `else` block; any code after the if statement won't have the variables defined either.
+If statements with initializers must match (following the Luau grammar) `'if' 'local' bindinglist ['=' explist] 'then'` and `'local' bindinglist ['=' explist] where exp 'then'` syntax. The variables declared by the initializer are only available to the block of that condition and will be undefined to the `elseif` conditions and blocks as well as the `else` block; any code after the if statement won't have the variables defined either.
 
 In the former case, the value of the first declared variable will be checked.
 
