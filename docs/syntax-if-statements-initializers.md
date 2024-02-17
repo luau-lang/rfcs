@@ -50,7 +50,7 @@ end
 
 `Output: true`
 
-When declaring multiple values inside of a condition, all of the variables will be evaluated.
+When declaring multiple values inside of a condition, all of the variables will be tested for truthiness.
 
 Example:
 
