@@ -6,7 +6,7 @@ Allow the use of `|` and `&` without any types preceding them.
 
 ## Motivation
 
-Occasionally, you will have many different types in a union or intersection types that exceeds a reasonable line limit and end up formatting it to avoid horizontal scrolling. Using the English alphabet as an example:
+Occasionally, you will have many different types in a union or intersection type that exceeds a reasonable line limit and end up formatting it to avoid horizontal scrolling. Using the English alphabet as an example:
 
 ```lua
 type EnglishAlphabet = "a" | "b" | "c" | "d" | "e" | "f" | "g" | "h" | "i" | "j" | "k" | "l" | "m" | "n" | "o" | "p" | "q" | "r" | "s" | "t" | "u" | "v" | "w" | "x" | "y" | "z" | "A" | "B" | "C" | "D" | "E" | "F" | "G" | "H" | "I" | "J" | "K" | "L" | "M" | "N" | "O" | "P" | "Q" | "R" | "S" | "T" | "U" | "V" | "W" | "X" | "Y" | "Z"
