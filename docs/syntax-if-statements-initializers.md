@@ -8,7 +8,47 @@ Introduce an initializer expression that declares and initializes variables in i
 
 Initializers can improve code clarity and reduce scope pollution by allowing developers to declare variables in the conditions of if statements. ⁤⁤ Declaring variables at the point of use in if statements for the scope of the if statement's blocks simplifies code, leading to better readability and understanding of program logic. By limiting the scope of variables to the if statement's blocks, the risk of unintended variable reuse and naming conflicts is reduced. ⁤
 
-The reduced scope pollution improves register space in extreme cases (or auto-generated code) where developers have many variables defined and have to work around register limits by reducing the register size. In some scenarios, especially on Roblox, initializing variables within if statements can lead to improved performance and reduced complexity by avoiding unnecessary calls by developers. ⁤ A common paradigm used by Roblox developers is to use `Instance:FindFirstChild` in their condition and then access it afterwards instead of keeping an existing variable around in the new scope, polluting the existing scope.
+The reduced scope pollution improves register space in extreme cases (or auto-generated code) where developers have many variables defined and have to work around register limits by reducing the register size. In some scenarios, especially on Roblox, initializing variables within if statements can lead to improved performance and reduced complexity by avoiding unnecessary calls by developers. ⁤ A common paradigm used by Roblox developers is to use `Instance:FindFirstChild` in their condition and then access it afterwards instead of keeping an existing variable around in the new scope, polluting the existing scope. 
+
+Another benefit provided by initializers is being able to compact verbose guard clauses into a singular if statement.   
+
+Example:
+
+```lua
+function PlayerControl:GetEntities()
+    if self.RemovedSelf then
+        return self.Instances
+    end
+
+    local entity = self:TryGetEntity()
+    if entity == nil then
+        return self.Instances
+    end
+
+    local index = table.find(self.Instances, entity.Root)
+    if index == nil then
+        return self.Instances
+    end
+
+    table.remove(self.Instances, index)
+    self.RemovedSelf = true
+
+    return self.Instances
+end
+```
+
+```lua
+function PlayerControl:GetEntities()
+    if self.RemovedSelf then
+    elseif local entity = self:TryGetEntity() where entity == nil then
+    elseif local index = table.find(self.Instances, entity.Root) then
+        table.remove(self.Instances, index)
+        self.RemovedSelf = true
+    end
+
+    return self.Instances
+end
+```
 
 # Design
 
