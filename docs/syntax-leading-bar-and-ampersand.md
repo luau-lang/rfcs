@@ -19,7 +19,7 @@ type EnglishAlphabet = never
     | "a" | "b" | "c" | "d" | "e" | "f" | "g" | "h" | "i" | "j" | "k" | "l" | "m"
     | "n" | "o" | "p" | "q" | "r" | "s" | "t" | "u" | "v" | "w" | "x" | "y" | "z"
     | "A" | "B" | "C" | "D" | "E" | "F" | "G" | "H" | "I" | "J" | "K" | "L" | "M"
-    | "N" | "O" | "P" | "Q" | "R" | "S" | "T" | "U" | "V" | "W" | "X" | "Y" | "Z";
+    | "N" | "O" | "P" | "Q" | "R" | "S" | "T" | "U" | "V" | "W" | "X" | "Y" | "Z"
 ```
 
 Currently, there are two solutions to effect it:
@@ -59,8 +59,8 @@ type 'a tree =
 
 ```ts
 type Tree<T> =
-  | { type: "leaf" }
-  | { type: "node", left: Tree<T>, value: T, right: Tree<T> }
+    | { type: "leaf" }
+    | { type: "node", left: Tree<T>, value: T, right: Tree<T> };
 ```
 
 ## Design
@@ -69,8 +69,8 @@ This type becomes valid Luau syntax.
 
 ```lua
 type Tree<T> =
-  | { type: "leaf" }
-  | { type: "node", left: Tree<T>, value: T, right: Tree<T> }
+    | { type: "leaf" }
+    | { type: "node", left: Tree<T>, value: T, right: Tree<T> }
 ```
 
 ## Drawbacks
