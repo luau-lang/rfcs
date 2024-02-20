@@ -24,8 +24,8 @@ type EnglishAlphabet = never
 
 Currently, there are two solutions to effect it:
 
-1) Moving `=` to the next line
-2) Keep `=` on the line and add `never` if using `|`, or `unknown` if using `&`.
+1. Moving `=` to the next line
+2. Keep `=` on the line and add `never` if using `|`, or `unknown` if using `&`
 
 ```lua
 -- 1) union:
