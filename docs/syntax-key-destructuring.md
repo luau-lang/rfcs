@@ -41,7 +41,7 @@ local style = props.style
 ```js
 const { position, style } = props
 
-// Or even...
+// Supported in JavaScript, but not this proposal
 function MyComponent({
 	position,
 	style,
@@ -63,9 +63,9 @@ get("/users", ({
 This RFC proposes expanding the grammar of `binding`:
 ```patch
 binding = NAME [':' Type]
-+         | `{` keydestructor [`,` keydestructor] [`,`] `}` [':' Type]
++         | `{` keydestructor { [`,` keydestructor] } [`,`] `}` [':' Type]
 
-+keydestructor = `.` NAME [':' Type]
++keydestructor = `.` NAME [`as` NAME] [':' Type]
 ```
 
 This would allow for the following:
@@ -74,9 +74,6 @@ This would allow for the following:
 local { .a, .b }, c = t
 
 for _, { .a, .b } in ts do
-end
-
-local function f({ .a, .b }, c)
 end
 ```
 
@@ -96,6 +93,14 @@ local { .x, .y }
 
 ...is valid to parse and will execute, but can be linted against. This might even be emergent, as this will be statically equivalent to `nil.x`, which Luau's type system can catch.
 
+#### Function arguments
+Functions use `parlist`, which eventually uses `binding`. However, attempting to use key destructuring in a function body is not supported.
+
+```lua
+-- NOT supported
+local function f({ .x, .y })
+```
+
 #### Types
 An optional type can be supplied, such as:
 ```lua
@@ -112,12 +117,6 @@ Without explicit types, local assignments and for loops will assume the type of 
 local { .x, .y } = position :: { number }
 ```
 
-As a function argument, it will act the same as if writing it out by hand, where anonymous types are created:
-```lua
--- Will be f({+ x: a, y: b +})
-local function f({ .x, .y })
-```
-
 Additionally, you can specify a type on the "table" as a whole.
 
 ```lua
@@ -131,14 +130,21 @@ Combining both is acceptable, in which case the type on the variable takes prior
 local { .x: number, .y }: T = p
 ```
 
-### Non-designs
-#### Renaming variables
-This proposal does not allow something like JavaScript's:
-```js
-const { a: b } = t
+#### Variable renaming
+
+This proposal allows for renaming the assignments using `as`.
+
+```lua
+local { .real as aliased } = t
+-- is equivalent to...
+local aliased = t.real
 ```
 
-...where `t.a` is bound to `b`. This is not undesired, but this RFC is not concerned with it for now. This also means that any field you want to destruct must be a valid Luau identifier.
+This helps support mutliple assignments on the same name:
+```lua
+local { .name as nameA } = getObject(a)
+local { .name as nameB } = getObject(b)
+```
 
 #### Arrays
 This RFC does not concern itself with array destructuring. This is in part because it is not obvious what a reasonable syntax for it would be, and because its purposes might be better suited by tuples.
@@ -161,22 +167,48 @@ While with only this RFC, this is unambiguous with 2 lookahead (`{` + `.`), it c
 
 ## Drawbacks
 
+### Only identifiers as keys
+This syntax only proposes `.NAME`, which means it must be a valid name, even if renamed.
+
+The syntax could support `.["key with spaces"]`, but this may open up a can of worms about custom expressions (`.[expr]`). This proposal does not add support for it, though it also does not block it from being added.
+
+This also blocks nested destructuring, such as JavaScript's `const { a: { b } } = t` to mean `b = t.a.b`.
+
 ### Roblox - Property casing
-Today in Roblox, every index doubly works with camel case, such as `part.position` being equivalent to `part.Position`. This use is considered deprecated and frowned upon. However, without (or even with) variable renaming, this becomes significantly more appealing. For example, it is common you will only want a few pieces of informaiton from a `RaycastResult`, so you might be tempted to write:
+Today in Roblox, every index doubly works with camel case, such as `part.position` being equivalent to `part.Position`. This use is considered deprecated and frowned upon. However, even with variable renaming, this becomes significantly more appealing. For example, it is common you will only want a few pieces of informaiton from a `RaycastResult`, so you might be tempted to write:
 
 ```lua
-local { position } = Workspace:Raycast(etc)
+local { .position } = Workspace:Raycast(etc)
 ```
 
 ...which would work as you expect, but rely on this deprecated style.
 
 ## Alternatives
 
-### Syntax
+### Syntax for destructuring
 
 Many syntaxes have been proposed for destructuring. The most significant problem with any proposal is that is must be unambiguous to the reader whether or not the destructor is for **dictionaries** or for **arrays**.
 
 An intuitive suggestion is `local { a, b } = t`, but this syntax fails this test--it is not obvious if this is `local a = t.a` or `local a = t[1]`, regardless of whatever syntax is chosen for array destructuring (should it exist).
 
-### Focus more precisely, rather than using binding
-We could only allow this more precisely, such as just on local assignments. This would satisfy the use case of library importing and React properties (partially, since it would be its own line), but this would limit the use case of tables as arguments to functions, such as in the motivating HTTP request example.
+### Syntax for renaming
+
+`as` does not currently exist in Luau, and thus will not be intuitive to write. We could use `=`, but this doesn't produce a delightful syntax either.
+
+If we simply replace `as` with `=`, though it would parse, it does not read like any other assignment in Luau.
+
+```lua
+local { .x = y } = t
+```
+
+In Luau, variable assignments follow "name = assignment", whereas this flips it around as "assignment = name".
+
+If we flip it on the left...
+
+```lua
+local { y = .x } = t
+```
+
+...then it is no longer obvious how we might implement defaulting, such as JavaScript's `const { x = 5 } = obj;`. Note that this RFC does not prevent defaulting, but we may want it at some point.
+
+Furthermore, it would not be as easily expandable to something like nested destruction in terms of readability.
