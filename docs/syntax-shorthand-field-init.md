@@ -53,10 +53,11 @@ end
 
 return table.freeze(module)
 ```
-Using this method, the name of the returned table needs to be written (2 + n) times, where n is the
-number of variables you export. Every exported variable also needs to be written at least one or
-three times. Potentially three times because you may need to localize exported variables before
-adding them to the returned table. An example of this would be the following.
+Using this method, you lose localization of exported variables, which for example may have a
+negative impact on performance. Furthermore, the name of the returned table needs to be written
+(2 + n) times, where n is the number of variables you export. Every exported variable also needs to
+be written at least one or three times. Potentially three times because you may need to localize
+exported variables before adding them to the returned table. An example of this would be the following.
 ```lua
 local module = {}
 
