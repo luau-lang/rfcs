@@ -86,7 +86,7 @@ local SOME_EXPORTED_VARIABLE: TypeWhichSomeExportedVariableHas = {
 }
 
 return table.freeze({
-    .init,
+    .SOME_EXPORTED_VARIABLE,
 })
 ```
 Which (arguably) is better.
