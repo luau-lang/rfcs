@@ -33,6 +33,7 @@ local function f(e: number | string)
 
     -- Not OK
     noop(e :: boolean) -- (number | string) & boolean ~ never
+    noop(e :: never)   -- (number | string) & never ~ never
 
     -- Special cases
     noop(error("") :: string) -- OK
