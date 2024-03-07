@@ -45,7 +45,7 @@ The reason why the special case oughtn't report an error is to support ad hoc ty
 ```lua
 local x = error("") :: string | number
 -- versus
-local x = if math.random() > 0.5 then "hello" :: string else 5
+local x = if math.random() > 0.5 then "hello" else 5
 ```
 
 We don't apply the same special case for `T`, otherwise we won't report an error when `e : string` and `T` is `never`. This would mean we get to support the exhaustive analysis use case:
