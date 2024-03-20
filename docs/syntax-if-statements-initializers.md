@@ -52,7 +52,24 @@ end
 
 # Design
 
-If statements with initializers must match (following the Luau grammar) `'if' 'local' bindinglist ['=' explist] 'then'` and `'local' bindinglist ['=' explist] where exp 'then'` syntax. The variables declared by an initializer are only available to the if statement's blocks; any code after the if statement won't have the variables defined.
+If statements with initializers must match the below grammar. The variables declared by an initializer are only available to the if statement's blocks; any code after the if statement won't have the variables defined.
+
+```diff
+  stat = varlist '=' explist |
+      ...
+      'repeat' block 'until' exp |
+-     'if' exp 'then' block {'elseif' exp 'then' block} ['else' block] 'end' |
++     'if' cond 'then' block {'elseif' cond 'then' block} ['else' block] 'end' |
+      'for' binding '=' exp ',' exp [',' exp] 'do' block 'end' |
+      ...
+
+- ifelseexp = 'if' exp 'then' exp {'elseif' exp 'then' exp} 'else' exp
++ ifelseexp = 'if' cond 'then' exp {'elseif' cond 'then' exp} 'else' exp
+
++ cond = 'local' binding '=' exp ['where' exp] |
++     'local' bindinglist '=' explist 'where' exp |
++     exp
+```
 
 In the former case, the value of the first declared variable will be checked.
 
