@@ -79,12 +79,12 @@ Most of the features attributes can support could be implemented by refining the
 
 Attributes are distinct from decorators in that they are compiler defined and thus cannot be defined during runtime. An alternative use for this syntax may be user-defined decorators as in JavaScript. If the language provided special built-in decorators, this could serve a very similar purpose. This is not rejected on merit, it's simply that attributes have a more obvious path to implementation.
 
-A more complete syntax for attributes with parameters could be proposed instead, but it would require quite a bit more consideration than this proposal. Since it's not currently clear what the needs of attribute parameters are, any proposed syntax would be speculative and might be overly or underly ambituous. Many of the 'obvious' attributes don't require parameters to be useful, so in the current state of this proposal is designed to be straightforward to facilitate their implementation.
+A more complete syntax for attributes with parameters could be proposed instead, but it would require quite a bit more consideration than this proposal. Since it's not currently clear what the needs of attribute parameters are, any proposed syntax would be speculative and might be overly or underly ambitious. Many of the 'obvious' attributes don't require parameters to be useful, so in the current state of this proposal is designed to be straightforward to facilitate their implementation.
 
-Other potential syntaxes that were considred include a Rust-style syntax (`#[attribute]`) and comment directives (`--!attribute`). These were rejected because:
+Other potential syntaxes that were considered include a Rust-style syntax (`#[attribute]`) and comment directives (`--!attribute`). These were rejected because:
 
 - `#` is used in other places in the language, where it means something totally unrelated
 
-- Comments beng used to control language features and flow means that tooling and users must care about them, which is antithetical to how comments are traditionally used
+- Comments being used to control language features and flow means that tooling and users must care about them, which is antithetical to how comments are traditionally used
 
 As proposed, attributes would only be applicable on functions at first. They could instead be added to the entire language at once, which would facilitate widespread adoption immediately. However, that is a lot more work, and most of the potential uses for attributes are on functions, so it makes sense to begin with them.
