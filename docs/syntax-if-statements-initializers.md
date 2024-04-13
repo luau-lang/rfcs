@@ -62,10 +62,6 @@ If statements with initializers must match the below grammar. The variables decl
 +     'if' cond 'then' block {'elseif' cond 'then' block} ['else' block] 'end' |
       'for' binding '=' exp ',' exp [',' exp] 'do' block 'end' |
       ...
-
-- ifelseexp = 'if' exp 'then' exp {'elseif' exp 'then' exp} 'else' exp
-+ ifelseexp = 'if' cond 'then' exp {'elseif' cond 'then' exp} 'else' exp
-
 + cond = 'local' binding '=' exp ['where' exp] |
 +     'local' bindinglist '=' explist 'where' exp |
 +     exp
