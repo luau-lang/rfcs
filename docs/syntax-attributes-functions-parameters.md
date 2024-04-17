@@ -17,7 +17,9 @@ attribute = '@' NAME
           | '@' NAME '(' ATOMIC-LITERAL (',' ATOMIC-LITERAL)* ')'
 ```
 
-The only extension proposed to the [Attributes](./syntax-attributes-functions.md) RFC is in the second line which allows one or more comma-separated literals to be supplied to the attribute. The `ATOMIC-LITERAL` category includes values of type `boolean`, `number`, `string`, and the `nil` value. There are three notable exclusions in this syntax. 
+The only extension proposed to the [Attributes](./syntax-attributes-functions.md) RFC is in the second line which allows one or more comma-separated literals to be supplied to the attribute. The `ATOMIC-LITERAL` category includes values of type `boolean`, `number`, `string`, and the `nil` value. The `nil` value can be be used for "optional" parameters when no valid value exists. As a hypothetical example, consider the `@deprecated(<new-function-name>, <warning-message>)` attribute. Assume a function is being marked deprecated because we are getting rid of the feature entirely and there is no other function replacing it. In that case, we can pass `nil` for the `<new-function-name>` parameter. An alternative would be to allow this attribute to have either one or two parameters. But that still won't help when an attribute can take three parameters and we want to ignore the second.
+
+There are three notable exclusions in this syntax. 
 
 1. Literal `table` values are excluded from being passed as parameters since they are composite structures; information supplied via table fields can be passed as separate parameters to the attribute. If they are still deemed useful, a follow-up RFC can introduce them with motivating use cases.
 2. Attributes with empty parameter lists are disallowed. It can be argued that this leads to syntactic irregularity, but attributes with empty parameter lists convey no useful information over parameterless attributes, and have no compelling use case. Furthermore, they might complicate attribute processing in the implementation which will have to check for both `@NAME` and `@NAME()` forms and treat them equally.
