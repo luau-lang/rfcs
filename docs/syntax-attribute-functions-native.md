@@ -2,11 +2,11 @@
 
 ## Summary
 
-This RFC proposes a function-level `@native` attribute to request native compilation for individual functions, independent of the script-level `--!native` hotcomment.
+This RFC proposes a function-level `@native` attribute to request native compilation for individual functions, independent of the script-level `--!native` comment directive.
 
 ## Motivation
 
-Luau's native compiler currently compiles whole scripts annotated with `--!native` hotcomment. However, this provides very coarse-grained control. Since all functions in the script may not benefit from native compilation, developers might be forced to move unrelated functions together to natively compiled scripts. In this RFC, we propose a function-level `@native` attribute to facilitate developers to pick and choose individual functions for native compilation.
+Luau's native compiler currently compiles whole scripts annotated with `--!native` comment directive. However, this provides very coarse-grained control. Since all functions in the script may not benefit from native compilation, developers might be forced to move unrelated functions together to natively compiled scripts. In this RFC, we propose a function-level `@native` attribute to facilitate developers to pick and choose individual functions for native compilation.
 
 ## Design
 
@@ -40,7 +40,7 @@ The implementation _may_ choose to issue warning in the following cases where `@
 
 1. A function has more than one occurrence of `@native` attribute
 2. An inner function has one or more occurrences of `@native` attribute when an _ancestor_ function already has a `@native` attribute.
-3. A function has a `@native` attribute when the script is annotated with `--!native` hotcomment.
+3. A function has a `@native` attribute when the script is annotated with `--!native` comment directive.
 
 ## Drawbacks
 
@@ -51,4 +51,4 @@ Introducing this attribute will have two adverse consequences:
 
 ## Alternatives
 
-The alternative would be to not provide this attribute and rely on `--!native` hotcomment to make compilation decisions on a per-script basis. This might force developers to break their code organization and move unrelated functions together but it does not prevent them from getting performance benefits.
+The alternative would be to not provide this attribute and rely on `--!native` comment directive to make compilation decisions on a per-script basis. This might force developers to break their code organization and move unrelated functions together but it does not prevent them from getting performance benefits.
