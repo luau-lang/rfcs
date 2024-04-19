@@ -6,13 +6,13 @@ This RFC proposes a function-level `@native` attribute to request native compila
 
 ## Motivation
 
-Luau's native compiler currently compiles whole scripts annotated with `--!native` comment directive. However, this provides very coarse-grained control. Since all functions in the script may not benefit from native compilation, developers might be forced to move unrelated functions together to natively compiled scripts. In this RFC, we propose a function-level `@native` attribute to facilitate developers to pick and choose individual functions for native compilation.
+Luau's native compiler currently compiles whole scripts annotated with `--!native` comment directive. The compiler imposes an upper limit on the memory consumed by the generated native code which makes it important to target native compilation for functions that will benefit from it the most. This might force creators to break their code organization and move unrelated functions together to scripts marked `--!native`. In this RFC, we propose a function-level `@native` attribute to facilitate developers to request native compilation for individual functions. In the future, we want Luau's native compiler to automatically pick functions for native compilation, making the `--!native` comment directive redundant. Since compiler heuristics can be suboptimal, the proposed `@native` attribute would still remain useful by providing creators with a way to force native compilation of functions that were not automatically chosen by the compiler but would benefit significantly from native execution.
 
 ## Design
 
-Syntactically, the `@native` attribute takes no parameters. It can be used on both top-level and inner functions. It applies recursively to all the functions defined within the lexical scope of the attributed function because the "inner" functions logically constitute the implementation of the attributed function. Hence, attributing "inner" functions as `@native` will not have any effect if an _ancestor_ function already has a `@native` attribute. 
+Syntactically, the `@native` attribute takes no parameters. It can be used on both top-level and inner functions. It applies recursively to all the functions defined within the lexical scope of the attributed function because the "inner" functions logically constitute the implementation of the attributed function. Hence, attributing "inner" functions as `@native` will not have any effect if an _ancestor_ function already has a `@native` attribute.
 
-In the following example, both `parent` and `child` will be natively compiled. 
+In the following example, both `parent` and `child` will be natively compiled.
 
 ```lua
 @native
@@ -24,7 +24,7 @@ function parent()
 end
 ```
 
-On the other hand, in this example, only `child` will be natively compiled. 
+On the other hand, in this example, only `child` will be natively compiled.
 
 ```lua
 function parent()
