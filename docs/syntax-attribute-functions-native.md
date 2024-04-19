@@ -10,9 +10,9 @@ Luau's native compiler currently compiles whole scripts annotated with `--!nativ
 
 ## Design
 
-Syntactically, the `@native` attribute takes no parameters. It can be used on both top-level and inner functions. It applies recursively to all the functions defined within the lexical scope of the attributed function because the "inner" functions logically constitute the implementation of the attributed function. Hence, attributing "inner" functions as `@native` will not have any effect if an _ancestor_ function already has a `@native` attribute.
+Syntactically, the `@native` attribute takes no parameters. It can be used on both top-level and inner functions. It does not apply recursively to the functions defined within the lexical scope of the attributed function. These "inner" functions have to be explicitly attributed for native compilation.
 
-In the following example, both `parent` and `child` will be natively compiled.
+In the following example, only `parent` will be natively compiled.
 
 ```lua
 @native
@@ -24,9 +24,10 @@ function parent()
 end
 ```
 
-On the other hand, in this example, only `child` will be natively compiled.
+On the other hand, in this example, both `parent` and `child` will be natively compiled.
 
 ```lua
+@native
 function parent()
     @native
     function child()
@@ -39,8 +40,7 @@ end
 The implementation _may_ choose to issue warning in the following cases where `@native` attribute is redundant:
 
 1. A function has more than one occurrence of `@native` attribute
-2. An inner function has one or more occurrences of `@native` attribute when an _ancestor_ function already has a `@native` attribute.
-3. A function has a `@native` attribute when the script is annotated with `--!native` comment directive.
+2. A function has a `@native` attribute when the script is annotated with `--!native` comment directive.
 
 ## Drawbacks
 
