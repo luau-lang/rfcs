@@ -6,7 +6,7 @@ Implement a standard library which provides functionality for the vector type.
 
 ## Motivation
 
-Currently, vectors are a primitive type implemented internally. All of the heavy work to implement vectors is done, but there is no runtime-agnostic way to use vectors in Luau code. This creates a struggle to use native vectors; currently the most popular Luau runtime [Lune](https://github.com/lune-org/lune) doesn't use native vectors. This results in performance drawbacks & difficulty utilizing vectors in cross-runtime code.
+Currently, vectors are a primitive type implemented internally. All of the heavy work to implement vectors is done, but there is no runtime-agnostic way to use vectors in Luau code. This creates a struggle to use native vectors; a Luau runtime [Lune](https://github.com/lune-org/lune) doesn't currently use native vectors. This results in performance drawbacks & difficulty utilizing vectors in cross-runtime code.
 
 ## Design
 
