@@ -2,7 +2,7 @@
 
 ## Summary
 
-Implement a standard library which provides functionality for the vector type.
+Implement a standard library that provides functionality for the vector type.
 
 ## Motivation
 
@@ -16,8 +16,10 @@ Implement a standard library for creating & using the existing vector type.
 
 It's important to keep in mind that this list of implementable functions isn't intended to be exhaustive, but rather to serve as a starting point.
 
-`vector.create(x: number?, y: number?, z: number?)`
+`vector(x: number?, y: number?, z: number?)`
 Creates a vector with 3 components: x, y, z. If the feature flag for wide vectors is enabled, a fourth argument `w: number?` will be introduced. As per standard, vectors wouldn't have a metatable by default. A vector's metatable would need to be set by the C API `lua_setmetatable`.
+
+Due to the common usage of vectors, vector creation should be ergonomic. Therefore, it is probably worth breaking the `create()` naming standard.
 
 `vector.magnitude(vecA: vector): vector`
 Calculates the magnitude of a given vector.
@@ -57,6 +59,6 @@ Do nothing; vectors have an internal constructor, which lets the runtime impleme
 
 ### Alternative implementations
 
-Due to the extremely common and heavy usage of vectors, an alternative to `vector.create` could be something more concise, like `vector.new`. This does break the precedent set by `buffer.create`, `table.create`, and `coroutine.create` though.
+A more standard alternative to `vector(...)` could be something like `vector.create` or `vector.new`. This follows the standard set by `buffer.create`, `coroutine.create`, and `table.create`, and doesn't involve calling a table.
 
 Instead of `vector.magnitude`, the magnitude could be derived from the vector's coordinates themselves, and be accessed by a property instead of a function. There is a downside to this: all current properties of vectors are hard-coded to the VM, so any new property to vectors requires a lot of additional complexity & changes to the VM to allow for this. A library function, however, would be trivial. An easy and quick workaround to the verbosity would be at the runtime/C API level. It's trivial to set the metatable of vectors to be the vector library: this allows for `vec:magnitude()` without much issue.
