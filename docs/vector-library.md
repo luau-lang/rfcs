@@ -24,7 +24,7 @@ Creates a vector with 3 components: x, y, z. If the feature flag for wide vector
 
 Due to the common usage of vectors, vector creation should be ergonomic. Therefore, it is probably worth breaking the `create()` naming standard.
 
-`vector.magnitude(vecA: vector): vector`
+`vector.magnitude(vecA: vector): number`
 
 Calculates the magnitude of a given vector.
 
@@ -36,9 +36,9 @@ Returns the unit vector (aka normalized vector) of a given vector.
 
 Returns the cross product of two vectors.
 
-`vector.dot(vecA: vector): vector`
+`vector.dot(vecA: vector, vecB: vector): vector`
 
-Returns the dot product of a vector.
+Returns the dot product of two vectors.
 
 ---
 
@@ -69,5 +69,7 @@ Do nothing; vectors have an internal constructor, which lets the runtime impleme
 ### Alternative implementations
 
 A more standard alternative to `vector(...)` could be something like `vector.create` or `vector.new`. This follows the standard set by `buffer.create`, `coroutine.create`, and `table.create`, and doesn't involve calling a table.
+
+Another alternative to vector creation is special syntax for creating buffers, such as `<x, y, z>`. This would require a lot more complexity & discussion, however it would fall more in line with the other primitive types.
 
 Instead of `vector.magnitude`, the magnitude could be derived from the vector's coordinates themselves, and be accessed by a property instead of a function. There is a downside to this: all current properties of vectors are hard-coded to the VM, so any new property to vectors requires a lot of additional complexity & changes to the VM to allow for this. A library function, however, would be trivial. An easy and quick workaround to the verbosity would be at the runtime/C API level. It's trivial to set the metatable of vectors to be the vector library: this allows for `vec:magnitude()` without much issue.
