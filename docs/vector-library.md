@@ -17,20 +17,25 @@ Implement a standard library for creating & using the existing vector type.
 It's important to keep in mind that this list of implementable functions isn't intended to be exhaustive, but rather to serve as a starting point.
 
 `vector(x: number?, y: number?, z: number?)`
+
 Creates a vector with 3 components: x, y, z. If the feature flag for wide vectors is enabled, a fourth argument `w: number?` will be introduced. As per standard, vectors wouldn't have a metatable by default. A vector's metatable would need to be set by the C API `lua_setmetatable`.
 
 Due to the common usage of vectors, vector creation should be ergonomic. Therefore, it is probably worth breaking the `create()` naming standard.
 
 `vector.magnitude(vecA: vector): vector`
+
 Calculates the magnitude of a given vector.
 
 `vector.unit(vec: vector): vector`
+
 Returns the unit vector (aka normalized vector) of a given vector.
 
 `vector.cross(vecA: vector, vecB: vector): vector`
+
 Returns the cross product of two vectors.
 
 `vector.dot(vecA: vector): vector`
+
 Returns the dot product of a vector.
 
 ### Arithmetic operations
