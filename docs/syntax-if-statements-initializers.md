@@ -40,7 +40,7 @@ end
 ```lua
 function PlayerControl:GetEntities()
     if self.RemovedSelf then
-    elseif local entity = self:TryGetEntity() where entity == nil then
+    elseif local entity = self:TryGetEntity() in entity == nil then
     elseif local index = table.find(self.Instances, entity.Root) then
         table.remove(self.Instances, index)
         self.RemovedSelf = true
@@ -62,8 +62,8 @@ If statements with initializers must match the below grammar. The variables decl
 +     'if' cond 'then' block {'elseif' cond 'then' block} ['else' block] 'end' |
       'for' binding '=' exp ',' exp [',' exp] 'do' block 'end' |
       ...
-+ cond = 'local' binding '=' exp ['where' exp] |
-+     'local' bindinglist '=' explist 'where' exp |
++ cond = 'local' binding '=' exp ['in' exp] |
++     'local' bindinglist '=' explist 'in' exp |
 +     exp
 ```
 
@@ -94,7 +94,7 @@ local function foo()
     return true
 end
 
-if local b = foo() where b == false then
+if local b = foo() in b == false then
    print(b, "truthy block")
 else
    print(b, "falsy block")
@@ -103,7 +103,7 @@ end
 
 `Output: true	falsy block`
 
-When declaring multiple values inside of an initializer, the `where` clause is required.
+When declaring multiple values inside of an initializer, the `in` clause is required.
 
 Example:
 
@@ -112,7 +112,7 @@ local function foo()
     return true, false
 end
 
-if local a,b = foo() where a and b then
+if local a, b = foo() in a and b then
 else
     print'Hello World, from Luau!'
 end
@@ -148,12 +148,12 @@ Initializers increase the complexity of the language syntax and may obscure cont
 
 # Alternatives
 
-A different keyword or token can be used in place of `where`.
+A different keyword or token can be used in place of `in`.
 
-Introducing a new contextual keyword can introduce complexity in the parser, and a different existing keyword like `in` or `do` could be used instead.
+Rather than use `in`, we could introduce a new contextual keyword, or use a different existing keyword like `do`.
 
 ```lua
-if local a, b = foo() in b > a then
+if local a, b = foo() do b > a then
   print'Hello World, from Luau!'
 end
 ```
