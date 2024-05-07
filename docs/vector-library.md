@@ -6,21 +6,21 @@ Implement a standard library that provides functionality for the vector type.
 
 ## Motivation
 
-Currently, vectors are a primitive type implemented internally. All of the heavy work to implement vectors is done, but there is no runtime-agnostic way to use vectors in Luau code. This creates a struggle to use native vectors; a Luau runtime [Lune](https://github.com/lune-org/lune) doesn't currently use native vectors. This results in performance drawbacks & difficulty utilizing vectors in cross-runtime code.
+Currently, vectors are a primitive type implemented internally. All of the heavy work to implement vectors is done, but there is no runtime-agnostic way to use vectors in Luau code. Individual Luau runtimes, such as [Lune](https://github.com/lune-org/lune) or Roblox, must provide their own distinct libraries to work with native vectors which may be inconsistent. In cross-runtime code, this results in performance drawbacks & difficulty utilizing native vectors.
 
 ## Design
 
-Implement a standard library for creating & using the existing vector type.
+The default metatable for vectors should now be the `vector` library. While buffers and coroutines do not have this, vectors likely should for ergonomics.
 
-### Library functions
+### Library functions & constants
 
-It's important to keep in mind that this list of implementable functions isn't intended to be exhaustive, but rather to serve as a starting point.
+This RFC proposes the following basic functions & constants as a starting point, but as with all builtin libraries, future RFCs can propose additional functions.
 
 ---
 
 `vector(x: number?, y: number?, z: number?)`
 
-Creates a vector with 3 components: x, y, z. If the feature flag for wide vectors is enabled, a fourth argument `w: number?` will be introduced. As per standard, vectors wouldn't have a metatable by default. A vector's metatable would need to be set by the C API `lua_setmetatable`.
+Creates a vector with 3 components: x, y, z. If the feature flag for wide vectors is enabled, a fourth argument `w: number?` will be introduced.
 
 Due to the common usage of vectors, vector creation should be ergonomic. Therefore, it is probably worth breaking the `create()` naming standard.
 
@@ -70,6 +70,6 @@ Do nothing; vectors have an internal constructor, which lets the runtime impleme
 
 A more standard alternative to `vector(...)` could be something like `vector.create` or `vector.new`. This follows the standard set by `buffer.create`, `coroutine.create`, and `table.create`, and doesn't involve calling a table.
 
-Another alternative to vector creation is special syntax for creating buffers, such as `<x, y, z>`. This would require a lot more complexity & discussion, however it would fall more in line with the other primitive types.
+Another alternative to vector creation is special syntax for creating buffers, such as `<x, y, z>`, or `[x, y, z]`. This would require a lot more complexity & discussion, however it would fall more in line with the other primitive types.
 
 Instead of `vector.magnitude`, the magnitude could be derived from the vector's coordinates themselves, and be accessed by a property instead of a function. There is a downside to this: all current properties of vectors are hard-coded to the VM, so any new property to vectors requires a lot of additional complexity & changes to the VM to allow for this. A library function, however, would be trivial. An easy and quick workaround to the verbosity would be at the runtime/C API level. It's trivial to set the metatable of vectors to be the vector library: this allows for `vec:magnitude()` without much issue.
