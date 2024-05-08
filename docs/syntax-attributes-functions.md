@@ -87,4 +87,10 @@ Other potential syntaxes that were considered include a Rust-style syntax (`#[at
 
 - Comments being used to control language features and flow means that tooling and users must care about them, which is antithetical to how comments are traditionally used
 
+- Attribute-as-comments would naturally conflict with the language in a lot of weird ways and would just cause a lot of problems:
+```lua
+local f = --!native function() end
+print(f)
+```
+
 As proposed, attributes would only be applicable on functions at first. They could instead be added to the entire language at once, which would facilitate widespread adoption immediately. However, that is a lot more work, and most of the potential uses for attributes are on functions, so it makes sense to begin with them.
