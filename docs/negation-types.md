@@ -55,7 +55,7 @@ As you can see, since through the series of rewrites `~~any` did not produce a t
 
 We currently only support negation of _testable_ types. Intuitively, a testable type is one that can be tested by type refinements at runtime. This includes singleton types, primitive types, and classes. Of course, unions and intersections can be negated as well if and only if all of its constituent types are also testable types, due to the distributivity property of unions and intersections.
 
-Since types like `{ p: P }` and `(T) -> U` are structural types and the runtime offers no way to test for them, they cannot be negated. An attempt to negate this will just turn the negation type into an error suppressed type. This means `~{ p: P }` and `~(T) -> U` are nonsensical. In the event that you negate some non-testable types, you get a type error.
+Since types like `{ p: P }` and `(T) -> U` are structural types and the runtime offers no way to test for them, they cannot be negated. An attempt to negate this will just turn the negation type into an error suppressed type. This means `~{ p: P }` and `~(T) -> U` are nonsensical. In the event that you negate some non-testable type, you get a type error.
 
 Another restriction is that negation types cannot negate generic types. So `<T>(T) -> ~T` is also not legible.
 
