@@ -30,7 +30,7 @@ Calculates the magnitude of a given vector.
 
 `vector.normalized(vec: vector): vector`
 
-Returns the normalized version (aka unit vector) of a given vector. If a zero vector is passed, return `0`. `vector(0, 0, 0):normalized()` should return zero.
+Returns the normalized version (aka unit vector) of a given vector. If a zero vector is passed, return zero. For further clarification, `vector.normalized(vector(0, 0, 0))` should return zero.
 
 `vector.cross(vecA: vector, vecB: vector): vector`
 
