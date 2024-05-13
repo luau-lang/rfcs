@@ -28,13 +28,13 @@ Due to the common usage of vectors, vector creation should be ergonomic. Therefo
 
 Calculates the magnitude of a given vector.
 
-`vector.normalized(vec: vector): vector`
+`vector.norm(vec: vector): vector`
 
-Returns the normalized version (aka unit vector) of a given vector.
+Returns the normalized version (aka unit vector) of a given vector. If a zero vector is passed, return `0`. `vector(0, 0, 0):normalized()` should return zero.
 
 `vector.cross(vecA: vector, vecB: vector): vector`
 
-Returns the cross product of two vectors.
+Returns the cross product of two vectors. If 4-wide vectors are enabled, this function will ignore the fourth component, and return the 3-dimensional cross product.
 
 `vector.dot(vecA: vector, vecB: vector): vector`
 
@@ -102,8 +102,12 @@ Do nothing; vectors have an internal constructor, which lets the runtime impleme
 
 ### Alternative implementations
 
-A more standard alternative to `vector(...)` could be something like `vector.create` or `vector.new`. This follows the standard set by `buffer.create`, `coroutine.create`, and `table.create`, and doesn't involve calling a table.
+A more standard alternative to `vector(...)` could be something like `vector.create` or `vector.new`. This follows the standard set by `buffer.create`, `coroutine.create`, and `table.create`, and doesn't involve calling a table, which requires a metatable with `__call` to be set on the library. This breaks the standard previously set by Lua, as there is currently no library with a metatable set by default.
 
 Another alternative to vector creation is special syntax for creating buffers, such as `<x, y, z>`, or `[x, y, z]`. This would require a lot more complexity & discussion, however it would fall more in line with the other primitive types.
 
 Instead of `vector.magnitude`, the magnitude could be derived from the vector's coordinates themselves, and be accessed by a property instead of a function. There is a downside to this: all current properties of vectors are hard-coded to the VM, so any new property to vectors requires a lot of additional complexity & changes to the VM to allow for this. A library function, however, would be trivial. An easy and quick workaround to the verbosity would be at the runtime/C API level. It's trivial to set the metatable of vectors to be the vector library: this allows for `vec:magnitude()` without much issue.
+
+Instead of ignoring the 4th dimension in `vector.cross`, the function could be disabled when four-dimensional vectors are enabled.
+
+While "norm" is the proper math term for a normalized vector, `vector.normalized` is more explicit to those who aren't as familiar with math terminology.
