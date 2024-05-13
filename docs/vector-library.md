@@ -40,23 +40,23 @@ Returns the cross product of two vectors.
 
 Returns the dot product of two vectors.
 
-`vector.floor(vec: vector)`
+`vector.floor(vec: vector): vector`
 
 Equivalent of `math.floor` for vectors.
 
-`vector.ceil(vec: vector)`
+`vector.ceil(vec: vector): vector`
 
 Equivalent of `math.ceil` for vectors.
 
-`vector.angle(vecA: vector, vecB: vector)`
+`vector.angle(vecA: vector, vecB: vector): vector`
 
 Returns the angle between two vectors.
 
-`vector.max(input: vector, maximum: vector)`
+`vector.max(input: vector, maximum: vector): vector`
 
 Equivalent of `math.max` for vectors.
 
-`vector.min(input: vector, minimum: vector)`
+`vector.min(input: vector, minimum: vector): vector`
 
 Equivalent of `math.min` for vectors.
 
