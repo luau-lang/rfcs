@@ -40,6 +40,36 @@ Returns the cross product of two vectors.
 
 Returns the dot product of two vectors.
 
+`vector.floor(vec: vector)`
+
+Equivalent of `math.floor` for vectors.
+
+`vector.ceil(vec: vector)`
+
+Equivalent of `math.ceil` for vectors.
+
+`vector.angle(vecA: vector, vecB: vector)`
+
+Returns the angle between two vectors.
+
+`vector.max(input: vector, maximum: vector)`
+
+Equivalent of `math.max` for vectors.
+
+`vector.min(input: vector, minimum: vector)`
+
+Equivalent of `math.min` for vectors.
+
+---
+
+`vector.zero`
+
+Vector where `x=0, y=0, z=0, w?=0`
+
+`vector.one`
+
+Vector where `x=1, y=1, z=1, w?=1`
+
 ---
 
 ### Arithmetic operations
@@ -53,6 +83,10 @@ In the future, vectors will have special treatment in native codegen. This creat
 ### Compiler options
 
 Currently, there are 2 compiler options relating to vectors, `vectorLib` & `vectorCtor`. This poses an interesting problem: a builtin library would remove the _requirement_ for such compiler options, however these options still need to be supported. The intuitive solution to this is to leave both compiler options working and maintained, but provide the built-in vector library by default, allowing two vector libraries and two vector constructors.
+
+### Typechecking
+
+A new primitive `vector` type should be added to the type system.
 
 ## Drawbacks
 
