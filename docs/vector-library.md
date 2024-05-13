@@ -28,9 +28,9 @@ Due to the common usage of vectors, vector creation should be ergonomic. Therefo
 
 Calculates the magnitude of a given vector.
 
-`vector.unit(vec: vector): vector`
+`vector.normalized(vec: vector): vector`
 
-Returns the unit vector (aka normalized vector) of a given vector.
+Returns the normalized version (aka unit vector) of a given vector.
 
 `vector.cross(vecA: vector, vecB: vector): vector`
 
