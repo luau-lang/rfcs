@@ -54,11 +54,11 @@ Returns the angle between two vectors.
 
 `vector.max(input: vector, maximum: vector): vector`
 
-Equivalent of `math.max` for vectors.
+Equivalent of: `vector(math.max(a.x, b.x), etc)`
 
 `vector.min(input: vector, minimum: vector): vector`
 
-Equivalent of `math.min` for vectors.
+Equivalent of: `vector(math.min(a.x, b.x), etc)`
 
 ---
 
