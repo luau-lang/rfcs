@@ -32,6 +32,13 @@ Since an opening parenthesis starts a parameter list for the attribute, the expr
 (f().x)
 ```
 
+We currently have an ad-hoc implementation of `@checked` attribute, used in declaration files. It is specified in two ways:
+
+1. `declare function @checked abs(n: number): number`
+2. `writef64: @checked (b: buffer, offset: number, value: number) -> ()`
+
+For uniformity, declarations using the first style will be modified to use `@checked` attribute before the `function` keyword and declarations using the second style will be modified to use `@checked()` to ensure that the function parameter list is not treated as an attribute parameter list.
+
 There are two notable exclusions in this syntax.
 
 1. Literal `table` values are excluded from being passed as parameters since they are composite structures; information supplied via table fields can be passed as separate parameters to the attribute. If they are still deemed useful, a follow-up RFC can introduce them with motivating use cases.
