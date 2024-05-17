@@ -6,43 +6,51 @@ This RFC proposes a syntax for function attribute parameters. This is a follow u
 
 ## Motivation
 
-The [Attributes](./syntax-attributes-functions.md) RFC provides a syntax for parameterless function attributes. This suffices for some potential use cases, such as `@native`, and `@inline`. However, other potential use cases such as `@deprecated` will benefit from an expressive attribute syntax that allows parameters to be supplied. We can use the parameters to provide the name of the function to be used in place of the deprecated function, and the reason for deprecation. This information can be used to generate informative deprecation warning messages. Another potential use case could be an `@unroll` attribute for loop unrolling which could use a numeric parameter for specifying the number of iterations to be unrolled. This would also require supporting attributes on loops, which would be a topic of discussion for a separate RFC. It might be desirable to allow these attributes to assume a default value for parameters not provided explicitly, but that's a discussion reserved for attribute-specific RFCs.
+The [Attributes](./syntax-attributes-functions.md) RFC provides a syntax for parameterless function attributes. This suffices for some potential use cases, such as `@native`, and `@inline`. However, other potential cases such as `@deprecated` will benefit from an expressive attribute syntax that allows parameters to be supplied. We can use the parameters to provide the name of the function to be used in place of the deprecated function, and the reason for deprecation. This information can be used to generate informative deprecation warning messages. Another potential use case could be an `@unroll` attribute for loop unrolling which could use a numeric parameter for specifying the number of iterations to be unrolled. This would also require supporting attributes on loops, which would be a topic of discussion for a separate RFC. It might be desirable to allow these attributes to assume a default value for parameters not provided explicitly.
 
 ## Design
 
-The following syntax is proposed for attributes with parameters:
+The following syntax is proposed for attributes:
 
 ```ebnf
+parameter-table = '{' '}'
+          | '{' parameter (sep parameter)* '}'
+
+sep = ',' | ';'
+
+parameter = literal 
+          | NAME '=' literal
+
+literal = BOOLEAN | NUMBER | STRING | NIL | parameter-table
+
+list-attribute = NAME parameter-table
+               | NAME
+
 attribute = '@' NAME 
-          | '@' NAME '(' ')'
-          | '@' NAME '(' ATOMIC-LITERAL (',' ATOMIC-LITERAL)* ')'
+          | '@[' list-attribute (',' list-attribute)* ']'
 ```
 
-The extension proposed to the [Attributes](./syntax-attributes-functions.md) RFC is in the second and third lines which allow zero or more comma-separated literals to be supplied to the attribute. `NAME` should be a valid identifier immediately following `@` without any spaces. The `ATOMIC-LITERAL` category includes values of type `boolean`, `number`, `string`, and the `nil` value. The `nil` value can be be used for "optional" parameters when no valid value exists. As a hypothetical example, consider the `@deprecated(<new-function-name>, <warning-message>)` attribute. Assume a function is being marked deprecated because we are getting rid of the feature entirely and there is no other function replacing it. In that case, we can pass `nil` for the `<new-function-name>` parameter. An alternative would be to allow this attribute to have either one or two parameters. But that still won't help when an attribute can take three parameters and we want to ignore the second. To ensure there is no parsing ambiguity, a `(` following a `NAME`, with or without intervening whitespace, starts a parameter list for that attribute, even if the attribute does not support parameters. The parser will only check for syntacting correctness. The implemention will raise an error when it uses the attribute and finds that an invalid number or type of arguments were supplied. The implemention will treat an attribute with an empty parameter list equivalent to one without parameters. This means that `@native()` is the same as `@native`. This gives us forward compatibility if we decide to support attributes on parenthesized expressions in the future. Consider the following hypothetical example with a `@my_attribute` attribute, which does not take any parameters, applied to a parenthesized expression.
+In Luau scripts, attributes are specified before the `function` keyword in function definitions. In declaration files, attributes are specified in function type declarations, before the `function` keyword in `declare function (type, ...) : type` syntax, and before the `(` in the `name: (type, ...) : type` syntax. The primary extension proposed to the [Attributes](./syntax-attributes-functions.md) RFC is a new delimited syntax `@[]` for specifying multiple comma-separated attributes with parameters supplied through an optional Luau table. The important features are:
 
-```lua
-@my_attribute
-(f().x)
-```
+1. Inside the attribute list, `@[]`, attribute names are not allowed to have a leading `@`.
+2. Attribute lists cannot be nested. Attributes cannot be specified on attribute parameters.
+3. Attributes inside `@[]` are separated by a `,`.
+4. Attributes inside `@[]` are allowed to take an optional table of parameters.
+5. The "parameter table" is a Luau table whose entries specify attribute parameters, with or without names, separated by commas or semicolons.
+6. A parameter can be any literal value: `BOOLEAN`, `NUMBER`, `STRING`, `NIL`,  or a `parameter-table`. Attributes can be seen as a way of providing tagged metadata with no evaluation semantics of their own. With that in mind, we only allow these syntactic categories because they evaluate to themselves. This is also the reason we disallow entries of the form `[exp1] = [exp2]` in parameter table, since this would require evaluating `exp1` at construction time. `nil` is allowed for the sake of generality and completeness.
+7. Attributes can be specified before function declarations in multiple ways: `@attr1 @[attr2, attr3{2, "hi"}]`, `@attr1 @attr2 @[attr3{2, "hi"}]`, `@attr1 @[attr3{2, "hi"}] @attr2`, and  `@[attr1, attr2, attr3{2, "hi"}]` are all equivalent.
+8. An attribute with an empty parameter list can be equivalently specified without one, i.e., `@[attr{}]` is same as `@attr`.
 
-Since an opening parenthesis starts a parameter list for the attribute, the expression `(f().x)` will be treated as a parameter list of `@my_attribute`. This will lead to a syntax error since attribute parameter can only be `ATOMIC-LITERAL` and `f().x` is not one. This ambiguity can be resolved by adding `()` to `@my_attribute` as follows:
-
-```lua
-@my_attribute()
-(f().x)
-```
+The parser is responsible for for enforcing the syntax specified by this RFC and ensuring that attributes are not repeated on a definition or a declaration. The number and type of parameters accepted by a particular attribute will be specified by its own RFC, and enforced by the relevant component of the implementation (typechecker, compiler, etc.), after parsing.
 
 We currently have an ad-hoc implementation of `@checked` attribute, used in declaration files. It is specified in two ways:
 
 1. `declare function @checked abs(n: number): number`
 2. `writef64: @checked (b: buffer, offset: number, value: number) -> ()`
 
-For uniformity, declarations using the first style will be modified to use `@checked` attribute before the `function` keyword and declarations using the second style will be modified to use `@checked()` to ensure that the function parameter list is not treated as an attribute parameter list.
+To ensure uniformity with the specification of this RFC, declarations using the first style will be modified to use `@checked` attribute before the `function` keyword. Declarations using the second style will remain unchanged.
 
-There are two notable exclusions in this syntax.
-
-1. Literal `table` values are excluded from being passed as parameters since they are composite structures; information supplied via table fields can be passed as separate parameters to the attribute. If they are still deemed useful, a follow-up RFC can introduce them with motivating use cases.
-2. Named parameters are not supported. Our envisioned use cases rarely require parameters, and, since attributes are not user-extensible, we don't foresee use cases involving long parameter lists that would benefit from parameter names. Furthermore, named parameter lists introduce additional processing complexity by enabling parameters to be supplied in any order.
+An alternative parameter syntax would be to implement function-style attribute syntax of the form `@attr(parameters, ...)`, but that would not allow specifying parameter names. Attribute syntax of the form `@attr {...}` will create ambiguity when attributes without parameters are used on tables, should we decide to allow attributes on them in the future. An advantage of the `@[]` syntax is that it provides the `]` delimiter which marks the end of attribute, leaving open the possibility of syntax evolution without introducing parsing ambiguity.
 
 ## Drawbacks
 
