@@ -149,7 +149,7 @@ print(add(10, 20)) --> 30
 This adds a special symbol `\` to the language and increases the language's complexity.
 - It is not the most accessible on all keyboards, e.g. QWERTZ and AZERTY, so it may be annoying for non-US users to write.
 - It may conflict with a potential set difference operator in type space, which is usually denoted as `T \ U` in mathematics. e.g. `\() nil :: T \ U \`
-- This syntax might appear alien to users. The only language I know that uses `\` to refer to a function is Haskell.
+- This syntax might appear alien to users. Haskell may be one of the only languages that use `\` to refer to a function.
 
 ## Alternatives
 
@@ -226,7 +226,7 @@ local ret = do(...) ...
 local sortedAsc = do(a, b) ret(math.min(a, b), math.max(a, b))
 ```
 
-The two restrictions from the Syntax section could be lifted by careful symbol choices and ordering, but I found the RFC's syntax the easiest to read and write while still being syntactically sound, even with the two aforementioned restrictions.
+The two restrictions from the Syntax section could be lifted by careful symbol choices and ordering, but the RFC's syntax seems to be the easiest to read and write while still being syntactically sound, even with the two aforementioned restrictions.
 
 There are open-source libraries that attempt to fill this "short function" gap, like [Penlight's](https://github.com/lunarmodules/Penlight) placeholder expression library and lambda compiler.
 
