@@ -8,6 +8,7 @@ Introduce a new syntax for unpacking key values into their own variables, such t
 local { .a, .b } = t
 -- a == t.a
 -- b == t.b
+-- ...where t is evaluated once.
 ```
 
 ## Motivation
