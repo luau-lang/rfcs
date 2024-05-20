@@ -53,7 +53,7 @@ print(table.pretty({
   toppings = {
     "pepperoni",
     "sausage",
-  }
+  },
 }
 ```
 
