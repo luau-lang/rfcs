@@ -100,7 +100,7 @@ local ok, ten = pcall(\() 10 \)
 local v1, v2, v3, ... = ArgsSorter(function(a, b)
   return a < b
 end)(x, y, z, ...)
-  ]]
+]]
 local v1, v2, v3, ... = ArgsSorter \(a, b) a < b \ (x, y, z, ...)
 
 --[[
