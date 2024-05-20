@@ -153,7 +153,7 @@ This adds a special symbol `\` to the language and increases the language's comp
 
 ## Alternatives
 
-This syntax does not have to be implemented at all. It encourages users to write less error-prone code at best via functional programming, and it is another thing for a newcomer to learn how to read at worst. Some users may prefer writing their code in an inherently less performant style.
+This syntax does not have to be implemented at all. It encourages users to write less error-prone code at best via functional programming, and it is another thing for a newcomer to learn how to read at worst.
 
 There were a lot of other syntaxes considered before this, some examples and explanations why they were not chosen are listed below:
 
