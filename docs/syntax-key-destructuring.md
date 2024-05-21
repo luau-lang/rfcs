@@ -141,7 +141,7 @@ local { .real as aliased } = t
 local aliased = t.real
 ```
 
-This helps support mutliple assignments on the same name:
+This helps support multiple assignments on the same name:
 ```lua
 local { .name as nameA } = getObject(a)
 local { .name as nameB } = getObject(b)
@@ -176,7 +176,7 @@ The syntax could support `.["key with spaces"]`, but this may open up a can of w
 This also blocks nested destructuring, such as JavaScript's `const { a: { b } } = t` to mean `b = t.a.b`.
 
 ### Roblox - Property casing
-Today in Roblox, every index doubly works with camel case, such as `part.position` being equivalent to `part.Position`. This use is considered deprecated and frowned upon. However, even with variable renaming, this becomes significantly more appealing. For example, it is common you will only want a few pieces of informaiton from a `RaycastResult`, so you might be tempted to write:
+Today in Roblox, every index doubly works with camel case, such as `part.position` being equivalent to `part.Position`. This use is considered deprecated and frowned upon. However, even with variable renaming, this becomes significantly more appealing. For example, it is common you will only want a few pieces of information from a `RaycastResult`, so you might be tempted to write:
 
 ```lua
 local { .position } = Workspace:Raycast(etc)
@@ -188,7 +188,7 @@ local { .position } = Workspace:Raycast(etc)
 
 ### Syntax for destructuring
 
-Many syntaxes have been proposed for destructuring. The most significant problem with any proposal is that is must be unambiguous to the reader whether or not the destructor is for **dictionaries** or for **arrays**.
+Many syntaxes have been proposed for destructuring. The most significant problem with any proposal is that it must be unambiguous to the reader whether or not the destructor is for **dictionaries** or for **arrays**.
 
 An intuitive suggestion is `local { a, b } = t`, but this syntax fails this test--it is not obvious if this is `local a = t.a` or `local a = t[1]`, regardless of whatever syntax is chosen for array destructuring (should it exist).
 
