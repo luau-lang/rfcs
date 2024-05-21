@@ -33,7 +33,7 @@ This mascot is Hina the Seal.
 
 ![Hina the Seal](../mascot.png)
 
-We propose naming her Hina, after the Hawaiaan goddess of the moon. The word moon itself in Hawaiian
+We propose naming her Hina, after the Hawaiian goddess of the moon. The word moon itself in Hawaiian
 (_mahina_) is derived from this name, and it pays a small homage to Luau's "moon" roots in Lua
 while staying within the existing theme and not being too heavy-handed.
 
