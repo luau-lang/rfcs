@@ -115,7 +115,7 @@ local b: number = t.b
 Without explicit types, local assignments and for loops will assume the type of `<rhs>.<field>`. For example...
 ```lua
 -- x and y will both be typed `number` here
-local { .x, .y } = position :: { number }
+local { .x, .y } = position :: { x: number, y: number }
 ```
 
 Additionally, you can specify a type on the "table" as a whole.
