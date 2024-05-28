@@ -10,19 +10,27 @@ The [Attributes](./syntax-attributes-functions.md) RFC provides a syntax for par
 
 ## Design
 
-The following syntax is proposed for attributes:
+Attributes with parameters can only be specified inside `@[]`, separated by commas. Attribute parameter syntax mirrors the syntax for function calls; parameters are specified as a comma-separated list of zero or more literal values enclosed in parentheses, which are optional for single-parameter attributes if the parameter is either a literal string or a table constructor. `@[]` cannot be empty or nested. Attributes inside `@[]` cannot have a leading `@`. Attribute parameters cannot have attributes on them.
+
+`@[attr "literal string"]`, `@[attr {key = 1, 2, 3}]`, `@[attr()]`, `@[attr(1, 2, 3)]`, `@[attr(1, nil, true, false, "literal string", {name = "value", 3.0})]` are some examples of attributes that conform to the proposed syntax.
+
+The formal syntax for attributes with parameters is described below.
 
 ```ebnf
-table ::= '{' [fieldlist] '}'
+littable ::= '{' [fieldlist] '}'
 fieldlist ::= field {fieldsep field} [fieldsep]
 field ::= Name '=' literal | literal 
 fieldsep ::= ',' | ';'
 
-literal ::= 'nil' | 'false' | 'true' | Number | String | table
+literal ::= 'nil' | 'false' | 'true' | Numeral | LiteralString | littable
 
-parattr ::= NAME [literal]
+litlist ::= literal {‘,’ literal}
 
-attribute ::= '@' NAME | '@[' parattr {',' parattr} ']'
+pars ::= ‘(’ [litlist] ‘)’ | littable | LiteralString 
+
+parattr ::= Name [pars]
+
+attribute ::= '@' Name | '@[' parattr {',' parattr} ']'
 
 attributes ::= {attribute}
 ```
@@ -42,33 +50,19 @@ decl ::= attributes 'declare' 'function' '(' {type} ')' : Type
 decl ::= 'declare' Name ':' '{' {Name ':' attributes '(' {type} ')' '->' Type} '}'
 ```
 
-The primary extension proposed to the [Attributes](./syntax-attributes-functions.md) RFC is an attribute list, `@[]`, for specifying multiple comma-separated attributes with an optional literal parameter, and, an attribute syntax for declaration files.
+The extensions proposed to the [Attributes](./syntax-attributes-functions.md) RFC are:
 
-The important syntactic features are:
+1. An attribute list, `@[]`, for specifying multiple comma-separated attributes with parameters.
+2. A parameter syntax for attributes.
+3. An attribute syntax for declaration files.
 
-1. Attribute lists cannot be empty; they should have at least one attribute.
-2. Attributes inside attribute lists are separated by a `,`.
-3. Attribute names cannot have a leading `@` inside attribute list.
-4. Attribute lists cannot be nested.
-5. Attributes cannot be used inside an attribute parameter.
-6. Only attributes inside attribute lists can take a parameter, standalone attributes cannot.
-7. An attribute parameter is a Luau literal: `true`, `false`, `nil`, `Number`, `String`, or a `table` composed of these literals with optional names. A trailing field separator is allowed.
-8. Standalone and list style attributes can be mixed arbitrarily: `@attr1 @[attr2, attr3{2, "hi"}]`, `@attr1 @attr2 @[attr3{2, "hi"}]`, `@attr1 @[attr3{2, "hi"}] @attr2`, and  `@[attr1, attr2, attr3{2, "hi"}]` are all legal and equivalent.
+Attributes with parameters are enclosed with `@[]` to facilitate syntax evolution without introducing parsing ambibguity. Without `@[]`, if we decide to allow attributes on arbitrary expressions in the future, `@attr(...)` will have two meanings; an attribute with parameters or an attribute on a parenthesized expression. `@[]` resolves this by providing a closing delimiter, `]`, to separate the attribute from the expression. `@[` has been chosen instead of `[` since it is unique and does not introduce ambiguity if we enable attributes on table entries of the form `[exp1] = [exp2]`.
 
-Currently there is an ad-hoc implementation of `@checked` attribute, used in declaration files. It is specified in two ways:
+`@attr`, `@[attr]`, and `@[attr()]` are equivalent. The order in which attributes is specified is irrelevant. Hence, `@attr1 @[attr2, attr3(2, "hi")]`, `@attr1 @attr2 @[attr3(2, "hi")]`, `@attr1 @[attr3(2, "hi")] @attr2`, and  `@[attr1, attr2, attr3(2, "hi")]` are also equivalent.
 
-1. `declare function @checked abs(n: number): number`
-2. `writef64: @checked (b: buffer, offset: number, value: number) -> ()`
+Attribute parameters are restricted to be literals, i.e., values that evaluate to themselves. This is because attributes are a mechanism for providing tagged metadata to the implementation. They are not user-extensible and have no evaluation semantics of their own. For this reason, even entries of the form `[exp1] = [exp2]` in table literal parameters are disallowed, since they would require evaluating `exp1` at construction time.
 
-According to the syntax proposed in this RFC, the declarations using the first style will be modified to use `@checked` attribute before `declare` keyword. Declarations in the second style will remain unchanged.
-
-Few important factors went in the design of this syntax:
-
-1. Attributes are a mechanism for providing tagged metadata to the implementation. They are not user-extensible and have no evaluation semantics of their own. Hence, an attribute parameter can only be a literal, i.e., a value that evaluates to itself. This is also the reason we disallow entries of the form `[exp1] = [exp2]` in parameter table, since it would require evaluating `exp1` at construction time.
-2. Function-style attribute syntax of the form `@attr({parameters})` were initially considered, but dropped becuase they do not allow us to specify parameter names. The optional table parameter proposed in the current syntax lets use specify multiple parameters as table entries, with and without names.
-3. Using attributes with a table parameter outside attribute list, `@attr {...}`, will create ambiguity when used on tables, should we decide to allow attributes on arbitrary expressions in the future. Hence, the `@[]` delimited syntax was chosen to provide a `]` delimiter which marks the end of attributes, leaving open the possibility of syntax evolution without introducing parsing ambiguity.
-
-The parser is responsible for for enforcing the syntax specified by this RFC and ensuring that attributes are not repeated on a definition or a declaration. The number and type of parameters accepted by a particular attribute will be specified by its own RFC, and enforced by the relevant component of the implementation (typechecker, compiler, etc.), after parsing.
+Attributes should not be repeated on a definition or a declaration and every attribute should receive the correct number and type of parameters. Non-conformance should result in a parsing error, obviating the need for a separate linting pass.
 
 ## Drawbacks
 
@@ -76,4 +70,4 @@ Extending attribute syntax to accept parameters contributes to the complexity of
 
 ## Alternatives
 
-The alternative would be to not support attribute parameters. This will lead to substandard warning messages from `@deprecated` attribute. It would also prevent us from introducing `@unroll` attribute in the future.
+The alternative is to not support attribute parameters. This will lead to substandard warning messages from `@deprecated` attribute. It will also prevent us from introducing `@unroll` attribute in the future.
