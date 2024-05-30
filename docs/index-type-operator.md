@@ -20,7 +20,7 @@ local bob: Person = {
   alive = true
 }
 
-local function doSmt(param: typeof(bob["age"])) -- param = string
+local function doSmt(param: typeof(bob["age"])) -- param = number
   -- rest of code
 end
 
