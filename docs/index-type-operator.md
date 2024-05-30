@@ -29,7 +29,7 @@ type unionType = typeof(bob["age"]) | typeof(bob["name"]) | typeof(bob["alive"])
 
 This is a valid Luau program; however, in order to define the type of `Person["age"]` we had to first declare a variable `bob` and utilize the `typeof` type operator. This is quite cumbersome when developers want to typecheck using the type of `Person["age"]` without having to declare a variable first. Additionally, in order to define the union type of all the properties of `Person`, current Luau requires an explicit list of each property using `typeof`.
 
-The expected outcome of the index type operator is that it will enhance the developing experience and allow the Roblox community to develop better type-checked programs.
+The expected outcome of the index type operator is that it will enhance developer experience and allow Luau developers to more easily develop well-typed programs.
 
 ## Design
 
