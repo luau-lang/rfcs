@@ -1,4 +1,4 @@
-# `index` type operators
+# `index` type operator
 
 ## Summary
 
