@@ -41,7 +41,7 @@ type Person = {
   alive: boolean
 }
 
-local function doSmt(param: index<Person, "age">) -- param = string
+local function doSmt(param: index<Person, "age">) -- param = number
   -- rest of code
 end
 
