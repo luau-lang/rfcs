@@ -61,27 +61,16 @@ If the given value used to access a property is not a type,
 local key = "age"
 type age = index<Person, key> -- Error message: Type 'key' cannot be used as an index type.
 ```
-
-One edge case for this feature is in the case of:
-```lua
-type Person2 = {
-  age: number,
-  name: string,
-  alive: boolean,
-  job: string
-}
-
-local function edgeCase(p: Person)
-  type unknownType = index<typeof(p), "job"> -- unknownType = unknown
-end
-```
-Although the literal type `job` is not a property in `Person`, the program should not error here, but instead return the type `unknown`. This is due to the fact that at run time, parameter `p` can be of type `Person` or `Person2` (since `Person2` is a subtype of `Person`). As a result, the index type of `job` on `Person` throws an error, but on `Person2` returns a type of `string`. As a result, at compile time, the type of `unknownType` should be `unknown`.
+Note: these errors will be part of the general type family reduction errors since `index` will be built into the type family system.
 
 Implementation is straight forward: the type of the indexee will be determined (table, array, etc) -> search through the properties of the indexee and return the corresponding type of the indexer if it exists; otherwise, return an error or unknown type depending on the scope. 
 
 ## Drawbacks
 
-The only drawback to implementing this feature is that supporting type operators will require a lot of work in the underlying infrastructure. However, the new type inference engine for Luau already contains the infrastructure needed to support type operators. In fact, the implementation of this new feature can be mirrored by the implementation of the `keyof` type operator as they share the same syntax and a small difference in semantics. As such, the author of this RFC hopes that this effort is a win for OOP in Luau, supported by the technical credit built up from the new type inference engine.
+A drawback to this feature is the possible increase in cost of maintenance. In the end, this RFC proposes adding another built-in type operators to the new type system. However, the addition of this feature may be worthwhile as the `index` type operator is a useful type feature that:
+1. Alleviates the need to manually keep types in sync
+2. Provides powerful way to access the properties of an object and perform various operations on them with other type operators
+2. And ultimately, allows the community to write code with fewer errors and more safety
 
 ## Alternatives
 
