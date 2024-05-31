@@ -74,4 +74,21 @@ A drawback to this feature is the possible increase in cost of maintenance. In t
 
 ## Alternatives
 
-An alternative to the proposed implementation is utilizing inexact table types and exact table types (to be implemented) to handle the edge in a simpler manner. If we know that the indexee is an inexact table type, the index type operator can return the `unknown` type. If we know that the indexee is an exact table type, we can return an error.
+An alternative design can be depicted from the example below:
+```lua
+type Person2 = {
+  age: number,
+  name: string,
+  alive: boolean,
+  job: string
+}
+
+local function edgeCase(p: Person)
+  type unknownType = index<typeof(p), "job">
+end
+```
+In our current design, the program simply fails to reduce (and throws an error). However, it is worth noting that `index<Person, "job">` can also reduce to type `unknown` if `p` is of type `Person2` (this is allowed since tables support width subtyping; hence `Person2` is a subtype of `Person`). In this design, we would need a way to determine if the indexee can be different at runtime. We could determine this through an implementation of more table types, specifically exact and inexact table types. Then, the program will have two cases when a indexee does not contain the indexer type:
+1. If the indexee is an inexact table type, the expression is reduced to an `unknown` type.
+2. If the indexee is an exact table type, the expression fails to reduce and throws and error.
+
+Note: exact table types "indicates that the table has only the properties listed in its type" and inexact table type "indicates that the table has at least the properties listed in its type".
