@@ -52,7 +52,7 @@ type idxType2 = index<Person, "age" | "name"> -- idxType2 = number | string
 
 Now, the type of `doSmt()`'s parameter can be defined without declaring a variable `bob`. Additionally, regardless of how the type `Person` grows, `idxType` will always be defined as the union of all the properties.
 
-Error messages will be displayed for incorrect syntax. If the given type used to access a property is invalid, 
+Error messages will be displayed for incorrect type arguments. If the given type used to access a property is invalid, 
 ```lua
 type age = index<Person, "ager"> -- Error message: Property 'ager' does not exist on type 'Person'.
 ```
