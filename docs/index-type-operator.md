@@ -1,4 +1,4 @@
-# `index` type operators
+# `index` type operator
 
 ## Summary
 
@@ -33,7 +33,7 @@ The expected outcome of the index type operator is that it will enhance develope
 
 ## Design
 
-The solution to this problem is a type operator, `index`, that can compute the type based on the static properties of `Person`. Formally, the `index` type operator will take in two arguments: the type to index and the type to index it with. This would allow us to instead write the following code:
+The solution to this problem is a type operator, `index`, that can compute the type based on the static properties of `Person`. Formally, the `index` type operator will take in two arguments: the type to index (indexee) and the type to index it with (indexer). This would allow us to instead write the following code:
 ```lua
 type Person = {
   age: number,
@@ -52,31 +52,44 @@ type idxType2 = index<Person, "age" | "name"> -- idxType2 = number | string
 
 Now, the type of `doSmt()`'s parameter can be defined without declaring a variable `bob`. Additionally, regardless of how the type `Person` grows, `idxType` will always be defined as the union of all the properties.
 
-Error messages will be displayed for incorrect syntax. If the given type used to access a property is invalid, 
+Error messages will be displayed for incorrect type arguments. If the indexer is not a property in the indexee, 
 ```lua
 type age = index<Person, "ager"> -- Error message: Property 'ager' does not exist on type 'Person'.
 ```
-If the given value used to access a property is not a type,
+If the indexer is not a type,
 ```lua
 local key = "age"
 type age = index<Person, key> -- Error message: Type 'key' cannot be used as an index type.
 ```
 Note: these errors will be part of the general type family reduction errors since `index` will be built into the type family system.
 
-Implementation is straight forward: the type of the indexee will be determined (table, array, etc) -> search through the properties of the indexee and return the corresponding type of the indexer if it exists; otherwise, return an error or unknown type depending on the scope. 
+The indexee may be a union type. In this case, the type operator will distribute the arguments to multiple type families:
+```lua
+type Person2 = {
+  age: string
+}
+
+-- equivalent of `index<Person, "age"> | index<Person2, "age">`
+type idxType3 = index<Person | Person2, "age"> -- idxType3 = number | string
+
+-- equivalent of `index<Person, "alive" | "age"> | index<Person2, "alive" | "age">`
+type idxType4 = index<Person | Person2, "alive" | "age"> -- Error message: Property 'alive' does not exist on type 'Person2'.
+```
+
+Implementation is straight forward: the type of the indexee will be determined (table, class, etc) -> search through the properties of the indexee and reduce to the corresponding type of the indexer if it exists; otherwise, reduce to an error. 
 
 ## Drawbacks
 
-A drawback to this feature is the possible increase in cost of maintenance. In the end, this RFC proposes adding another built-in type operators to the new type system. However, the addition of this feature may be worthwhile as the `index` type operator is a useful type feature that:
+A drawback to this feature is the possible increase in the cost of maintenance. In the end, this RFC proposes adding another built-in type operators to the new type system. However, the addition of this feature may be worthwhile, as the `index` type operator is a useful type feature that:
 1. Alleviates the need to manually keep types in sync
-2. Provides powerful way to access the properties of an object and perform various operations on them with other type operators
-2. And ultimately, allows the community to write code with fewer errors and more safety
+2. Provides a powerful way to access the properties of an object and perform various operations on it with other type operators
+3. Allows the community to write code with fewer errors and more safety
 
 ## Alternatives
 
 An alternative design can be depicted from the example below:
 ```lua
-type Person2 = {
+type Person3 = {
   age: number,
   name: string,
   alive: boolean,
@@ -87,8 +100,12 @@ local function edgeCase(p: Person)
   type unknownType = index<typeof(p), "job">
 end
 ```
-In our current design, the program simply fails to reduce (and throws an error). However, it is worth noting that `index<Person, "job">` can also reduce to type `unknown` if `p` is of type `Person2` (this is allowed since tables support width subtyping; hence `Person2` is a subtype of `Person`). In this design, we would need a way to determine if the indexee can be different at runtime. We could determine this through an implementation of more table types, specifically exact and inexact table types. Then, the program will have two cases when a indexee does not contain the indexer type:
-1. If the indexee is an inexact table type, the expression is reduced to an `unknown` type.
-2. If the indexee is an exact table type, the expression fails to reduce and throws and error.
+In our current design, the program simply fails to reduce (and throws an error). However, it is worth noting that `index<typeof(p), "job">` can also reduce to type `unknown` because the parameter `p` can be of type `Person` or `Person3` (since tables support width subtyping; hence, `Person3` is a subtype of `Person`):
+- If `p` is of type `Person`, `index<typeof(p), "job">` should reduce to an error. 
+- If `p` is of type `Person3`, `index<typeof(p), "job">` should reduce to type `string`.
 
-Note: exact table types "indicates that the table has only the properties listed in its type" and inexact table type "indicates that the table has at least the properties listed in its type".
+Because there are conflicting types for `p` depending on the run time, it is safest for the program to reduce to a type `unknown`. In this design, we would need a way to determine if the indexee can be different at runtime. We could determine this through the implementation of more table types, specifically exact and inexact table types. Then, the program will have two cases when an indexee does not contain the indexer type:
+1. If the indexee is an inexact table type, reduce to an `unknown` type.
+2. If the indexee is an exact table type, fail to reduce and throw an error.
+
+FYI: exact table type indicates that the table has only the properties listed in its type, and inexact table type indicates that the table has at least the properties listed in its type.
