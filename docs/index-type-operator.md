@@ -76,6 +76,8 @@ type idxType3 = index<Person | Person2, "age"> -- idxType3 = number | string
 type idxType4 = index<Person | Person2, "alive" | "age"> -- Error message: Property 'alive' does not exist on type 'Person2'.
 ```
 
+In the circumstance that the indexee is a type class or table with an `__index` metamethod, `index` will *only* invoke `__index` if indexer is not found within the current scope.
+
 Implementation is straight forward: the type of the indexee will be determined (table, class, etc) -> search through the properties of the indexee and reduce to the corresponding type of the indexer if it exists; otherwise, reduce to an error. 
 
 ## Drawbacks
