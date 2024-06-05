@@ -54,12 +54,12 @@ Now, the type of `doSmt()`'s parameter can be defined without declaring a variab
 
 Error messages will be displayed for incorrect type arguments. If the indexer is not a property in the indexee, 
 ```lua
-type age = index<Person, "ager"> -- Error message: Property 'ager' does not exist on type 'Person'.
+type age = index<Person, "ager"> -- Error message: Property '"ager"' does not exist on type 'Person'
 ```
 If the indexer is not a type,
 ```lua
 local key = "age"
-type age = index<Person, key> -- Error message: Type 'key' cannot be used as an index type.
+type age = index<Person, key> -- Error message: Second argument to index<Person,_> is not a valid index type; Unknown type 'key'
 ```
 Note: these errors will be part of the general type family reduction errors since `index` will be built into the type family system.
 
@@ -73,7 +73,7 @@ type Person2 = {
 type idxType3 = index<Person | Person2, "age"> -- idxType3 = number | string
 
 -- equivalent of `index<Person, "alive" | "age"> | index<Person2, "alive" | "age">`
-type idxType4 = index<Person | Person2, "alive" | "age"> -- Error message: Property 'alive' does not exist on type 'Person2'.
+type idxType4 = index<Person | Person2, "alive" | "age"> -- Error message: Property '"age" | "alive"' does not exist on type 'Person | Person2'
 ```
 
 In the circumstance that the indexee is a type class or table with an `__index` metamethod, `index` will *only* invoke `__index` if indexer is not found within the current scope.
