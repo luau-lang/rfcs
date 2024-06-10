@@ -119,3 +119,17 @@ Because there are conflicting types for `p` depending on the run time, it is saf
 2. If the indexee is an exact table type, fail to reduce and throw an error.
 
 FYI: exact table type indicates that the table has only the properties listed in its type, and inexact table type indicates that the table has at least the properties listed in its type.
+
+Later down the line, we can also consider adding syntactic sugar for this type operator. Instead of doing:
+```luau
+type name = index<Person, "name">
+```
+We could use:
+```luau
+type name = Person["name"]
+```
+or 
+```luau
+type name = Person.name
+```
+or even both!
