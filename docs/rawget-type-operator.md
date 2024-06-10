@@ -8,7 +8,7 @@ This RFC proposes the addition on one type operator, `rawget`, which can be used
 
 There exists `index` type operator that allow developers to obtain a type of a property from classes / tables. If the a type is not found in the given class / table, the operator recursively indexes into the `__index` metamethod to continue searching for the property. Sometimes, this is could be an unwanted behavior. For example, given this code: 
 
-```lua
+```luau
 local var1 = {
   property = "hello"
 }
@@ -27,12 +27,12 @@ To address this issue, we want to reconsider the behavior of the `index` type op
 
 The proposed solution is the implementation of `rawget` type operator. Like the existing [rawget Lua Globals](https://create.roblox.com/docs/reference/engine/globals/LuaGlobals#rawget), this type operator aims to provide a way to look up a specific property of a type without invoking the `__index` metamethod. 
  
-```lua
+```luau
 type doesExist = rawget<typeof(var2), "property"> -- reduces to an error
 ```
 
 Error messages would be consistent with those of the `index` type operator:
-```lua
+```luau
 type Person = {
   age: number,
   name: string,
