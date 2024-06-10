@@ -37,11 +37,6 @@ function parent()
 end
 ```
 
-The implementation _may_ choose to issue warning in the following cases where `@native` attribute is redundant:
-
-1. A function has more than one occurrence of `@native` attribute
-2. A function has a `@native` attribute when the script is annotated with `--!native` comment directive.
-
 ## Drawbacks
 
 Introducing this attribute will have two adverse consequences:
