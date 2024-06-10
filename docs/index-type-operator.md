@@ -86,6 +86,8 @@ type exampleTy2 = index<typeof(exampleClass2), "Foo"> -- exampleTy2 = number
 type exampleTy3 = index<typeof(exampleClass3), "Foo"> -- exampleTy3 = string
 ```
 
+One edge case to consider when using/designing this type operator is that `__index` only supports 100 nested `__index` metamethods until it gives up. In the case that a property is not found within the 100 recursive calls, this type operator will fail to reduce.
+
 Implementation is straight forward: the type of the indexee will be determined (table, class, etc) -> search through the properties of the indexee and reduce to the corresponding type of the indexer if it exists; otherwise, reduce to an error. 
 
 ## Drawbacks
