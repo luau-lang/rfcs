@@ -7,7 +7,7 @@ This RFC proposes the addition of one type operator, `index`, which can be used 
 ## Motivation
 
 The primary motivation of this proposal is to allow Luau to define a type by accessing a property of another existing type. For instance, consider the following example code:
-```lua
+```luau
 type Person = {
   age: number,
   name: string,
@@ -34,7 +34,7 @@ The expected outcome of the index type operator is that it will enhance develope
 ## Design
 
 The solution to this problem is a type operator, `index`, that can compute the type based on the static properties of `Person`. Formally, the `index` type operator will take in two arguments: the type to index (indexee) and the type to index it with (indexer). This would allow us to instead write the following code:
-```lua
+```luau
 type Person = {
   age: number,
   name: string,
@@ -53,18 +53,18 @@ type idxType2 = index<Person, "age" | "name"> -- idxType2 = number | string
 Now, the type of `doSmt()`'s parameter can be defined without declaring a variable `bob`. Additionally, regardless of how the type `Person` grows, `idxType` will always be defined as the union of all the properties.
 
 Error messages will be displayed for incorrect type arguments. If the indexer is not a property in the indexee, 
-```lua
+```luau
 type age = index<Person, "ager"> -- Error message: Property '"ager"' does not exist on type 'Person'
 ```
 If the indexer is not a type,
-```lua
+```luau
 local key = "age"
 type age = index<Person, key> -- Error message: Second argument to index<Person,_> is not a valid index type; Unknown type 'key'
 ```
 Note: these errors will be part of the general type family reduction errors since `index` will be built into the type family system.
 
 The indexee may be a union type. In this case, the type operator will distribute the arguments to multiple type families:
-```lua
+```luau
 type Person2 = {
   age: string
 }
@@ -77,7 +77,7 @@ type idxType4 = index<Person | Person2, "alive" | "age"> -- Error message: Prope
 ```
 
 In the circumstance that the indexee is a type class or table with an `__index` metamethod, the `__index` metamethod will *only* be invoked if the indexer is not found within the current scope:
-```lua
+```luau
 local exampleClass = { Foo = "eight" }
 local exampleClass2 = setmetatable({ Foo = 8 }, { __index = exampleClass })
 local exampleClass3 = setmetatable({ Bar = "nine" }, { __index = exampleClass })
@@ -98,7 +98,7 @@ A drawback to this feature is the possible increase in the cost of maintenance. 
 ## Alternatives
 
 An alternative design can be depicted from the example below:
-```lua
+```luau
 type Person3 = {
   age: number,
   name: string,
