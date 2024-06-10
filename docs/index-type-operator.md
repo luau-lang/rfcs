@@ -76,7 +76,7 @@ type idxType3 = index<Person | Person2, "age"> -- idxType3 = number | string
 type idxType4 = index<Person | Person2, "alive" | "age"> -- Error message: Property '"age" | "alive"' does not exist on type 'Person | Person2'
 ```
 
-In the circumstance that the indexee is a type class or table with an `__index` metamethod, the `__index` metamethod will *only* be invoked if the indexer is not found within the current scope:
+In the circumstance that the indexee's type is a class or table with an `__index` metamethod, the `__index` metamethod will *only* be invoked if the indexer is not found within the current scope:
 ```luau
 local exampleClass = { Foo = "eight" }
 local exampleClass2 = setmetatable({ Foo = 8 }, { __index = exampleClass })
