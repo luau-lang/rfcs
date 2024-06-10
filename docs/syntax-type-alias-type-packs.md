@@ -9,7 +9,7 @@ Provide semantics for referencing type packs inside the body of a type alias dec
 ## Motivation
 
 We now have an ability to declare a placeholder for a type pack in type alias declaration, but there is no support to reference this pack inside the body of the alias:
-```lua
+```luau
 type X<A...> = () -> A... -- cannot reference A... as the return value pack
 
 type Y = X<number, string> -- invalid number of arguments
@@ -22,7 +22,7 @@ Declaration syntax also supports multiple type packs, but we don't have defined 
 ## Design
 
 We currently support type packs at these locations:
-```lua
+```luau
 -- for variadic function parameter when type pack is generic
 local function f<a...>(...: a...)
 
@@ -34,14 +34,14 @@ local function f<a...>(): (number, a...)
 ```
 
 We want to be able to use type packs for type alias instantiation:
-```lua
+```luau
 type X<T...> = --
 
 type A<S...> = X<S...> -- T... = (S...)
 ```
 
 Similar to function calls, we want to be able to assign zero or more regular types to a single type pack:
-```lua
+```luau
 type A = X<>                  -- T... = ()
 type B = X<number>            -- T... = (number)
 type C = X<number, string>    -- T... = (number, string)
@@ -50,7 +50,7 @@ type C = X<number, string>    -- T... = (number, string)
 Definition of `A` doesn't parse right now, we would like to make it legal going forward.
 
 Variadic types can also be assigned to type alias type pack:
-```lua
+```luau
 type D = X<...number>           -- T... = (...number)
 ```
 
@@ -61,7 +61,7 @@ We have to keep in mind that it is also possible to declare a type alias that ta
 Again, type parameters that haven't been matched with type arguments are combined together into the first type pack.
 After the first type pack parameter was assigned, following type parameters are not allowed.
 Type pack parameters after the first one have to be type packs:
-```lua
+```luau
 type Y<T..., U...> = --
 
 type A<S...> = Y<S..., S...>              -- T... = S..., U... = S...
@@ -86,7 +86,7 @@ type I<S...> = W<number, string, S...>      -- U... = (string), V... = S...
 To enable additional control for the content of a type pack, especially in cases where multiple type pack parameters are expected, we introduce an explicit type pack syntax for use in type alias instantiation.
 
 Similar to variadic types `...a` and generic type packs `T...`, explicit type packs can only be used at type pack positions:
-```lua
+```luau
 type Y<T..., U...> = (T...) -> (U...)
 
 type F1 = Y<(number, string), (boolean)>          -- T... = (number, string), U... = (boolean)
@@ -98,7 +98,7 @@ In type parameter list, types inside the parentheses always produce a type pack.
 This is in contrast to function return type pack annotation, where `() -> number` is the same as `() -> (number)`.
 
 However, to preserve backwards-compatibility with optional parenthesis around regular types, type alias instantiation is allowed to assign a non-variadic type pack parameter with a single element to a type argument:
-```lua
+```luau
 type X<T, U> = (T) -> U?
 type A = X<(number), (string)> -- T = number, U = string
 type A = X<(number), string>   -- same
@@ -114,7 +114,7 @@ Explicit type pack syntax is not available in other type pack annotation context
 ### Type pack element extraction
 
 Because our type alias instantiations are not lazy, it's impossible to split of a single type from a type pack:
-```lua
+```luau
 type Car<T, U...> = T
 
 type X = Car<number, string, boolean> -- number
@@ -129,7 +129,7 @@ Splitting off a single type is is a common pattern with variadic templates in C+
 ### Type alias can't result in a type pack
 
 We don't propose type aliases to generate type packs, which could have looked as:
-```lua
+```luau
 type Car<T, U...> = T
 type Cdr<T, U...> = U...
 type Cons<T, U...> = (T, U...)
@@ -150,7 +150,7 @@ Support for variadic types in the middle of a type pack can be found in TypeScri
 Another option that was considered is to parse `(T)` as `T`, like we do for return type annotation.
 
 This option complicates the match ruleset since the typechecker will never know if the user has written `T` or `(T)` so each regular type could be a single element type pack and vice versa.
-```lua
+```luau
 type X<T...>
 type C = X<number, number> -- T... = (number, number)
 type D = X<(number), (number)> -- T... = (number, number)
@@ -179,7 +179,7 @@ Since our current ruleset no longer has a problem with single element type tuple
 
 One option that we have is to remove implicit pack assignment from a set of types and always require new explicit type pack syntax:
 
-```lua
+```luau
 type X<T...> = --
 
 type B = X<>                  -- invalid
@@ -193,7 +193,7 @@ type D = X<(number, string)>  -- T... = (number, string)
 
 But this doesn't allow users to define type aliases where they only care about a few types and use the rest as a 'tail':
 
-```lua
+```luau
 type X<T, U, Rest...> = (T, U, Rest...) -> Rest...
 
 type A = X<number, string, ()> -- forced to use a type pack when there are no tail elements
@@ -204,14 +204,14 @@ It also makes it harder to change the type parameter count without fixing up the
 ### Combining types together with the following type pack into a single argument
 
 Earlier version of the proposal allowed types to be combined together with a type pack as a tail:
-```lua
+```luau
 type X<T...> = --
 
 type A<S...> = X<number, S...> --- T... = (number, S...)
 ```
 
 But this syntax resulted in some confusing behavior when multiple type pack arguments are expected:
-```lua
+```luau
 type Y<T..., U...> = --
 
 type B = Y<number, (string, number)> -- not enough type pack parameters

@@ -10,7 +10,7 @@ Extend the syntax and semantics of functions to support explicit generic functio
 
 Currently Luau allows generic functions to be inferred but not given explicit type annotations. For example
 
-```lua
+```luau
 function id(x) return x end
 local x: string = id("hi")
 local y: number = id(37)
@@ -22,34 +22,34 @@ is fine, but there is no way for a user to write the type of `id`.
 
 Allow functions to take type parameters as well as function parameters, similar to Java/Typescript/...
 
-```lua
+```luau
 function id<a>(x : a) : a return x end
 ```
 
 Functions may also take generic type pack arguments for varargs, for instance:
 
-```lua
+```luau
 function compose<a...>(... : a...) -> (a...) return ... end
 ```
 
 Generic type and type pack parameters can also be used in function types, for instance:
 
-```lua
+```luau
 local id: <a>(a)->a = function(x) return x end
 ```
 
 This change is *not* only syntax, as explicit type parameters need to be part of the semantics of types. For example, we can define a generic identity function
 
-```lua
+```luau
 local function id(x) return x end
 local x: string = id("hi")
 local y: number = id(37)
 type Id = typeof(id)
 ```
 
-and two functions 
+and two functions
 
-```lua
+```luau
 function f()
   return id
 end
@@ -65,14 +65,14 @@ end
 
 The types of these functions are
 
-```lua
+```luau
   f : () -> <a>(a) -> a
   g : <a>() -> (a) -> a
 ```
 
 so this is okay:
 
-```lua
+```luau
   local i: Id = f()
   local x: string = i("hi")
   local y: number = i(37)
@@ -80,7 +80,7 @@ so this is okay:
 
 but this is not:
 
-```lua
+```luau
   -- This assignment shouldn't typecheck!
   local i: Id = g()
   local x: string = i("hi")
@@ -96,7 +96,7 @@ We propose supporting type parameters which can be instantiated with any type (j
 
 Note that this RFC proposes a syntax for adding generic parameters to functions, but it does *not* propose syntax for adding generic arguments to function call site. For example, for `id` function you *can* write:
 
-```lua
+```luau
  -- generic type gets inferred as a number in all these cases
 local x = id(4)
 local x = id(y) :: number
@@ -113,7 +113,7 @@ If we ever want to implement this though, we can use a solution inspired by Rust
 
 The following two variants are grammatically unambiguous in expression context in Luau, and are a better parallel for Rust's turbofish (in Rust, `::` is more similar to Luau's `:` or `.` than `::`, which in Rust is called `as`):
 
-```lua
+```luau
 foo:<number, string>() -- require : before <; this is only valid in Luau in variable declaration context, so it's safe to use in expression context
 foo.<number, string>() -- require . before <; this is currently never valid in Luau
 ```
@@ -128,7 +128,7 @@ Types become more complex, so harder for programmers to reason about, and adding
 
 Not having higher-kinded types stops some examples which are parameterized on container types, for example:
 
-```lua
+```luau
   function g<c>(f : <a>(a) -> c<a>) : <b>(b) -> c<c<b>>
     return function(x) return f(f(x)) end
   end
@@ -136,7 +136,7 @@ Not having higher-kinded types stops some examples which are parameterized on co
 
 Not having bounded types stops some examples like giving a type to the function that sums an non-empty array:
 
-```lua
+```luau
   function sum(xs)
     local result = x[0]
     for i=1,#xs

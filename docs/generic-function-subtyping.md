@@ -12,7 +12,7 @@ of places where the typechecker will automatically perform instantiation with
 the goal of permitting more programs. These instances of instantiation are
 ad-hoc and strategic, but useful in practice for permitting programs such as:
 
-```lua
+```luau
 function id<T>(x: T): T
 	return x
 end
@@ -47,10 +47,10 @@ to be a subtype of the original function type. Implementation-wise, this loose
 formal rule suggests a strategy of when we'll want to apply instantiation.
 Namely, whenever the subtype and supertype are both functions with the potential
 subtype having some generic parameters and the supertype having none. So, if we
-look once again at our simple example from motivation, we can walk through how 
+look once again at our simple example from motivation, we can walk through how
 we expect it to type check:
 
-```lua
+```luau
 function id<T>(x: T): T
 	return x
 end
@@ -74,7 +74,7 @@ Adding instantiation to subtyping does pose some additional questions still
 about when exactly to instantiate. Namely, we need to consider cases like
 function application. We can see why by looking at some examples:
 
-```lua
+```luau
 function rank2(f: <a>(a) -> a): (number) -> number
     return f
 end
@@ -126,7 +126,7 @@ It may also be helpful to consider an example of rank-1 polymorphism to
 understand the full scope of the behavior. So, we can look at what happens if we
 simply move the type parameter out in our working example:
 
-```lua
+```luau
 function rank1<a>(f: (a) -> a): (number) -> number
     return f
 end
@@ -152,7 +152,7 @@ however, programmers may be surprised by the added restriction when it comes to
 properties in tables. In particular, we can consider a small variation of our
 original example with identity functions:
 
-```lua
+```luau
 function id<T>(x: T): T
 	return x
 end
@@ -206,6 +206,6 @@ ambiguity issues or requires the introduction of a sigil like Rust's turbofish
 for instantiation. Discussion of that syntax is present in the [generic
 functions][generic-functions] RFC.
 
-[value-restriction]: https://stackoverflow.com/questions/22507448/the-value-restriction#22507665 
+[value-restriction]: https://stackoverflow.com/questions/22507448/the-value-restriction#22507665
 [read-only-props]: https://github.com/Roblox/luau/blob/master/rfcs/property-readonly.md
 [generic-functions]: https://github.com/Roblox/luau/blob/master/rfcs/generic-functions.md

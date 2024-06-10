@@ -41,7 +41,7 @@ that there is a code defect. Example defects are:
 
 Detecting run-time errors is undecidable, for example
 
-```lua
+```luau
 if cond() then
     math.abs(“hi”)
 end
@@ -55,7 +55,7 @@ run-time error, and so report a type error in this case.
 missing property is accessed (though embeddings may). So something
 like
 
-```lua
+```luau
 local t = { Foo = 5 }
 local x = t.Fop
 ```
@@ -64,7 +64,7 @@ won’t produce a run-time error, but is more likely than not a
 programmer error. In this case, if the programmer intent was to
 initialize `x` as `nil`, they could have written
 
-```lua
+```luau
 local t = { Foo = 5 }
 local x = nil
 ```
@@ -75,7 +75,7 @@ type system guarantees is of type `nil`.
 *Writing properties that are never read*: There is a matching problem
 with misspelling properties when writing. For example
 
-```lua
+```luau
 function f()
   local t = {}
   t.Foo = 5
@@ -108,7 +108,7 @@ produce a type error.
 
 For example in the program
 
-```lua
+```luau
 function h(x, y)
   math.abs(x)
   string.lower(y)
@@ -124,7 +124,7 @@ y : ~string
 
 In the function:
 
-```lua
+```luau
 function f(x)
   math.abs(x)
   string.lower(x)
@@ -141,7 +141,7 @@ Since `~number | ~string` is equivalent to `unknown`, non-strict mode
 can report a warning, since calling the function is guaranteed to
 throw a run-time error. In contrast:
 
-```lua
+```luau
 function g(x)
   if cond() then
     math.abs(x)
@@ -157,7 +157,7 @@ generates context
 x : ~number & ~string
 ```
 
-Since `~number & ~string` is not equivalent to `unknown`, non-strict mode reports no warning. 
+Since `~number & ~string` is not equivalent to `unknown`, non-strict mode reports no warning.
 
 * The disjunction of contexts `C1` and `C2` contains `x : T1|T2`,
   where `x : T1` is in `C1` and `x : T2` is in `C2`.
@@ -219,7 +219,7 @@ issues warnings at the point that data flows into a place
 guaranteed to later produce a run-time error, which may not be perfect
 ergonomics. For example, in the program:
 
-```lua
+```luau
 local x
 if cond() then
   x = 5
@@ -297,7 +297,7 @@ We could use this design to infer checked functions. In function
 `(unknown^(i-1),Ti,unknown^(N-i))->error` to the inferred type of `f`. For
 example, for the function
 
-```lua
+```luau
 function h(x, y)
   math.abs(x)
   string.lower(y)

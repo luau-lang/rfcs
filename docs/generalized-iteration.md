@@ -24,12 +24,12 @@ This proposal solves all of these by providing a way to implement uniform iterat
 
 In Lua, `for vars in iter do` has the following semantics (otherwise known as the iteration protocol): `iter` is expanded into three variables, `gen`, `state` and `index` (using `nil` if `iter` evaluates to fewer than 3 results); after this the loop is converted to the following pseudocode:
 
-```lua
+```luau
 while true do
   vars... = gen(state, index)
   index = vars... -- copy the first variable into the index
   if index == nil then break end
-  
+
   -- loop body goes here
 end
 ```
@@ -40,7 +40,7 @@ Thus, today the loop `for k, v in tab do` effectively executes `k, v = tab()` on
 
 This proposal comes in two parts: general support for `__iter` metamethod and default implementation for tables without one. With both of these in place, there's going to be a single, idiomatic, general and performant way to iterate through the object of any type:
 
-```lua
+```luau
 for k, v in obj do
 ...
 end
@@ -50,7 +50,7 @@ end
 
 To support self-iterating objects, we modify the iteration protocol as follows: instead of simply expanding the result of expression `iter` into three variables (`gen`, `state` and `index`), we check if the first result has an `__iter` metamethod (which can be the case if it's a table, userdata or another composite object (e.g. a record in the future). If it does, the metamethod is called with `gen` as the first argument, and the returned three values replace `gen`/`state`/`index`. This happens *before* the loop:
 
-```lua
+```luau
 local genmt = rawgetmetatable(gen) -- pseudo code for getmetatable that bypasses __metatable
 local iterf = genmt and rawget(genmt, "__iter")
 if iterf then
@@ -62,7 +62,7 @@ This check is comparatively trivial: usually `gen` is a function, and functions 
 
 This allows objects to provide a custom function that guides the iteration. Since the function is called once, it is easy to reuse other functions in the implementation, for example here's a node object that exposes iteration through its children:
 
-```lua
+```luau
 local Node = {}
 Node.__index = Node
 

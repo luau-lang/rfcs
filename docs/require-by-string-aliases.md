@@ -2,7 +2,7 @@
 
 ## Summary
 
-We need to add intuitive alias and paths functionality to facilitate the grouping together of related Luau files into libraries and allow for future package managers to be developed and integrated easily. 
+We need to add intuitive alias and paths functionality to facilitate the grouping together of related Luau files into libraries and allow for future package managers to be developed and integrated easily.
 
 ## Motivation
 
@@ -14,7 +14,7 @@ Luau itself currently supports a basic require-by-string syntax that allows for 
 
 #### Aliases
 
-Aliases can be used to bind an absolute or relative path to a convenient, case-insensitive name that can be required directly. 
+Aliases can be used to bind an absolute or relative path to a convenient, case-insensitive name that can be required directly.
 
 ```json
 "aliases": {
@@ -24,17 +24,17 @@ Aliases can be used to bind an absolute or relative path to a convenient, case-i
 
 Based on the alias map above, you would be able to require Roact directly with an `@` prefix:
 
-```lua
+```luau
 local Roact = require("@Roact")
 ```
 
 Or even a sub-module:
 
-```lua
+```luau
 local createElement = require("@Roact/createElement")
 ```
 
-Aliases are overrides. Whenever the first component of a path exactly matches a pre-defined alias, it will be replaced before the path is resolved to a file. Alias names are also restricted to the charset `[A-Za-z0-9.\-_]`. We restrict the charset and make them case insensitive because we envision alias names to be primarily used as package names, which tend to be case insensitive and alphanumeric. They also must be preceded by an `@` symbol. 
+Aliases are overrides. Whenever the first component of a path exactly matches a pre-defined alias, it will be replaced before the path is resolved to a file. Alias names are also restricted to the charset `[A-Za-z0-9.\-_]`. We restrict the charset and make them case insensitive because we envision alias names to be primarily used as package names, which tend to be case insensitive and alphanumeric. They also must be preceded by an `@` symbol.
 
 ### Package management
 
@@ -42,7 +42,7 @@ While package management itself is outside of the scope of this RFC, we want to 
 
 To require a Luau module under the current implementation, we must require it either by relative or absolute path:
 
-```lua
+```luau
 -- Requiring Roact by absolute path
 local Roact = require("C:/LuauModules/Roact-v1.4.2")
 ```
@@ -53,7 +53,7 @@ To solve this, we introduce path and alias configuration in this RFC, which woul
 
 This would also create simple and readable require statements for developers.
 
-```lua
+```luau
 -- Suppose "@src" is an alias for the same directory as "../../../../../"
 
 -- Instead of this:
@@ -100,7 +100,7 @@ With the given `paths` definition (`.luaurc` file located in `/Users/johndoe/Pro
 ```
 
 If `/Users/johndoe/Projects/MyProject/src/init.luau` contained the following code:
-```lua
+```luau
 local graphing = require("graphing")
 ```
 We would search the following directories, in order:
@@ -130,7 +130,7 @@ If `.luaurc` contained the following `paths` array:
 ```
 
 Then, `module.luau` could simply require `dependency.luau` like this:
-```lua
+```luau
 local dependency = require("dependency")
 
 -- Instead of: require("../dependencies/dependency")
@@ -197,7 +197,7 @@ For example, if we wanted to require `Roact` in `module.luau`, we could add the 
 ```
 
 Then, we could simply write the following in `module.luau`, and everything would work as intended:
-```lua
+```luau
 local Roact = require("@Roact")
 local Component = require("@Roact/Component")
 ```
@@ -229,7 +229,7 @@ We can provide the following alias in `large-luau-project/.luaurc`:
 This way, each subproject directory can contain its own source code, dependencies, and `.luaurc` configuration files, while also inheriting the `com.roblox.luau` alias from `large-luau-project/.luaurc`.
 
 This allows us to refer to other subprojects like this, regardless of the exact location of the requiring file in `large-luau-project`:
-```lua
+```luau
 local subproject1 = require("@com.roblox.luau/subproject-1")
 ```
 ### Roblox Specifics
@@ -246,7 +246,7 @@ This alias system introduces a new layer to require that wasn't previously there
 #### Defining paths/aliases directly in the requiring file
 
 Rather than defining paths/alias maps in an external configuration file, we could alternatively define paths/aliases directly in the files that require them. For example, this could manifest itself through an extension of the `--!` comment syntax or introduce new syntax like `--@<ALIAS> = @<PATH>`.
-```lua
+```luau
 --@"Roact" = @"C:/LuauModules/Roact-v1.4.2"
 local Roact = require("@Roact")
 

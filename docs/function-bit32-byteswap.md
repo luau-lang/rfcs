@@ -12,7 +12,7 @@ The endianness of an integer is generally invisible to Luau users. Numbers are t
 
 While the endianness of numbers can be swapped through a few methods, it is cumbersome. Modern CPUs have instructions dedicated to this (`bswap` on x86-64, `rev` on aarch64) but in Luau, the current best method is to manually shift bytes around and OR them together. For 32-bit integers, this becomes a total of 7 calls:
 
-```lua
+```luau
 bit32.bor(
     bit32.lshift(n, 24),
     bit32.band(bit32.lshift(n, 8), 0xFF0000),
@@ -27,7 +27,7 @@ Along with being inefficient, it is also difficult read this code and remember i
 
 The `bit32` library will gain a new function: `bit32.byteswap`:
 
-```
+```luau
 bit32.byteswap(n: number): number
 ```
 

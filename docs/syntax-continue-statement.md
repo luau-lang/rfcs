@@ -24,7 +24,7 @@ These rules effectively say that continue statement is the statement that *does 
 
 This is a continue statement:
 
-```
+```luau
 do
 continue
 end
@@ -32,7 +32,7 @@ end
 
 This is not a continue statement:
 
-```
+```luau
 do
 continue = 5
 end
@@ -40,7 +40,7 @@ end
 
 This is not a continue statement:
 
-```
+```luau
 do
 continue(5)
 end
@@ -48,7 +48,7 @@ end
 
 This is not a continue statement either, why do you ask?
 
-```
+```luau
 do
 continue, foo = table.unpack(...)
 end
@@ -62,7 +62,7 @@ Alternatively in this specific case we could parse "continue", parse the next to
 
 The rules make it so that the only time we interpret `continue` as a continuation statement is when in the old Lua the program would not have compiled correctly - because this is not valid Lua 5.x:
 
-```
+```luau
 do
 continue
 end
@@ -70,7 +70,7 @@ end
 
 There is one case where this can create new confusion in the newly written code - code like this:
 
-```
+```luau
 do
 continue
 (foo())(5)

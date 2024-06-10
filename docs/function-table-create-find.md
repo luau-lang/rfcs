@@ -16,7 +16,7 @@ This proposal suggests adding two new builtin table functions:
 
 `table.find` is roughly equivalent to the following code modulo semantical oddities with #t and performance:
 
-```
+```luau
 function find(table, value, init)
     for i=init or 1, #table do
         if rawget(table, i) == value then
@@ -25,4 +25,4 @@ function find(table, value, init)
     end
     return nil
 end
-``` 
+```

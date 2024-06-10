@@ -13,7 +13,7 @@ bottom" behavior of the `any` type.
 ### Error suppression
 
 Currently, we have ad hoc error suppression, where we try to avoid cascading errors, for example in
-```lua
+```luau
   local x = t.p.q.r
 ```
 
@@ -53,7 +53,7 @@ Call a type:
 
  * shallowly safe when any uses of `error` or `any` are inside a table or function type, and
  * deeply safe when it does not contain `error` or `any` anywhere.
- 
+
 A type `T` is shallowly unsafe precisely when `error <: T`.
 
 We add a new subtyping relationship:
@@ -91,7 +91,7 @@ The subtype testing algorithm changes:
  * In the case of testing `any <: T`, return `true` with no errors.
  * In the case of testing `T <: any`, return `false` with no errors.
  * In the case of testing `T <: unknown`, check `T` for being a shallowly safe type.
- 
+
 These changes are not huge, and can be implemented for both the current greedy unifier,
 and future constraint solvers.
 
@@ -106,7 +106,7 @@ when the old algorithm generates no errors. But it can result in different unifi
 For example, if `Y` is a free type variable, then currently checking `(any & Y) <: number`
 will not perform any unification, which makes a difference to the program:
 
-```lua
+```luau
   function f(x : any, y) -- introduces a new free type Y for y
     if x == y then       -- type refinement makes y have type (any & Y)
       return math.abs(y) -- checks (any & Y) <: number
@@ -128,4 +128,3 @@ We could implement Siek and Taha's algorithm, but that only helps with
 `any`, not with more general error supression.
 
 We could leave everything alone, and live with the weirdness of non-transitive subtyping.
-

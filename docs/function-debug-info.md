@@ -39,7 +39,7 @@ Unlike Lua version, which would use the options given to fill a resulting table 
 
 For example, here's how you implement a stack trace function:
 
-```
+```luau
    for i=1,100 do -- limit at 100 entries for very deep stacks
       local source, name, line = debug.info(i, "snl")
       if not source then break end

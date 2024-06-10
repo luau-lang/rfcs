@@ -15,7 +15,7 @@ literal to an unsealed table creates an optional property.
 
 In lua-apps, there is testing code which (simplified) looks like:
 
-```lua
+```luau
 local t = { u = {} }
 t = { u = { p = 37 } }
 t = { u = { q = "hi" } }
@@ -43,7 +43,7 @@ tables with indexers, this allows table literals to be used as dictionaries,
 for example the type of `t` is a subtype of `{ u: { [string]: number } }`.
 
 Note that we need to add an optional property, otherwise the example above will not typecheck.
-```lua
+```luau
 local t = { u = {} }
 t = { u = { p = 37 } }
 t = { u = { q = "hi" } } -- fails because there's no u.p
@@ -56,5 +56,5 @@ and so needs access to an allocator.
 
 ## Alternatives
 
-Rather than introducing optional properties, we could introduce an indexer. For example we could infer the type of 
+Rather than introducing optional properties, we could introduce an indexer. For example we could infer the type of
 `t` as `{ u: { [string]: number } }`.

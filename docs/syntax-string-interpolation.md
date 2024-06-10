@@ -103,7 +103,7 @@ print`Hello {name}`
 {% raw %}
 The restriction on `{{` exists solely for the people coming from languages e.g. C#, Rust, or Python which uses `{{` to escape and get the character `{` at runtime. We're also rejecting this at parse time too, since the proper way to escape it is `\{`, so:
 
-```lua
+```luau
 print(`{{1, 2, 3}} = {myCoolSet}`) -- parse error
 ```
 {% endraw %}
@@ -116,14 +116,14 @@ If we did not apply this as a parse error, then the above would wind up printing
 
 Since the string interpolation expression is going to be lowered into a `string.format` call, we'll also need to extend `string.format`. The bare minimum to support the lowering is to add a new token whose definition is to perform a `tostring` call. `%*` is currently an invalid token, so this is a backward compatible extension. This RFC shall define `%*` to have the same behavior as if `tostring` was called.
 
-```lua
+```luau
 print(string.format("%* %*", 1, 2))
 --> 1 2
 ```
 
 The offset must always be within bound of the numbers of values passed to `string.format`.
 
-```lua
+```luau
 local function return_one_thing() return "hi" end
 local function return_two_nils() return nil, nil end
 
@@ -142,14 +142,14 @@ print(string.format("%* %* %*", return_two_nils()))
 
 It must be said that we are not allowing this style of string literals in type annotations at this time, regardless of zero or many interpolating expressions, so the following two type annotations below are illegal syntax:
 
-```lua
+```luau
 local foo: `foo`
 local bar: `bar{baz}`
 ```
 
 String interpolation syntax will also support escape sequences. Except `\u{...}`, there is no ambiguity with other escape sequences. If `\u{...}` occurs within a string interpolation literal, it takes priority.
 
-```lua
+```luau
 local foo = `foo\tbar` -- "foo	bar"
 local bar = `\u{0041} \u{42}` -- "A B"
 ```

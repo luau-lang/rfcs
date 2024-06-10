@@ -10,15 +10,15 @@ Restrict generic type aliases to only be able to refer to the exact same instant
 
 Luau supports recursive type aliases, but with an important restriction:
 users can declare functions of recursive types, such as:
-```lua
+```luau
   type Tree<a> = { data: a, children: {Tree<a>} }
 ```
 but *not* recursive type functions, such as:
-```lua
+```luau
   type Weird<a> = { data: a, children: Weird<{a}> }
 ```
 If types such as `Weird` were allowed, they would have infinite unfoldings for example:
-```lua
+```luau
   Weird<number> = { data: number, children: Weird<{number}> }`
   Weird<{number}> = { data: {number}, children: Weird<{{number}}> }
   Weird<{{number}}> = { data: {{number}}, children: Weird<{{{number}}}> }
@@ -36,11 +36,11 @@ recursive types, we require that in any recursive type alias defining `T<gs>`,
 in any recursive use of `T<Us>`, we have that `gs` and `Us` are equal.
 
 This allows types such as:
-```lua
+```luau
   type Tree<a> = { data: a, children: {Tree<a>} }
 ```
 but *not*:
-```lua
+```luau
   type Weird<a> = { data: a, children: Weird<{a}> }
 ```
 since in the recursive use `a` is not equal to `{a}`.
@@ -51,7 +51,7 @@ This restriction applies to mutually recursive types too.
 
 This restriction bans some type declarations which do not produce infinite unfoldings,
 such as:
-```lua
+```luau
   type WeirdButFinite<a> = { data: a, children: WeirdButFinite<number> }
 ```
 This restriction is stricter than TypeScript, which allows programs such as:

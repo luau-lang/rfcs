@@ -14,7 +14,7 @@ We originally implemented nonstrict mode by making some tactical adjustments to 
 
 Separately, we would also like more accurate type inference in general.  Our current type solver jumps to conclusions a little bit too quickly.  For example, it cannot infer an accurate type for an ordinary search function:
 
-```lua
+```luau
 function index_of(tbl, el)
     for i = 0, #tbl do
         if tbl[i] == el then
@@ -49,7 +49,7 @@ When dispatching a constraint `T <: 't`, we replace the lower bounds of `'t` by 
 
 A return statement expands the lower bounds of the enclosing function's return type.
 
-```lua
+```luau
 function f(): R
     local x: X
     return x
@@ -59,7 +59,7 @@ end
 
 An assignment adds to the lower bounds of the assignee.
 
-```lua
+```luau
 local a: A
 local b: B
 a = b
@@ -70,7 +70,7 @@ A function call adds to the upper bounds of the function being called.
 
 Equivalently, passing a value to a function adds to the upper bounds of that value and to the lower bounds of its return value.
 
-```lua
+```luau
 local g
 local h: H
 local j = g(h)
@@ -79,7 +79,7 @@ local j = g(h)
 ```
 
 Property access is a constraint on a value's upper bounds.
-```lua
+```luau
 local a: A
 a.b = 2
 -- A <: {b: number}
@@ -100,7 +100,7 @@ If a free type has neither upper nor lower bounds, we replace it with a generic.
 
 Some simple examples:
 
-```lua
+```luau
 function print_number(n: number) print(n) end
 
 function f(n)
@@ -112,7 +112,7 @@ We arrive at the solution `never <: 'n <: number`.  When we generalize, we can r
 
 Next example:
 
-```lua
+```luau
 function index_of(tbl, el)      -- index_of : ('a, 'b) -> 'r
     for i = 0, #tbl do          -- i : number
         if tbl[i] == el then    -- 'a <: {'c}
@@ -146,7 +146,7 @@ This algorithm requires that we create a lot of union and intersection types.  W
 
 Local type inference is also more permissive than what we have been doing up until now.  For instance, the following is perfectly fine:
 
-```lua
+```luau
 local x = nil
 if something then
     x = 41

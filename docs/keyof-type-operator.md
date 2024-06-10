@@ -13,7 +13,7 @@ as objects and/or enumerations, and to reduce the amount of duplicate work users
 must undergo in order to type code that does this. For instance, consider the
 following example code:
 
-```lua
+```luau
 type AnimalType = "cat" | "dog" | "monkey" | "fox"
 
 local animals = {
@@ -43,7 +43,7 @@ The solution to this problem is a type operator, `keyof`, that can compute the
 type based on the type of `animals`. This would allow us to instead write this
 code as follows:
 
-```lua
+```luau
 local animals = {
     cat = { speak = function() print "meow" end },
     dog = { speak = function() print "woof woof" end },
@@ -77,7 +77,7 @@ legal keys for indexing and only the keys legal for `rawget` respectively.
 
 So, if we consider some very simple strawman code here:
 
-```lua
+```luau
 local MyClass = { Foo = "Bar" }
 local OtherClass = setmetatable({ Hello = "World" }, { __index = MyClass })
 

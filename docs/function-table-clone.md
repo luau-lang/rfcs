@@ -31,7 +31,7 @@ The table can be modified after cloning; as such, functions that compute a sligh
 
 `table.clone(t)` is functionally equivalent to the following code, but it's more ergonomic (on the account of being built-in) and significantly faster:
 
-```lua
+```luau
 assert(type(t) == "table")
 local nt = {}
 for k,v in pairs(t) do

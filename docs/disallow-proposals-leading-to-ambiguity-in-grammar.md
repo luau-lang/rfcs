@@ -16,21 +16,21 @@ We have had cases where we talked about using syntax like `setmetatable(T, MT)` 
 
 An example that _will_ cause a change in semantics:
 
-```
+```luau
 local t: F
 (u):m()
 ```
 
 where today, `local t: F` is one statement, and `(u):m()` is another. If we had the syntax for `F(T)` here, it becomes invalid input because it gets parsed as
 
-```
+```luau
 local t: F(u)
 :m()
 ```
 
 This is important because of the `setmetatable(T, MT)` case:
 
-```
+```luau
 type Foo = setmetatable({ x: number }, { ... })
 ```
 
@@ -40,7 +40,7 @@ For `setmetatable`, the parser isn't sure whether `{}` is actually a type or an 
 
 An example that _will_ cause a change in semantics:
 
-```
+```luau
 local function f(t): F T
     (t or u):m()
 end
@@ -50,7 +50,7 @@ where today, the return type annotation `F T` is simply parsed as just `F`, foll
 
 For `keyof`, here's a practical example of the above issue:
 
-```
+```luau
 type Vec2 = {x: number, y: number}
 
 local function f(t, u): keyof Vec2
@@ -65,13 +65,13 @@ There's three possible outcomes:
 
 This particular case is even worse when we keep going:
 
-```
+```luau
 local function f(t): F
     T(t or u):m()
 end
 ```
 
-```
+```luau
 local function f(t): F T
     {1, 2, 3}
 end
@@ -101,13 +101,13 @@ If #1 is what ends up happening, there's not much to worry about because the typ
 
 If #2 is what ends up happening, there could be a problem if we didn't future-proof against `<` and `(` to follow `function`:
 
-```
+```luau
   return f :: function(T) -> U
 ```
 
 which would be a parse error because at the point of `(` we expect one of `until`, `end`, or `EOF`, and
 
-```
+```luau
   return f :: function<a>(a) -> a
 ```
 
