@@ -12,7 +12,7 @@ Luau has support for type parameters for type aliases and functions.
 In languages with similar features like C++, Rust, Flow and TypeScript, it is possible to specify default values for looser coupling and easier composability, and users with experience in those languages would like to have these design capabilities in Luau.
 
 Here is an example that is coming up frequently during development of GraphQL Luau library:
-```lua
+```luau
 export type GraphQLFieldResolver<
     TSource,
     TContext,
@@ -25,7 +25,7 @@ Some engineers already skip these extra arguments and use `'any'` to save time, 
 Without default parameter values it's also harder to refactor the code as each type alias reference that uses 'common' type arguments has to be updated.
 
 While previous example uses a concrete type for default type value, it should also be possible to reference generic types from the same list:
-```lua
+```luau
 type Eq<T, U = T> = (l: T, r: U) -> boolean
 
 local a: Eq<number> = ...
@@ -37,19 +37,19 @@ Generic functions in Luau also have a type parameter list, but it's not possible
 ## Design
 
 If a default type parameter value is assigned, following type parameters (on the right) must also have default type parameter values.
-```lua
+```luau
 type A<T, U = string, V> = ... -- not allowed
 ```
 
 Default type parameter values can reference type parameters which were defined earlier (to the left):
-```lua
+```luau
 type A<T, U = T> = ...-- ok
 
 type A<T, U = V, V = T> = ... -- not allowed
 ```
 
 Default type parameter values are also allowed for type packs:
-```lua
+```luau
 type A<T, U... = ...string>           -- ok, variadic type pack
 type B<T, U... = ()>                  -- ok, type pack with no elements
 type C<T, U... = (string)>            -- ok, type pack with one element
@@ -69,7 +69,7 @@ Instead of storing a simple array of names in AstStatTypeAlias, we will store an
 When type alias is referenced, missing type parameters are replaced with default type values, if they are available.
 
 If all type parameters have a default type value, it is now possible to reference that without providing a type parameter list:
-```lua
+```luau
 type All<T = string, U = number> = ...
 
 local a: All -- ok
@@ -88,7 +88,7 @@ Type annotation with `':'` could be used in the future for bounded quantificatio
 Other languages might allow references to the type alias without arguments inside the scope of that type alias to resolve into a recursive reference to the type alias with the same arguments.
 
 While that is not allowed in Luau right now, if we decide to change that in the future, we will have an ambiguity when all type alias parameters have default values:
-```lua
+```luau
 -- ok if we allow Type to mean Type<A, B>
 type Type<A, B> = { x: number, b: Type? }
 

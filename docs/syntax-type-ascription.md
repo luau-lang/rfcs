@@ -12,7 +12,7 @@ Implement syntax for type ascriptions using `::`
 
 Luau would like to provide a mechanism for requiring a value to be of a specific type:
 
-```
+```luau
 -- Asserts that the result of a + b is a number.
 -- Emits a type error if it isn't.
 local foo = (a + b) as number
@@ -20,7 +20,7 @@ local foo = (a + b) as number
 
 This syntax was proposed in the original Luau syntax proposal. Unfortunately, we discovered that there is a syntactical ambiguity with `as`:
 
-```
+```luau
 -- Two function calls or a type assertion?
 foo() as (bar)
 ```
@@ -29,7 +29,7 @@ foo() as (bar)
 
 To provide this functionality without introducing syntactical confusion, we want to change this syntax to use the `::` symbol instead of `as`:
 
-```
+```luau
 local foo = (a + b) :: number
 ```
 
@@ -37,14 +37,14 @@ This syntax is borrowed from Haskell, where it performs the same function.
 
 The `::` operator will bind very tightly, like `as`:
 
-```
+```luau
 -- type assertion applies to c, not (b + c).
 local a = b + c :: number
 ```
 
 Note that `::` can only cast a *single* value to a type - not a type pack (multiple values). This means that in the following context, `::` changes runtime behavior:
 
-```
+```luau
 foo(1, bar()) -- passes all values returned by bar() to foo()
 foo(1, bar() :: any) -- passes just the first value returned by bar() to foo()
 ```
@@ -59,7 +59,7 @@ It's somewhat unusual for Lua to use symbols as operators, with the exception of
 
 We considered requiring `as` to be wrapped in parentheses, and then relaxing this restriction where there's no chance of syntactical ambiguity:
 
-```
+```luau
 local foo: SomeType = (fn() as SomeType)
 -- Parentheses not needed: unambiguous!
 bar(foo as number)

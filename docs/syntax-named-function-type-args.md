@@ -17,12 +17,12 @@ This proposal uses the same syntax that functions use to name the arguments: `(a
 Names can be provided in any place where function type is used, for example:
 
 * in type aliases:
-```
+```luau
 type MyFunc = (cost: number, name: string) -> string
 ```
 
 * in definition files for table types:
-```
+```luau
 declare string: {
     rep: (pattern: string, repeats: number) -> string,
     sub: (string, start: number, end: number?) -> string -- names are optional, here the first argument doesn't use a name
@@ -30,7 +30,7 @@ declare string: {
 ```
 
 * for variables:
-```
+```luau
 local cb: (amount: number) -> number
 local function foo(cb: (name: string) -> ())
 ```

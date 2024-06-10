@@ -12,7 +12,7 @@ Due to an accident of the implementation, the Luau `::` operator can only be use
 
 Because of this property, `::` works as users expect in a great many cases, but doesn't actually make a whole lot of sense when scrutinized.
 
-```lua
+```luau
 local t = {x=0, y=0}
 
 local a = t :: {x: number, y: number, z: number} -- OK

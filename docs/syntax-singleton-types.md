@@ -53,7 +53,7 @@ type TrueOrNil = true?
 Adding constant strings as type means that it is now legal to write
 `{["foo"]:T}` as a table type. This should be parsed as a property,
 not an indexer. For example:
-```lua
+```luau
   type T = {
     ["foo"]: number,
     ["$$bar"]: string,
@@ -66,7 +66,7 @@ The table type `T` is a table with three properties and no indexer.
 
 You are allowed to provide a constant value to the generic primitive type.
 
-```lua
+```luau
 local foo: "Hello world" = "Hello world"
 local bar: string = foo -- allowed
 
@@ -76,7 +76,7 @@ local bar: boolean = foo -- also allowed
 
 The inverse is not true, because you're trying to narrow any values to a specific value.
 
-```lua
+```luau
 local foo: string = "Hello world"
 local bar: "Hello world" = foo -- not allowed
 

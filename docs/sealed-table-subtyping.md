@@ -9,7 +9,7 @@ In Luau, tables have a state, which can, among others, be "sealed". A sealed tab
 ## Motivation
 
 We would like this code to type check:
-```lua
+```luau
 type Interface = {
     name: string,
 }
@@ -69,7 +69,7 @@ This change affects existing code, but it should be a strictly more permissive c
 
 This change will mean that sealed tables that don't exactly match may be permitted. In the past, this was an error; users may be relying on the type checker to perform these checks. We think the risk of this is minimal, as the presence of extra properties is unlikely to break user code. This is an example of code that would have raised a type error before:
 
-```lua
+```luau
 type A = {
     name: string,
 }
@@ -86,7 +86,7 @@ local a: A = {
 
 In order to avoid any chance of breaking backwards-compatibility, we could introduce a new state for tables, "interface" or something similar, that can only be produced via new syntax. This state would act like a sealed table, except with the addition of the subtyping rule described in this RFC. An example syntax for this:
 
-```lua
+```luau
 -- `interface` context-sensitive keyword denotes an interface table
 type A = interface {
     name: string,

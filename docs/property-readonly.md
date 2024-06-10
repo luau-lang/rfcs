@@ -30,7 +30,7 @@ This proposal is not about syntax, but it will be useful for examples to have so
 * `get p: T` for a read-only property of type `T`.
 
 For example:
-```lua
+```luau
 function f(t)
   t.p = 1 + t.p + t.q
 end
@@ -57,7 +57,7 @@ Indexers can be marked read-only just like properties. In
 particular, this means there are read-only arrays `{get T}`, that are
 covariant, so we have a solution to the "covariant array problem":
 
-```lua
+```luau
 local dogs: {Dog}
 function f(a: {get Animal}) ... end
 f(dogs)
@@ -71,7 +71,7 @@ for example `function f(a: {Animal}) a[1] = Cat.new() end`.
 ### Functions
 
 Functions are not normally mutated after they are initialized, so
-```lua
+```luau
 local t = {}
 function t.f() ... end
 function t:m() ... end
@@ -87,32 +87,32 @@ t : {
 
 If developers want a mutable function,
 they can use the anonymous function version
-```lua
+```luau
 t.g = function() ... end
 ```
 
 For example, if we define:
-```lua
+```luau
   type RWFactory<A> = { build : () -> A }
 ```
 
-then we do *not* have that `RWFactory<Dog>` is a subtype of `RWFactory<Animal>` 
+then we do *not* have that `RWFactory<Dog>` is a subtype of `RWFactory<Animal>`
 since the build method is read-write, so users can update it:
-```lua
+```luau
   local mkdog : RWFactory<Dog> = { build = Dog.new }
-  local mkanimal : RWFactory<Animal> = mkdog -- Does not typecheck 
+  local mkanimal : RWFactory<Animal> = mkdog -- Does not typecheck
   mkanimal.build = Cat.new -- Assigning to methods is OK for RWFactory
   local fido : Dog = mkdog.build() -- Oh dear, fido is a Cat at runtime
 ```
 
 but if we define:
-```lua
+```luau
   type ROFactory<A> = { get build : () -> A }
 ```
 
-then we do have that `ROFactory<Dog>` is a subtype of `ROFactory<Animal>` 
+then we do have that `ROFactory<Dog>` is a subtype of `ROFactory<Animal>`
 since the build method is read-write, so users can update it:
-```lua
+```luau
   local mkdog : ROFactory<Dog> = { build = Dog.new }
   local mkanimal : ROFactory<Animal> = mkdog -- Typechecks now!
   mkanimal.build = Cat.new -- Fails to typecheck, since build is read-only

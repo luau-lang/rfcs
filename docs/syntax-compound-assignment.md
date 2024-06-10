@@ -8,13 +8,13 @@
 
 A feature present in many many programming languages is assignment operators that perform operations on the left hand side, for example
 
-```
+```luau
 a += b
 ```
 
 Lua doesn't provide this right now, so it requires code that's more verbose, for example
 
-```
+```luau
 data[index].cost = data[index].cost + 1
 ```
 
@@ -30,13 +30,13 @@ The semantics of the operators is going to be as follows:
 
 Crucially, this proposal does *not* introduce new metamethods, and instead uses the existing metamethods and table access semantics, for example
 
-```
+```luau
 data[index].cost += 1
 ```
 
 translates to
 
-```
+```luau
 local table = data[index]
 local key = "cost"
 table[key] = table[key] + 1

@@ -16,13 +16,13 @@ special "switch off the type system" superpowers.
 Any use of `unknown` must be narrowed by type refinements unless another `unknown` or `any` is expected. For
 example a function which can return any value is:
 
-```lua
+```luau
   function anything() : unknown ... end
 ```
 
 and can be used as:
 
-```lua
+```luau
   local x = anything()
   if type(x) == "number" then
     print(x + 1)
@@ -33,7 +33,7 @@ The type of this function cannot be given concisely in current
 Luau. The nearest equivalent is `any`, but this switches off the type system, for example
 if the type of `anything` is `() -> any` then the following code typechecks:
 
-```lua
+```luau
   local x = anything()
   print(x + 1)
 ```
@@ -42,7 +42,7 @@ This is fine in nonstrict mode, but strict mode should flag this as an error.
 
 The `never` type comes up whenever type inference infers incompatible types for a variable, for example
 
-```lua
+```luau
   function oops(x)
     print("hi " .. x)  -- constrains x must be a string
     print(math.abs(x)) -- constrains x must be a number
@@ -55,7 +55,7 @@ a type error, but we still need to provide a type for `oops`. With a
 
 or when exhaustive type casing is achieved:
 
-```lua
+```luau
   function f(x: string | number)
     if type(x) == "string" then
       -- x : string
@@ -69,7 +69,7 @@ or when exhaustive type casing is achieved:
 
 or even when the type casing is simply nonsensical:
 
-```lua
+```luau
   function f(x: string | number)
     if type(x) == "string" and type(x) == "number" then
       -- x : string & number which is never
@@ -80,7 +80,7 @@ or even when the type casing is simply nonsensical:
 The `never` type is also useful in cases such as tagged unions where
 some of the cases are impossible. For example:
 
-```lua
+```luau
   type Result<T, E> = { err: false, val: T } | { err: true, err: E }
 ```
 
@@ -91,7 +91,7 @@ has type `Result<never, E>`.
 
 These types can _almost_ be defined in current Luau, but only quite verbosely:
 
-```lua
+```luau
   type never = number & string
   type unknown = nil | number | boolean | string | {} | (...never) -> (...unknown)
 ```
@@ -119,7 +119,7 @@ the type `() -> never` is not completely accurate, it should be `() -> (never, .
 cascading type errors. Ditto for when an expression list `f(), g()` where the resulting type pack is
 `(never, string, number)` is still the same as `(never, ...never)`.
 
-```lua
+```luau
   function f(): never error() end
   function g(): string return "" end
 

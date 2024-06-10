@@ -43,7 +43,7 @@ We could instead equalize (ha!) the behavior between Luau and Lua. In fact, this
 
 We could work with developers to change their games to stop relying on this. However, this is more complicated to deploy and - upon reflection - makes `==` less intuitive than the main proposal when comparing objects with NaN, since e.g. it means that these two functions have a different behavior:
 
-```
+```luau
 function compare1(a: Vector3, b: Vector3)
     return a == b
 end

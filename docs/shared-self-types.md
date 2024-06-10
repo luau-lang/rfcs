@@ -11,11 +11,11 @@ completely separate types to `self`. This has poor ergonomics, as type
 errors for inconsistent methods are produced on method calls rather
 than method definitions. It also has poor performance, as the independent
 self types have separate memory footprints, and there is idiomatic code with
-exponential blowup in the size of the type graph. 
+exponential blowup in the size of the type graph.
 
 For example, `Point` class can be simulated using metatables:
 
-```lua
+```luau
   --!strict
 
   local Point = {}
@@ -50,7 +50,7 @@ Even worse, the method `Point.abs` does not type-check, since the type
 of `self.x * self.x` is unknown. If Luau had subtyping constraints and type families
 for overloaded operators, the inferred type would be something like:
 
-```lua
+```luau
   type PointMT = {
     new : () -> Point,
     getX : <a>({ x : a }) -> a,
@@ -70,7 +70,7 @@ but this type is not great ergonomically, since this type may be presented to
 users in type hover or type error messages, and will surprise users
 expecting a simpler type such as:
 
-```lua
+```luau
   type PointMT = {
     new : () -> Point
     getX : (Point) -> number,
@@ -92,7 +92,7 @@ Unfortunately, while this change is fairly straightforward for
 monomorphic types like `Point`, it is problematic for generic classes
 such as containers. For example:
 
-```lua
+```luau
 local Set = {}
 Set.__index = Set
 
@@ -114,7 +114,7 @@ end
 In this case, the expected type would be something like:
 
 
-```lua
+```luau
   type SetMT = {
     new : <E>() -> Set<E>,
     add : <E>(Set<E>, E) -> (),
@@ -130,7 +130,7 @@ Inferring this type is beyond the scope of this RFC, though. Initially, we propo
 in this case:
 
 
-```lua
+```luau
   type SetMT = {
     new : () -> Set,
     add : (Set, unknown) -> (),
@@ -145,7 +145,7 @@ in this case:
 and propose allowing explicit declaration of the shared self type,
 following the common practice of naming the self type after the metatable:
 
-```lua
+```luau
   type Set<E> = { elements : { [E] : boolean } }
 ```
 
@@ -153,7 +153,7 @@ This type (and its generic type parameters) are used to derive the
 type of `self` in methods declared using `function Set:m()`
 declarations:
 
-```lua
+```luau
   type SetSelf<E> = {
     elements : { [E] : boolean },
     @metatable SetMT
@@ -164,13 +164,13 @@ In cases where shared self types are just getting in the way, there
 are two work-arounds. Firstly, the shared self type can be declared to
 be `any`, which will silence type errors:
 
-```lua
+```luau
   type Foo = any
 ```
 
 Secondly, the self type can be declared explicitly:
 
-```lua
+```luau
   function Foo.m(self : Bar) ... end
 ```
 
@@ -186,7 +186,7 @@ For each table `t`, introduce:
 
 These can be declared explicitly:
 
-```lua
+```luau
   type t<As> = U
 ```
 
@@ -198,7 +198,7 @@ which defines, when `t` has type `T`:
 
 For example,
 
-```lua
+```luau
   type Set<E> = { [E] : boolean }
 ```
 
@@ -278,7 +278,7 @@ all of their fields initialized *before* any methods are called. In
 cases where methods are called before all the fields are initialized,
 this will result in optional types being inferred. For example:
 
-```lua
+```luau
   function Point.new()
     local result = setmetatable({}, Point)
     result.x = 0
@@ -292,7 +292,7 @@ this will result in optional types being inferred. For example:
 the call to `result:getY()` uses the *current* type state of `result`, which is `{ x : number, @metatable PointMT }`.
 Unification will then cause `Point` to consider `y` to be optional:
 
-```lua
+```luau
   type PointMT = {
     new : () -> Point
     getX : (Point) -> number,
@@ -310,7 +310,7 @@ Since `y` has type `number?` rather than `number`, the `abs` method will fail to
 
 As a workaround, developers can declare different self types for different methods:
 
-```lua
+```luau
   function Point.getX(self : { x : number }) : number
     return self.x
   end
@@ -321,7 +321,7 @@ As a workaround, developers can declare different self types for different metho
 
 resulting in:
 
-```lua
+```luau
   type PointMT = {
     new : () -> Point
     getX : ({ x : number }) -> number,
@@ -347,7 +347,7 @@ result in inferring that both `x` and `y` are optional,
 
 With the current greedy unifier, classes with constructors of different types will fail:
 
-```lua
+```luau
   local Foo = {}
   Foo.__index = Foo
   function Foo.from(x) return setmetatable({ msg = tostring(x) }, Foo) end

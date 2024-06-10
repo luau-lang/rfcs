@@ -4,7 +4,7 @@
 
 Introduce a new syntax for unpacking key values into their own variables, such that:
 
-```lua
+```luau
 local { .a, .b } = t
 -- a == t.a
 -- b == t.b
@@ -21,7 +21,7 @@ const { useState, useEffect } = require("react");
 
 ...which allows you to quickly use `useState` and `useEffect` without fully qualifying it in the form of `React.useState` and `React.useEffect`. In Luau, if you do not want to fully qualify common React functions, the top of your file will often look like:
 
-```lua
+```luau
 local useEffect = React.useEffect
 local useMemo = React.useMemo
 local useState = React.useState
@@ -32,7 +32,7 @@ local useState = React.useState
 
 It is also common to want to have short identifiers to React properties, which basically always map onto a variable of the same name. As an anecdote, a regex search of `^\s+local (\w+) = \w+\.\1$` comes up 103 times in the My Movie codebase, many in the form of indexing React properties:
 
-```lua
+```luau
 local position = props.position
 local style = props.style
 -- etc...
@@ -71,7 +71,7 @@ binding = NAME [':' Type]
 
 This would allow for the following:
 
-```lua
+```luau
 local { .a, .b }, c = t
 
 for _, { .a, .b } in ts do
@@ -80,7 +80,7 @@ end
 
 In all of these cases, `.x` is an index of the table it corresponds to, assigned to a local variable of that name. For example, `local { .a, .b } = t` is syntax sugar for:
 
-```lua
+```luau
 local a = t.a
 local b = t.b
 ```
@@ -88,7 +88,7 @@ local b = t.b
 This will have the same semantics with regards to `__index`, in the order of the variables being assigned. Furthermore, if `t` for whatever reason cannot be indexed (not a table, nil), you will get the same errors as you would if you were writing out `t.a` by hand.
 
 Trying to use object destructuring in a local assignment without a corresponding assignment, such as...
-```lua
+```luau
 local { .x, .y }
 ```
 
@@ -97,14 +97,14 @@ local { .x, .y }
 #### Function arguments
 Functions use `parlist`, which eventually uses `binding`. However, attempting to use key destructuring in a function body is not supported.
 
-```lua
+```luau
 -- NOT supported
 local function f({ .x, .y })
 ```
 
 #### Types
 An optional type can be supplied, such as:
-```lua
+```luau
 local { .a: string, .b: number } = t
 
 -- Equivalent to...
@@ -113,20 +113,20 @@ local b: number = t.b
 ```
 
 Without explicit types, local assignments and for loops will assume the type of `<rhs>.<field>`. For example...
-```lua
+```luau
 -- x and y will both be typed `number` here
 local { .x, .y } = position :: { x: number, y: number }
 ```
 
 Additionally, you can specify a type on the "table" as a whole.
 
-```lua
+```luau
 local { .x, .y }: Position = p
 ```
 
 Combining both is acceptable, in which case the type on the variable takes priority:
 
-```lua
+```luau
 -- `x` will be `number`, `y` will be the type of `T.y`
 local { .x: number, .y }: T = p
 ```
@@ -135,14 +135,14 @@ local { .x: number, .y }: T = p
 
 This proposal allows for renaming the assignments using `as`.
 
-```lua
+```luau
 local { .real as aliased } = t
 -- is equivalent to...
 local aliased = t.real
 ```
 
 This helps support multiple assignments on the same name:
-```lua
+```luau
 local { .name as nameA } = getObject(a)
 local { .name as nameB } = getObject(b)
 ```
@@ -153,13 +153,13 @@ This RFC does not concern itself with array destructuring. This is in part becau
 #### Reassignments
 We do not support key destructuring in reassignments, for example...
 
-```lua
+```luau
 { .x, .y } = position
 ```
 
 This is to avoid ambiguity with potential table calls:
 
-```lua
+```luau
 local a = b
 { .x, .y } = c
 ```
@@ -178,7 +178,7 @@ This also blocks nested destructuring, such as JavaScript's `const { a: { b } } 
 ### Roblox - Property casing
 Today in Roblox, every index doubly works with camel case, such as `part.position` being equivalent to `part.Position`. This use is considered deprecated and frowned upon. However, even with variable renaming, this becomes significantly more appealing. For example, it is common you will only want a few pieces of information from a `RaycastResult`, so you might be tempted to write:
 
-```lua
+```luau
 local { .position } = Workspace:Raycast(etc)
 ```
 
@@ -198,7 +198,7 @@ An intuitive suggestion is `local { a, b } = t`, but this syntax fails this test
 
 If we simply replace `as` with `=`, though it would parse, it does not read like any other assignment in Luau.
 
-```lua
+```luau
 local { .x = y } = t
 ```
 
@@ -206,7 +206,7 @@ In Luau, variable assignments follow "name = assignment", whereas this flips it 
 
 If we flip it on the left...
 
-```lua
+```luau
 local { y = .x } = t
 ```
 

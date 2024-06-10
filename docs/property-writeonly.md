@@ -16,12 +16,12 @@ that we can infer a most specific type for functions, which we can't do if
 we only have read-write and read-only properties.
 
 For example, consider the function
-```lua
+```luau
   function f(t) t.p = Dog.new() end
 ```
 
 The obvious type for this is
-```lua
+```luau
   f : ({ p: Dog }) -> ()
 ```
 
@@ -31,13 +31,13 @@ These types are incomparable (neither is a subtype of the other)
 and there are uses of `f` that fail to typecheck depending which one choose.
 
 If `f : ({ p: Dog }) -> ()` then
-```lua
+```luau
   local x : { p : Animal } = { p = Cat.new() }
   f(x) -- Fails to typecheck
 ```
 
 If `f : ({ p: Animal }) -> ()` then
-```lua
+```luau
   local x : { p : Dog } = { p = Dog.new() }
   f(x) -- Fails to typecheck
 ```
@@ -45,7 +45,7 @@ If `f : ({ p: Animal }) -> ()` then
 The reason for these failures is that neither of these is the most
 specific type. It is one which includes that `t.p` is written to, and
 not read from.
-```lua
+```luau
   f : ({ set p: Dog }) -> ()
 ```
 
@@ -80,7 +80,7 @@ This proposal is not about syntax, but it will be useful for examples to have so
 * `set p: T` for a write-only property of type `T`.
 
 For example:
-```lua
+```luau
 function f(t)
   t.p = 1 + t.q
 end
@@ -124,7 +124,7 @@ Indexers can be marked write-only just like properties. In
 particular, this means there are write-only arrays `{set T}`, that are
 contravariant. These are sometimes useful, for example:
 
-```lua
+```luau
 function move(src, tgt)
   for i,v in ipairs(src) do
     tgt[i] = src[i]
@@ -140,7 +140,7 @@ we can give this function the type
 
 and since write-only arrays are contravariant, we can call this with differently-typed
 arrays:
-```lua
+```luau
   local dogs : {Dog} = {fido,rover}
   local animals : {Animal} = {tweety,sylvester}
   move (dogs,animals)
@@ -159,7 +159,7 @@ Some Roblox APIs which manipulate callbacks are write-only for security reasons.
 Once we have read-only properties and write-only properties, type intersection
 gives read-write properties with different types.
 
-```lua
+```luau
   { get p: T } & { set p : U }
 ```
 

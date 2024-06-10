@@ -22,7 +22,7 @@ Another issue with using `math.floor` as a workaround is that code performing a 
 
 Especially with applications dealing with pixel graphics, such as 2D games, integer math is so common that `math.floor` could easily become the most commonly used math library function. For these applications, avoiding the calls to `math.floor` is alluring from the performance perspective.
 
-> Non-normative: Here are the top math library functions used by a shipped game that heavily uses Lua: 
+> Non-normative: Here are the top math library functions used by a shipped game that heavily uses Lua:
 > `floor`: 461 matches, `max`: 224 matches, `sin`: 197 matches, `min`: 195 matches, `clamp`: 171 matches, `cos`: 106 matches, `abs`: 85 matches.
 > The majority of `math.floor` calls disappear from this codebase with the floor division operator.
 
@@ -40,7 +40,7 @@ The typechecker does not need special handling for the new operators. It can sim
 
 Examples of usage:
 
-```
+```luau
 -- Convert offset into 2d indices
 local i, j = offset % 5, offset // 5
 

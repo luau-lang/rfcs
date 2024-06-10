@@ -18,7 +18,7 @@ Many of these revolve around type variables that occur in contravariant position
 
 A very common thing to write in Luau is a function to try to find something in some data structure.  These functions habitually return the relevant datum when it is successfully found, or `nil` in the case that it cannot.  For instance:
 
-```lua
+```luau
 -- A.lua
 function find_first_if(vec, f)
     for i, e in ipairs(vec) do
@@ -37,7 +37,7 @@ We would like to automatically infer `find_first_if : <T>({T}, (T) -> boolean) -
 
 Higher order functions also present a similar problem.
 
-```lua
+```luau
 -- B.lua
 function foo(f)
     f(5)
@@ -81,7 +81,7 @@ If we are going to infer intersections of functions, then we need to be very car
 
 A very important use case for us is the case where the user is providing a callback to some higher-order function, and that function will be invoked with extra arguments that the original customer doesn't actually care about.  For example:
 
-```lua
+```luau
 -- C.lua
 function map_array(arr, f)
     local result = {}
@@ -101,7 +101,7 @@ This use case is very important for Roblox, as we have many APIs that accept cal
 
 Here is an example straight out of the Roblox developer documentation. ([full example here](https://developer.roblox.com/en-us/api-reference/event/BasePart/Touched))
 
-```lua
+```luau
 -- D.lua
 local part = script.Parent
 
@@ -116,7 +116,7 @@ The `Touched` event actually passes a single argument: the part that touched the
 
 We therefore want _oversaturation_ of a function to be allowed, but this combines with optional function arguments to create a problem with soundness.  Consider the following:
 
-```lua
+```luau
 -- E.lua
 type Callback = (Instance) -> ()
 
@@ -148,7 +148,7 @@ The problem we run into is, if we allow the subtyping rule `(T?) -> () <: () -> 
 
 Next, consider the following type alias
 
-```lua
+```luau
 -- F.lua
 type OldFunctionType = (any, any) -> any
 type NewFunctionType = (any) -> any

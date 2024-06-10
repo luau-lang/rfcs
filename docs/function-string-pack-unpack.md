@@ -46,7 +46,7 @@ Of course, the functions are memory-safe; if the input string is too short to pr
 
 This may seem slightly unconventional but it's very powerful and expressive, in much the same way format strings and regular expressions are :) Here's a basic example of how you might transmit a 3-component vector with this:
 
-```
+```luau
 -- returns a 24-byte string with 64-bit double encoded three times, similar to how we'd replicate 3 raw numbers
 string.pack("ddd", x, y, z)
 

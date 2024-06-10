@@ -8,13 +8,13 @@ Allow the use of `|` and `&` without any types preceding them.
 
 Occasionally, you will have many different types in a union or intersection type that exceeds a reasonable line limit and end up formatting it to avoid horizontal scrolling. Using the English alphabet as an example:
 
-```lua
+```luau
 type EnglishAlphabet = "a" | "b" | "c" | "d" | "e" | "f" | "g" | "h" | "i" | "j" | "k" | "l" | "m" | "n" | "o" | "p" | "q" | "r" | "s" | "t" | "u" | "v" | "w" | "x" | "y" | "z" | "A" | "B" | "C" | "D" | "E" | "F" | "G" | "H" | "I" | "J" | "K" | "L" | "M" | "N" | "O" | "P" | "Q" | "R" | "S" | "T" | "U" | "V" | "W" | "X" | "Y" | "Z"
 ```
 
 Or you might just format it for readability:
 
-```lua
+```luau
 type EnglishAlphabet = never
     | "a" | "b" | "c" | "d" | "e" | "f" | "g" | "h" | "i" | "j" | "k" | "l" | "m"
     | "n" | "o" | "p" | "q" | "r" | "s" | "t" | "u" | "v" | "w" | "x" | "y" | "z"
@@ -27,7 +27,7 @@ Currently, there are two solutions to effect it:
 1. Moving `=` to the next line
 2. Keep `=` on the line and add `never` if using `|`, or `unknown` if using `&`
 
-```lua
+```luau
 -- 1) union:
 type Result<T, E>
     = { tag: "ok", value: T }
@@ -67,7 +67,7 @@ type Tree<T> =
 
 This type becomes valid Luau syntax.
 
-```lua
+```luau
 type Tree<T> =
     | { type: "leaf" }
     | { type: "node", left: Tree<T>, value: T, right: Tree<T> }

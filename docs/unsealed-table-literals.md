@@ -20,18 +20,18 @@ Table types can be *sealed* or *unsealed*. These are different in that:
 
 * Unsealed tables can have properties added to them: if `t` has unsealed type
   `{ p: number }` then after the assignment `t.q = "hi"`, `t`'s type is updated to be
-  `{ p: number, q: string }`.  
+  `{ p: number, q: string }`.
 
 * Unsealed tables are subtypes of sealed tables.
 
 Currently the only way to create an unsealed table is using an empty table literal, so
-```lua
+```luau
   local t = {}
   t.p = 5
   t.q = "hi"
 ```
 typechecks, but
-```lua
+```luau
   local t = { p = 5 }
   t.q = "hi"
 ```
@@ -39,7 +39,7 @@ does not.
 
 This causes problems in examples, in particular developers
 may initialize properties but not methods:
-```lua
+```luau
   local t = { p = 5 }
   function t.f() return t.p end
 ```
@@ -56,7 +56,7 @@ It does encourage developers to add new properties to tables during initializati
 may be considered poor style.
 
 It does mean that some spelling mistakes will not be caught, for example
-```lua
+```luau
 local t = {x = 1, y = 2}
 if foo then
   t.z = 3 -- is z a typo or intentional 2-vs-3 choice?
@@ -64,7 +64,7 @@ end
 ```
 
 In particular, we no longer warn about adding properties to array-like tables.
-```lua
+```luau
 local a = {1,2,3}
 a.p = 5
 ```

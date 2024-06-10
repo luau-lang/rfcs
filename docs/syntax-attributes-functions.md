@@ -35,7 +35,7 @@ attribute = '@' NAME
 Attributes would attach to the function as a form of metadata to adjust the behavior of Luau, whether it be in the compiler, analyzer, or otherwise.
 
 Attributes would be valid before function declarations, both anonymous and named:
-```lua
+```luau
 @example
 function foo()
 end
@@ -46,7 +46,7 @@ foo = @example function() end
 Whether the name of a function is a local variable would have no impact on the use of attributes.
 
 When declaring a function as a member of a table, any attributes should be for the function:
-```lua
+```luau
 @example -- @example applies to `bar`, not `foo`
 function foo:bar()
 end
@@ -55,7 +55,7 @@ end
 This is consistent with other uses, as it applies the attribute to what is being declared.
 
 Multiple attributes are supported inline, so that a function with multiple attributes does not have several lines of boilerplate:
-```lua
+```luau
 @attribute1 @attribute2 @attribute3 @attribute4 @attribute5
 local function example()
 end
@@ -88,7 +88,7 @@ Other potential syntaxes that were considered include a Rust-style syntax (`#[at
 - Comments being used to control language features and flow means that tooling and users must care about them, which is antithetical to how comments are traditionally used
 
 - Attribute-as-comments would naturally conflict with the language in a lot of weird ways and would just cause a lot of problems:
-```lua
+```luau
 local f = --!native function() end
 print(f)
 ```

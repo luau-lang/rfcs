@@ -20,21 +20,21 @@ Table types can be *sealed* or *unsealed*. These are different in that:
 
 * Unsealed tables can have properties added to them: if `t` has unsealed type
   `{ p: number }` then after the assignment `t.q = "hi"`, `t`'s type is updated to be
-  `{ p: number, q: string }`.  
+  `{ p: number, q: string }`.
 
 * Unsealed tables are subtypes of sealed tables.
 
 Currently we allow subtyping to strip away optional fields
 as long as the supertype is sealed.
 This is necessary for examples, for instance:
-```lua
+```luau
   local t : { p: number, q: string? } = { p = 5, q = "hi" }
   t = { p = 7 }
 ```
 typechecks because `{ p : number }` is a subtype of
 `{ p : number, q : string? }`. Unfortunately this is not sound,
 since sealed tables support width subtyping:
-```lua
+```luau
   local t : { p: number, q: string? } = { p = 5, q = "hi" }
   local u : { p: number } = { p = 5, q = false }
   t = u
@@ -54,7 +54,7 @@ This RFC is for (2). There is a [separate RFC](unsealed-table-literals.md) for (
 
 This introduces new type errors (it has to, since it is fixing a source of
 unsoundness). This means that there are now false positives such as:
-```lua
+```luau
   local t : { p: number, q: string? } = { p = 5, q = "hi" }
   local u : { p: number } = { p = 5, q = "lo" }
   t = u
@@ -65,4 +65,3 @@ that it is difficult to see how to allow them soundly.
 ## Alternatives
 
 We could just live with unsoundness.
-

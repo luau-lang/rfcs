@@ -16,7 +16,7 @@ Luau's type checker internally can represent a typed variadic: any number of val
 
 We think that the postfix `...: T` syntax is the best balance of readability and simplicity. In function type annotations, we will use `...T`:
 
-```
+```luau
 function math.max(...: number): number
 end
 

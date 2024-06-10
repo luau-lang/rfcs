@@ -16,14 +16,14 @@ Currently, relative paths are always evaluated relative to the current working d
 
 Suppose the module `math.luau` is located in `/Users/JohnDoe/LuauModules/Math` and contains the following:
 
-```lua
+```luau
 -- Beginning of /Users/JohnDoe/LuauModules/Math/math.luau
 local sqrt = require("../MathHelperFunctions/sqrt")
 ```
 
 If we then launched the Luau CLI from the directory `/Users/JohnDoe/Projects/MyCalculator` and required `math.luau` as follows:
 
-```lua
+```luau
 local math = require("/Users/JohnDoe/LuauModules/Math/math")
 ```
 
@@ -47,7 +47,7 @@ To require a Luau module under the current implementation, we must require it ei
 Modules can be required relative to the requiring file's location in the filesystem (note, this is different from the current implementation, which evaluates all relative paths in relation to the current working directory).
 
 If we are trying to require a module called `MyModule.luau` in `C:/MyLibrary`:
-```lua
+```luau
 local MyModule = require("MyModule")
 
 -- From C:/MyLibrary/SubDirectory/SubModule.luau
@@ -126,13 +126,13 @@ For consistency, we propose storing the file extension in `lua_require` and alwa
 
 By interpreting relative paths relative to the requiring file's location, Luau projects can now have internal dependencies. For example, in [Roact's current implementation](https://github.com/Roblox/roact), `Component.lua` requires `assign.lua` [like this](https://github.com/Roblox/roact/blob/beb0bc2706b307b04204abdcf129385fd3cb3e6f/src/Component.lua#L1C1-L1C45):
 
-```lua
+```luau
 local assign = require(script.Parent.assign)
 ```
 
 By using "Roblox-style" syntax (referring to Roblox Instances in the require statement), `Component.lua` is able to perform a relative-to-requiring-script require. However, with the proposed changes in this RFC, we could instead do this with clean syntax that works outside of the context of Roblox:
 
-```lua
+```luau
 local assign = require("./assign")
 ```
 
@@ -155,11 +155,11 @@ Luau libraries are already not compatible with existing Lua libraries. This is b
 
 ## Alternatives
 
-### Different ways of importing packages 
+### Different ways of importing packages
 
 In considering alternatives to enhancing relative imports in Luau, one can draw inspiration from other language systems. An elegant solution is the package import system similar to Dart's approach. Instead of relying on file-specific paths, this proposed system would utilize an absolute `package:` syntax:
 
-```lua
+```
 import 'package:my_package/my_file.lua';
 ```
-Undesirable because this would be redundant with the [alias RFC](https://github.com/Roblox/luau/pull/1061). 
+Undesirable because this would be redundant with the [alias RFC](https://github.com/Roblox/luau/pull/1061).

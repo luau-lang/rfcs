@@ -26,7 +26,7 @@ The result of the expression is the then-expression when condition is truthy (no
 
 Example:
 
-```lua
+```luau
 local x = if FFlagFoo then A else B
 
 MyComponent.validateProps = t.strictInterface({
@@ -39,7 +39,7 @@ Note that `else` is mandatory because it's always better to be explicit. If it w
 
 This example will not do what it looks like it's supposed to do! The if expression will _successfully_ parse and be interpreted as to return `h()` if `g()` evaluates to some falsy value, when in actual fact the clear intention is to evaluate `h()` only if `f()` is falsy.
 
-```lua
+```luau
 if f() then
     ...
     local foo = if g() then x
@@ -49,7 +49,7 @@ else
 end
 ```
 
-The only way to solve this had we chose optional `else` branch would be to wrap the if expression in parentheses or to place a semi-colon. 
+The only way to solve this had we chose optional `else` branch would be to wrap the if expression in parentheses or to place a semi-colon.
 
 ## Drawbacks
 

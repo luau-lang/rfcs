@@ -20,7 +20,7 @@ Today it's possible to approximate `countlz` using `floor` and `log` but this ap
 
 `bit32` library will gain two new functions, `countlz` and `countrz`:
 
-```
+```luau
 function bit32.countlz(n: number): number
 function bit32.countrz(n: number): number
 ```
