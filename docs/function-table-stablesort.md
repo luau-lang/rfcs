@@ -39,16 +39,20 @@ The code for versions 2 and 3 is nearly the same, differing only in the initial 
 
 Here are some benchmarks sorting random key/value pairs. The "few key-collisions" tests had keys drawn randomly from a range ten times as large as the number of elements. The "many key-collisions" tests had keys drawn from range one-tenth as large as the number of elements. Results are the average of at least 1000 trials (on the smaller datasets I used ten times as many trials) sorting different random data, divided by the time taken by the existing Luau sorting algorithms. The tests just compared the C sorting algorithms directly, without any of the Luau overhead. All the sorts use a custom comparison function.
 
-Lower numbers are better, so this table represents that (my current implementation of) block-sort is 141-181% slower than Luau's existing sorting algorithm on arrays with 100 elements and few key-collisions, but that it is competitive with the existing algorithm (sometimes even faster) on larger arrays of that kind of data (3-8% faster on arrays with 100k elements). WHen there are very many key-collisions (roughly one-tenth as many keys as elements), stably sorting will persistently be slower than the existing algorithm, even on larger arrays (up to 8% slower on arrays with at least 100k elements).
+Lower numbers are better, so this table represents that (my current implementation of) block-sort is 141-181% slower than Luau's existing sorting algorithm on arrays with 100 elements and few key-collisions. It's faster on arrays with only 10 elements, but that's because my implementation falls back to an insertion sort on smaller arrays. Block sort is competitive with Luau's existing algorithm (sometimes even faster) on larger arrays of this kind of data (3-8% faster on arrays with 100k elements).
+
+When there are very many key-collisions (roughly one-tenth as many keys as elements), stably sorting will persistently be slower than the existing algorithm, even on larger arrays (up to 8% slower on arrays with at least 100k elements).
 
 
 Number of elements        | Variant 1 | Variant 2 | Variant 3
 --------------------------|-----------|-----------|----------
+10,       few collisions  |   0.73    |   0.75    |   0.88
 100,      few collisions  |   2.41    |   2.72    |   2.81
 1000,     few collisions  |   1.27    |   1.26    |   1.31
 10k,      few collisions  |   1.01    |   0.95    |   0.98
 100k,     few collisions  |   0.97    |   0.92    |   0.92
 1million, few collisions  |   1.01    |   0.99    |   0.97
+10,       many collisions |   0.73    |   0.76    |   0.92
 100,      many collisions |   3.48    |   3.83    |   3.93
 1000,     many collisions |   1.51    |   1.50    |   1.54
 10k,      many collisions |   1.13    |   1.07    |   1.07
