@@ -21,7 +21,7 @@ The best stable sorting algorithms I know of are Python's [timsort](https://en.w
 
 The proposed API would be:
 
-`table.stable_sort <V>: (t: {V}, lt: ((V, V) -> boolean)?, reverse: boolean?) -> ()`
+`table.stablesort <V>: (t: {V}, lt: ((V, V) -> boolean)?, reverse: boolean?) -> ()`
 
 (Or alternatively, this could replace `table.sort` but be behind a feature flag.)
 
