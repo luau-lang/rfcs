@@ -6,7 +6,7 @@ This RFC proposes the addition on one type operator, `rawget`, which can be used
 
 ## Motivation
 
-There exists `index` type operator that allow developers to obtain a type of a property from classes / tables. If the a type is not found in the given class / table, the operator recursively indexes into the `__index` metamethod to continue searching for the property. Sometimes, this is could be an unwanted behavior. For example, given this code: 
+There exists an `index` type operator that allows developers to obtain a type of a property from classes / tables. If a type is not found in the given class / table, the operator recursively indexes into the `__index` metamethod to continue searching for the property. Sometimes, this could be an unwanted behavior. For example, given this code: 
 
 ```luau
 local var1 = {
