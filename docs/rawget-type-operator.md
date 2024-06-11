@@ -36,6 +36,8 @@ local key = "property"
 type age = rawget<Person, key> -- Error message: Second argument to rawget<Person, _> is not a valid index type; Unknown type 'key'
 ```
 
+Note: `rawget` type operator does not work on class types because they do not have direct fields that can be looked up without invoking its metamethod.
+
 The implementation effort for this type operator is very minimal. Since the `rawget` type operator functions similarly to the `index` type operator, we can reuse the functions already used to implement the `index` type operator.
 
 ## Drawbacks
