@@ -21,11 +21,9 @@ The best stable sorting algorithms I know of are Python's [timsort](https://en.w
 
 The proposed API would be:
 
-`table.stablesort <V>: (t: {V}, lt: ((V, V) -> boolean)?, reverse: boolean?) -> ()`
+`table.stablesort <V>: (t: {V}, lt: ((V, V) -> boolean)?) -> ()`
 
 (Or alternatively, this could replace `table.sort` but be behind a feature flag.)
-
-The optional third argument inverts the direction of the comparison being used (whether that's the default `lua_lessthan`, or a user-supplied comparison function). The infrastructure for this is a natural part of the sorting implementation anyway, so it seems a shame not to expose it in the user-facing API. This can avoid the overhead of an extra Lua function call for each comparison, when all one wants to do is invert the order of a search. (It'd also be straightforward to expose such an optional third argument on the existing unstable `table.sort` function.)
 
 The Grail Project's block-sorting implementation I've been testing has three variants:
 
