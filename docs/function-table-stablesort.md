@@ -63,7 +63,7 @@ Comparing block-sort to other stable sorting algorithms, [this site](https://git
 
 1. A C implementation of block-sort is inevitably going to be more complex than Luau's existing quicksort/heapsort hybrid. It'll also be more complex than a naive merge sort (which would also provide stability but at the cost of substantially more buffer space). Variant 1 described above (with no external buffer) is about 500 lines of code. The other versions add about another 200 more. For comparison, the existing sort algorithm in `ltablib.cpp` (excluding the entrypoint function exposed to Lua, and the swap and comparison functions), is about 100 lines of code.
 
-2. If we implemented a stable sort algorithm alongside the existing unstable sorting algorithm(s), it would expand the API somewhat, also it'd make the Luau runtime/engine a bit bigger. If we ended up *replacing* the unstable sorting algorithm with a stable sort, there will be some circumstances in which the replacement is slower. But presumably this replacement wouldn't be entertained unless the performance impact seemed on balance to be acceptable.
+2. If we implemented a stable sort algorithm alongside the existing unstable sorting algorithm(s), it would expand the API somewhat, also it'd make the Luau runtime/engine a bit bigger. (The binary for the existing sort algorithm compiled with `-O3` takes \~2600 bytes, for block-sort about 7 times that.) If we ended up *replacing* the unstable sorting algorithm with a stable sort, there will be some circumstances in which the replacement is slower. But presumably this replacement wouldn't be entertained unless the performance impact seemed on balance to be acceptable.
 
 
 ## Alternatives
