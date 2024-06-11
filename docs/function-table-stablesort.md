@@ -37,25 +37,24 @@ The code for versions 2 and 3 is nearly the same, differing only in the initial 
 
 ### Benchmarks
 
-Here are some benchmarks sorting random key/value pairs. The "few key-collisions" tests had keys drawn randomly from a range ten times as large as the number of elements. The "many key-collisions" tests had keys drawn from range one-tenth as large as the number of elements. Results are the average of 1000 trials sorting different random data, divided by the time taken by the `qsort` from my machine's libc to sort copies of the same arrays. All the sorts use a custom comparison function.
+Here are some benchmarks sorting random key/value pairs. The "few key-collisions" tests had keys drawn randomly from a range ten times as large as the number of elements. The "many key-collisions" tests had keys drawn from range one-tenth as large as the number of elements. Results are the average of at least 1000 trials (on the smaller datasets I used ten times as many trials) sorting different random data, divided by the time taken by the existing Luau sorting algorithms. The tests just compared the C sorting algorithms directly, without any of the Luau overhead. All the sorts use a custom comparison function.
 
-Different systems implement `qsort` differently; it's not always quicksort and not even always unstable. But on my system (OS X 10.15) I can confirm it is a version of quicksort, using the technique of "median selection." These benchmarks are only giving a crude comparison of (my Grail-derived implementation of) block-sort versus one optimized quicksort algorithm (not against Luau's particular implementation of a hybrid quicksort/heapsort).
-
-Lower numbers are better, so this table represents that block-sort is 74-95% slower than my system's qsort on arrays with 100 elements and few key-collisions, but that it can be somewhat faster than qsort on larger arrays of that kind of data (6-12% faster than qsort on arrays with 100k elements). WHen there are very many key-collisions (roughly one-tenth as many keys as elements), stably sorting will persistently be slower than qsorting, even on larger arrays (14-22% slower on arrays with at least 100k elements).
+Lower numbers are better, so this table represents that (my current implementation of) block-sort is 141-181% slower than Luau's existing sorting algorithm on arrays with 100 elements and few key-collisions, but that it is competitive with the existing algorithm (sometimes even faster) on larger arrays of that kind of data (3-8% faster on arrays with 100k elements). WHen there are very many key-collisions (roughly one-tenth as many keys as elements), stably sorting will persistently be slower than the existing algorithm, even on larger arrays (up to 8% slower on arrays with at least 100k elements).
 
 
 Number of elements        | Variant 1 | Variant 2 | Variant 3
 --------------------------|-----------|-----------|----------
-100,      few collisions  |   1.74    |   1.92    |   1.95
-1000,     few collisions  |   1.17    |   1.14    |   1.18
-10k,      few collisions  |   0.97    |   0.92    |   0.93
-100k,     few collisions  |   0.94    |   0.88    |   0.88
-1million, few collisions  |   0.98    |   0.95    |   0.91
-100,      many collisions |   2.76    |   3.05    |   3.13
-1000,     many collisions |   1.77    |   1.78    |   1.79
-10k,      many collisions |   1.36    |   1.26    |   1.27
-100k,     many collisions |   1.22    |   1.15    |   1.15
-1million, many collisions |   1.21    |   1.16    |   1.14
+100,      few collisions  |   2.41    |   2.72    |   2.81
+1000,     few collisions  |   1.27    |   1.26    |   1.31
+10k,      few collisions  |   1.01    |   0.95    |   0.98
+100k,     few collisions  |   0.97    |   0.92    |   0.92
+1million, few collisions  |   1.01    |   0.99    |   0.97
+100,      many collisions |   3.48    |   3.83    |   3.93
+1000,     many collisions |   1.51    |   1.50    |   1.54
+10k,      many collisions |   1.13    |   1.07    |   1.07
+100k,     many collisions |   1.05    |   0.99    |   0.99
+1million, many collisions |   1.08    |   1.05    |   1.03
+
 
 Comparing block-sort to other stable sorting algorithms, [this site](https://github.com/BonzaiThePenguin/WikiSort) --- which uses a somewhat different implementation of block-sort --- says it's at worst 5% slower (and on some kinds of data very many times faster) than the `stable_sort` method in the C++ STL.
 
