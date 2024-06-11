@@ -27,12 +27,6 @@ The proposed API would be:
 
 The optional third argument inverts the direction of the comparison being used (whether that's the default `lua_lessthan`, or a user-supplied comparison function). The infrastructure for this is a natural part of the sorting implementation anyway, so it seems a shame not to expose it in the user-facing API. This can avoid the overhead of an extra Lua function call for each comparison, when all one wants to do is invert the order of a search. (It'd also be straightforward to expose such an optional third argument on the existing unstable `table.sort` function.)
 
-The block-sorting algorithm internally needs a table rotation algorithm, and we might as well also expose that as:
-
-`table.rotate <V>: (t: {V}, leftwards: number) -> {V}`
-
-This mutates the table in place but also returns it, which is sometimes useful. (Though one may argue it'd be more consistent with the table library's API to have this function return `()`.)
-
 The Grail Project's block-sorting implementation I've been testing has three variants:
 
 1. The simplest code uses no buffer space, and does all of its swapping and merging inside the original table. (With also a few temporary variables on the C stack, of course.) This is the least performant version, but the simpler code and low memory overhead may speak in its favor. Also it may be easier to ensure GC consistency that way. (A sort using the default comparison function shouldn't see any GC activity during its progress, but if we allow user-supplied comparison functions all bets about that are off.)
