@@ -6,46 +6,37 @@ This RFC proposes the addition on one type operator, `rawget`, which can be used
 
 ## Motivation
 
-There exists an `index` type operator that allows developers to obtain a type of a property from classes / tables. If a type is not found in the given class / table, the operator recursively indexes into the `__index` metamethod to continue searching for the property. Sometimes, this could be an unwanted behavior. For example, given this code: 
+Given that `rawget` is a built-in runtime operator in the language ([rawget Lua Globals](https://create.roblox.com/docs/reference/engine/globals/LuaGlobals#rawget)), it feels natural for there to be a version of this as a type operator. As such, the main motivation behind this feature is to close out holes in Luau's type families and allow Luau developers to be more expressive writing typed code:
 
 ```luau
-local var1 = {
-  property = "hello"
-}
-
-local var2 = setmetatable({ }, { __index = seq })
-
-type doesExist = index<typeof(var2), "property"> -- reduces to `string`
+local prop: rawget<someTy, someProp> = rawget(someTy, someProp)
 ```
-The `index` type operator is used to obtain the type of `property` from a class `var1`. The operator continues to search recursively through the `__index` metamethod if the property is not initially found. This behavior can lead to unexpected results, as shown in the code snippet where the `__index` metamethod of `var2` points to `var1`, causing the `index` operator to return `string` for the `property` key even though `var2` itself does not have a property.
-
-This can be undesirable for developers who expect the `index` operator to only check the properties directly on the variable without considering the metamethod chain. In the given example, the expectation might be to receive an error when querying `var2` for `property`, indicating that the property does not exist on `var2`.
-
-To address this issue, we want to reconsider the behavior of the `index` type operator in the context of the `__index` metamethod. Developers may require a more predictable and controlled mechanism for type checking that does not involve recursively following the `__index` chain.
 
 ## Design
 
-The proposed solution is the implementation of `rawget` type operator. Like the existing [rawget Lua Globals](https://create.roblox.com/docs/reference/engine/globals/LuaGlobals#rawget), this type operator aims to provide a way to look up a specific property of a type without invoking the `__index` metamethod. 
+The functionality of `rawget` type operator behaves the same as its [runtime pair](https://create.roblox.com/docs/reference/engine/globals/LuaGlobals#rawget): provide a way to look up a specific property of a type without invoking the `__index` metamethod. 
  
 ```luau
-type doesExist = rawget<typeof(var2), "property"> -- reduces to an error
+local var1 = {
+  property = "Hello"
+}
+
+local var2 = setmetatable({ }, { __index = var1 })
+type doesntExist = rawget<typeof(var2), "property"> -- reduces to an error
+
+local var3 = setmetatable({ property = 1 }, { __index = var1 })
+type doesExist = rawget<typeof(var3), "property"> -- doesExist = number
 ```
 
 Error messages would be consistent with those of the `index` type operator:
 ```luau
-type Person = {
-  age: number,
-  name: string,
-  alive: boolean
-}
+type doesntExist = rawget<typeof(var2), "property">  -- Error message: Property '"property"' does not exist on type 'var2'
 
-type age = rawget<Person, "ager"> -- Error message: Property '"ager"' does not exist on type 'Person'
-
-local key = "age"
-type age = rawget<Person, key> -- Error message: Second argument to rawget<Person,_> is not a valid index type; Unknown type 'key'
+local key = "property"
+type age = rawget<Person, key> -- Error message: Second argument to rawget<Person, _> is not a valid index type; Unknown type 'key'
 ```
 
-The implementation effort for this type operator is relatively small. Since the `rawget` type operator functions similarly to the `index` type operator, we can reuse the functions already used to implement the `index` type operator.
+The implementation effort for this type operator is very minimal. Since the `rawget` type operator functions similarly to the `index` type operator, we can reuse the functions already used to implement the `index` type operator.
 
 ## Drawbacks
 
