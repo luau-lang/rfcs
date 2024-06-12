@@ -44,7 +44,7 @@ The implementation effort for this type operator is very minimal. Since the `raw
 
 There aren't appreciable drawbacks. One possible drawback is the increase in the size of the codebase, which may complicate maintenance. However, this is not expected to be a major drawback since the code for `index` type operators already exists. By reusing the code, it is even fair to say that there will be less than 50 lines of code needed to implement this type operator.
 
-Another drawback can come from the extra knowledge a user may need in order to use this type operator. For example, users will need to know the inner workings of types and how different operations interact with them (for instance, how `index` interacts with metatables that have the `__index` metamethod). However, there are documentations that outline each interactions, and thus this drawback does not seem to pose an issue.
+Another drawback can come from the extra knowledge a user may need in order to use this type operator. For example, users will need to know the inner workings of types and how different operations interact with them (for instance, how `index` interacts with metatables that have the `__index` metamethod). However, there are documentations that outline each interaction, and thus this drawback does not seem to pose an issue.
 
 ## Alternatives
 
