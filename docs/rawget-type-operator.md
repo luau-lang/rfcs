@@ -6,7 +6,7 @@ This RFC proposes the addition of a new type operator, `rawget`, which can be us
 
 ## Motivation
 
-Given that `rawget` is a built-in runtime operator in the language ([rawget Lua Globals](https://create.roblox.com/docs/reference/engine/globals/LuaGlobals#rawget)), it feels natural for there to be a version of this as a type operator. As such, the main motivation behind this feature is to close out holes in Luau's type families and allow Luau developers to be more expressive writing typed code:
+Given that `rawget` is a built-in runtime operator in the language ([rawget in Luau Global functions](https://luau-lang.org/library#global-functions)), it feels natural for there to be a version of this as a type operator. As such, the main motivation behind this feature is to close out holes in Luau's type families and allow Luau developers to be more expressive writing typed code:
 
 ```luau
 local prop: rawget<someTy, someProp> = rawget(someTy, someProp)
