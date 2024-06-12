@@ -2,7 +2,7 @@
 
 ## Summary
 
-This RFC proposes the addition on one type operator, `rawget`, which can be used to look up a specific property of another type *without* invoking the `__index` metamethod.
+This RFC proposes the addition of a new type operator, `rawget`, which can be used to look up a specific property of a table type *without* invoking the `__index` metamethod.
 
 ## Motivation
 
