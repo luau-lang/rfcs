@@ -14,7 +14,7 @@ local prop: rawget<someTy, someProp> = rawget(someTy, someProp)
 
 ## Design
 
-The functionality of `rawget` type operator behaves the same as its [runtime pair](https://create.roblox.com/docs/reference/engine/globals/LuaGlobals#rawget): provide a way to look up a specific property of a type without invoking the `__index` metamethod. 
+The functionality of `rawget` type operator behaves the same as its [runtime counterpart](https://luau-lang.org/library#global-functions): provide a way to look up a specific property of a table type without invoking the `__index` metamethod. 
  
 ```luau
 local var1 = {
