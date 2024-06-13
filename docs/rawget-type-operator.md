@@ -14,7 +14,7 @@ local prop: rawget<someTy, someProp> = rawget(someTy, someProp)
 
 ## Design
 
-The functionality of `rawget` type operator behaves the same as its [runtime counterpart](https://luau-lang.org/library#global-functions): provide a way to look up a specific property of a table type without invoking the `__index` metamethod. 
+The functionality of the `rawget` type operator behaves the same as its [runtime counterpart](https://luau-lang.org/library#global-functions). Namely, it provide a way to look up a specific property of a table type without invoking the `__index` metamethod. 
  
 ```luau
 local var1 = {
