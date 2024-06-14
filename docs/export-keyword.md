@@ -100,7 +100,7 @@ end
 
 Something important to note here is that the nested table, `triangle` is not frozen.
 
-#### Multiple Returns
+#### Returns
 Today, you can use the export keyword along with a return statement at the end of your module. If you use the export keyword with a value however we will throw an error if you also attempt to return.
 
 ```luau
