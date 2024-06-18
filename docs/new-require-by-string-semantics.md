@@ -10,7 +10,7 @@ The Roblox engine does not currently support require-by-string. One motivation f
 
 Luau itself currently supports a basic require-by-string syntax that allows for requiring Luau modules by relative or absolute path. Unfortunately, the current implementation has a few issues.
 
-### Relative paths
+### Current Issues with Relative paths
 
 Currently, relative paths are always evaluated relative to the current working directory that the Luau CLI is running from. This leads to unexpected behavior when requiring modules from "incorrect" working directories.
 
@@ -26,7 +26,6 @@ If we then launched the Luau CLI from the directory `/Users/JohnDoe/Projects/MyC
 ```luau
 local math = require("/Users/JohnDoe/LuauModules/Math/math")
 ```
-
 This would cause the following:
 - The current implementation of require would successfully find `math.luau`, as its absolute path was given.
 - Then, it would execute the contents of `math.luau` from the context of the current working directory `/Users/JohnDoe/Projects/MyCalculator`.
@@ -35,6 +34,8 @@ This would cause the following:
 
 This behavior is [problematic](https://github.com/Roblox/luau/issues/959), and puts an unnecessary emphasis on the directory from which the Luau CLI is running. A better solution is to evaluate relative paths in relation to the file that is requiring them.
 
+## Design 
+
 
 ### Package management
 
@@ -42,7 +43,30 @@ While package management itself is outside of the scope of this RFC, we want to 
 
 To require a Luau module under the current implementation, we must require it either by relative or absolute path:
 
-#### Relative paths
+### String syntax
+
+Our require syntax should:
+
+- Allow a library written in Luau to be imported into the Roblox engine and "just work".
+- Support compile-time file resolution _where possible_ for type checking.
+- Be consistent across platforms and both inside and outside of Roblox.
+- Attempt to remain consistent with the existing Luau path syntax.
+
+For compatibility across platforms, we will automatically map `/` onto `\`.
+
+### Path resolution
+
+If we find files with the same name but different extensions, then we will attempt to require a file with the following extensions (in this order):
+1. `.luau`
+2. `.lua`
+3. All other file extensions are invalid.
+
+If the string resolves to a directory instead of a file, then we will attempt to require a file in that directory with the following name (in this order):
+1. `init.luau`
+2. `init.lua`
+
+
+### Relative paths
 
 Modules can be required relative to the requiring file's location in the filesystem (note, this is different from the current implementation, which evaluates all relative paths in relation to the current working directory).
 
@@ -61,7 +85,7 @@ Relative paths may begin with `./` or `../`, which denote the directory of the r
 
 When a require statement is executed directly in a REPL input prompt (not in a file), relative paths will be evaluated in relation to the pseudo-file `stdin`, located in the current working directory. If the code being executed is not tied to a file (e.g. using `loadstring`), executing any require statements in this code will result in an error.
 
-#### Absolute paths
+### Absolute paths
 
 Absolute paths will no longer be supported in `require` statements, as they are unportable. The only way to require by absolute path will be through a explicitly defined paths or aliases defined in configuration files, as described in another [RFC](https://github.com/Roblox/luau/pull/1061).
 
