@@ -9,7 +9,7 @@ This RFC proposes the addition of a new type operator, `rawget`, which can be us
 Currently, `rawget` is a built-in runtime operator in the language ([rawget in Luau Global functions](https://luau-lang.org/library#global-functions)) that is missing a corresponding type operator that captures its behavior. This RFC seeks to address this hole in the type system by providing a builtin type operator for `rawget` that will allow Luau developers to express more accurate types in their code:
 
 ```luau
-local prop: rawget<someTy, someProp> = rawget(someTy, someProp)
+local prop: rawget<typeof(someExpr), "someProp"> = rawget(someExpr, "someProp")
 ```
 
 ## Design
