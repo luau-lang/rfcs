@@ -61,7 +61,7 @@ If the indexer is not a type,
 local key = "age"
 type age = index<Person, key> -- Error message: Second argument to index<Person,_> is not a valid index type; Unknown type 'key'
 ```
-Note: these errors will be part of the general type family reduction errors since `index` will be built into the type family system.
+Note: these errors will be part of the general type function reduction errors since `index` will be built into the type function system.
 
 The indexee may be a union type. In this case, the type function will distribute the arguments to multiple type families:
 ```luau
