@@ -1,8 +1,8 @@
-# `index` type operator
+# `index` type function
 
 ## Summary
 
-This RFC proposes the addition of one type operator, `index`, which can be used to look up a specific property of another type (like TypeScript's Indexed Access Type).
+This RFC proposes the addition of one type function, `index`, which can be used to look up a specific property of another type (like TypeScript's Indexed Access Type).
 
 ## Motivation
 
@@ -27,13 +27,13 @@ end
 type unionType = typeof(bob["age"]) | typeof(bob["name"]) | typeof(bob["alive"]) -- unionType = number | string | boolean
 ```
 
-This is a valid Luau program; however, in order to define the type of `Person["age"]` we had to first declare a variable `bob` and utilize the `typeof` type operator. This is quite cumbersome when developers want to typecheck using the type of `Person["age"]` without having to declare a variable first. Additionally, in order to define the union type of all the properties of `Person`, current Luau requires an explicit list of each property using `typeof`.
+This is a valid Luau program; however, in order to define the type of `Person["age"]` we had to first declare a variable `bob` and utilize the `typeof` type function. This is quite cumbersome when developers want to typecheck using the type of `Person["age"]` without having to declare a variable first. Additionally, in order to define the union type of all the properties of `Person`, current Luau requires an explicit list of each property using `typeof`.
 
-The expected outcome of the index type operator is that it will enhance developer experience and allow Luau developers to more easily develop well-typed programs.
+The expected outcome of the index type function is that it will enhance developer experience and allow Luau developers to more easily develop well-typed programs.
 
 ## Design
 
-The solution to this problem is a type operator, `index`, that can compute the type based on the static properties of `Person`. Formally, the `index` type operator will take in two arguments: the type to index (indexee) and the type to index it with (indexer). This would allow us to instead write the following code:
+The solution to this problem is a type function, `index`, that can compute the type based on the static properties of `Person`. Formally, the `index` type function will take in two arguments: the type to index (indexee) and the type to index it with (indexer). This would allow us to instead write the following code:
 ```luau
 type Person = {
   age: number,
@@ -63,7 +63,7 @@ type age = index<Person, key> -- Error message: Second argument to index<Person,
 ```
 Note: these errors will be part of the general type family reduction errors since `index` will be built into the type family system.
 
-The indexee may be a union type. In this case, the type operator will distribute the arguments to multiple type families:
+The indexee may be a union type. In this case, the type function will distribute the arguments to multiple type families:
 ```luau
 type Person2 = {
   age: string
@@ -86,15 +86,15 @@ type exampleTy2 = index<typeof(exampleClass2), "Foo"> -- exampleTy2 = number
 type exampleTy3 = index<typeof(exampleClass3), "Foo"> -- exampleTy3 = string
 ```
 
-One edge case to consider when using/designing this type operator is that `__index` only supports 100 nested `__index` metamethods until it gives up. In the case that a property is not found within the 100 recursive calls, this type operator will fail to reduce.
+One edge case to consider when using/designing this type function is that `__index` only supports 100 nested `__index` metamethods until it gives up. In the case that a property is not found within the 100 recursive calls, this type function will fail to reduce.
 
 Implementation is straight forward: the type of the indexee will be determined (table, class, etc) -> search through the properties of the indexee and reduce to the corresponding type of the indexer if it exists; otherwise, reduce to an error. 
 
 ## Drawbacks
 
-A drawback to this feature is the possible increase in the cost of maintenance. In the end, this RFC proposes adding another built-in type operators to the new type system. However, the addition of this feature may be worthwhile, as the `index` type operator is a useful type feature that:
+A drawback to this feature is the possible increase in the cost of maintenance. In the end, this RFC proposes adding another built-in type functions to the new type system. However, the addition of this feature may be worthwhile, as the `index` type function is a useful type feature that:
 1. Alleviates the need to manually keep types in sync
-2. Provides a powerful way to access the properties of an object and perform various operations on it with other type operators
+2. Provides a powerful way to access the properties of an object and perform various operations on it with other type functions
 3. Allows the community to write code with fewer errors and more safety
 
 ## Alternatives
@@ -122,7 +122,7 @@ Because there are conflicting types for `p` depending on the run time, it is saf
 
 FYI: exact table type indicates that the table has only the properties listed in its type, and inexact table type indicates that the table has at least the properties listed in its type.
 
-Later down the line, we can also consider adding syntactic sugar for this type operator. Instead of doing:
+Later down the line, we can also consider adding syntactic sugar for this type function. Instead of doing:
 ```luau
 type name = index<Person, "name">
 ```
