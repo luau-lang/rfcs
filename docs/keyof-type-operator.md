@@ -1,8 +1,8 @@
-# `keyof` and `rawkeyof` type operators
+# `keyof` and `rawkeyof` type functions
 
 ## Summary
 
-This RFC proposes the addition of two type operators, `keyof` and `rawkeyof`,
+This RFC proposes the addition of two type functions, `keyof` and `rawkeyof`,
 which can be used to derive a type automatically for the keys of a table or
 class.
 
@@ -39,7 +39,7 @@ this situation.
 
 ## Design
 
-The solution to this problem is a type operator, `keyof`, that can compute the
+The solution to this problem is a type function, `keyof`, that can compute the
 type based on the type of `animals`. This would allow us to instead write this
 code as follows:
 
@@ -103,7 +103,7 @@ that are allowed by indexing operations on tables of that type.
 
 The main drawbacks of implementing this are that it requires some pretty
 powerful machinery to support properly. Fortunately, however, we've already
-built the general machinery to support type operators into the ongoing work on
+built the general machinery to support type functions into the ongoing work on
 the new type inference engine for Luau, and as such, there is little remaining
 drawback to implementing this. In fact, the implementation is already all done
 in the new type inference engine and amounts to less than 200 lines of code
