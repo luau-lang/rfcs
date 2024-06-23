@@ -18,7 +18,7 @@ This RFC proposes the following basic functions & constants as a starting point,
 
 ---
 
-`vector(x: number?, y: number?, z: number?)`
+`vector(x: number, y: number, z: number)`
 
 Creates a vector with 3 components: x, y, z. If the feature flag for wide vectors is enabled, a fourth argument `w: number?` will be introduced.
 
@@ -36,7 +36,7 @@ Returns the normalized version (aka unit vector) of a given vector. If a zero ve
 
 Returns the cross product of two vectors. If 4-wide vectors are enabled, this function will ignore the fourth component, and return the 3-dimensional cross product.
 
-`vector.dot(vecA: vector, vecB: vector): vector`
+`vector.dot(vecA: vector, vecB: vector): number`
 
 Returns the dot product of two vectors.
 
@@ -48,9 +48,9 @@ Equivalent of `math.floor` for vectors.
 
 Equivalent of `math.ceil` for vectors.
 
-`vector.angle(vecA: vector, vecB: vector): vector`
+`vector.angle(vecA: vector, vecB: vector): number`
 
-Returns the angle between two vectors.
+Returns the angle between two vectors in radians.
 
 `vector.max(input: vector, maximum: vector): vector`
 
