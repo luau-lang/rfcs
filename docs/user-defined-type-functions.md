@@ -130,7 +130,7 @@ type function isSingleton(t)
 end
 ```
 
-One of the major advantages of using a table-based representation for types in Luau is that it eliminates the dependency on the virtual machine for type analysis. However, this design requires developers to have a deeper understanding of the runtime representation. For example, under the proposed design, a new table type can be created using `lType.new("table")`, while under the alternative design, tables must be declared with attributes: `{type = "table", props = {}, indexer = {}}`. This adds complexity to the developer experience and increases the chance of making syntax errors in their program.
+In some sense, this design could be considered "cleaner" than introducing an entirely new userdata, but it requires developers to have a deeper understanding of the type runtime representation. For example, under the proposed design, a new table type can be created using `lType.new("table")`, while under the alternative design, tables must be declared with attributes: `{type = "table", props = {}, indexer = {}}`. This adds complexity to the developer experience and increases the chance of making syntax errors in their program.
 
 ### More Builtin Type Functions
 
