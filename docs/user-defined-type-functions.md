@@ -46,44 +46,44 @@ Note: methods under a different type heading (ex: `Singleton`) imply that the me
 
 | Function Declaration | Return Type | Description |
 | ------------- | ------------- | ------------- |
-| `isString()` | `boolean` | returns true if self is of type `string` |
-| `isNumber()` | `boolean` | returns true if self is of type `number` |
-| `isBoolean()` | `boolean` | returns true if self is of type `boolean` |
-| `isTable()` | `boolean` | returns true if self is of type `table` |
-| `isThread()` | `boolean` | returns true if self is of type `thread` |
-| `isFunction()` | `boolean` | returns true if self is of type `function` |
-| `isBuffer()` | `boolean` | returns true if self is of type `buffer` |
-| `isNil()` | `boolean` | returns true if self is of type `nil` |
-| `isClass()` | `boolean` | returns true if self is of type `class` (do we need this?) |
-| `isBooleanSingleton()` | `boolean` | returns true if self is a boolean singleton |
-| `isStringSingleton()` | `boolean` | returns true if self is a string singleton |
-| `isA(arg: lType)` | `boolean` | returns true if arg is the same type as self |
+| `isstring()` | `boolean` | returns true if self is of type `string` |
+| `isnumber()` | `boolean` | returns true if self is of type `number` |
+| `isboolean()` | `boolean` | returns true if self is of type `boolean` |
+| `istable()` | `boolean` | returns true if self is of type `table` |
+| `isthread()` | `boolean` | returns true if self is of type `thread` |
+| `isfunction()` | `boolean` | returns true if self is of type `function` |
+| `isbuffer()` | `boolean` | returns true if self is of type `buffer` |
+| `isnil()` | `boolean` | returns true if self is of type `nil` |
+| `isclass()` | `boolean` | returns true if self is of type `class` (do we need this?) |
+| `isbooleansingleton()` | `boolean` | returns true if self is a boolean singleton |
+| `isstringsingleton()` | `boolean` | returns true if self is a string singleton |
+| `isa(arg: lType)` | `boolean` | returns true if arg is the same type as self |
 
 #### Primitive
 
 | Function Declaration | Return Type | Description |
 | ------------- | ------------- | ------------- |
-| `getType()` | `string` | returns either "nil", "boolean", "string", "thread", "function", "table", or "buffer" |
+| `gettype()` | `string` | returns either "nil", "boolean", "string", "thread", "function", "table", or "buffer" |
 
 #### Singleton
 
 | Function Declaration | Return Type | Description |
 | ------------- | ------------- | ------------- |
-| `getValue()` | `string` | returns either "true", "false", or a string singleton |
+| `getvalue()` | `string` | returns either "true", "false", or a string singleton |
 
 #### Table
 
 | Function Declaration | Return Type | Description |
 | ------------- | ------------- | ------------- |
-| `getProps()` | `table` | returns a type representation of tables (e.g. {name = "John"} will return {[string] = "string"}) |
-| `getIndexer()` | `table` | returns a type representation of arrays (e.g. {1, "hi", 3} will return {[number] = "number" \| "string"}) |
+| `getprops()` | `table` | returns a type representation of tables (e.g. {name = "John"} will return {[string] = "string"}) |
+| `getindexer()` | `table` | returns a type representation of arrays (e.g. {1, "hi", 3} will return {[number] = "number" \| "string"}) |
 
 #### Class
 
 | Function Declaration | Return Type | Description |
 | ------------- | ------------- | ------------- |
-| `getName()` | `table` | returns the name of self's class |
-| `getParent()` | `lType` | returns lType userdata of self's parent |
+| `getname()` | `table` | returns the name of self's class |
+| `getparent()` | `lType` | returns lType userdata of self's parent |
 
 </details>
 
