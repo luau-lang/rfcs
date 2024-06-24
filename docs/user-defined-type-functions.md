@@ -48,7 +48,7 @@ Note: methods under a different type heading (ex: `Singleton`) imply that the me
 | ------------- | ------------- | ------------- |
 | `isstring()` | `boolean` | returns true if self is of type `string` |
 | `isnumber()` | `boolean` | returns true if self is of type `number` |
-| `isboolean()` | `boolean` | returns true if self is of type `boolean` |
+| `isboolean()` | `boolean` | returns true if self is of type `boolean` (e.g. true or false) |
 | `istable()` | `boolean` | returns true if self is of type `table` |
 | `isthread()` | `boolean` | returns true if self is of type `thread` |
 | `isfunction()` | `boolean` | returns true if self is of type `function` |
