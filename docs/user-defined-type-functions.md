@@ -135,3 +135,7 @@ In some sense, this design could be considered "cleaner" than introducing an ent
 ### More Builtin Type Functions
 
 Another alternative is to simply let go of this idea and create more built-in type functions that cover a wider range of common use cases. This approach clearly lacks the flexibility of fully user-defined type functions because type manipulation would be limited to the predefined set of type functions designed by the Luau team. Furthermore, continuously expanding the set of built-in type functions could lead to bloat and complexity within the core language, making it harder to maintain.
+
+### Type Function Type Checking
+
+In the future, we could investigate adding type checking to user defined type functions. In Haskell's type families, this is done with _kinds_ (aka types of types). Similarly, we could look into introducing kinds to Luau, but for the purpose of this RFC, this feature will be left for future works.
