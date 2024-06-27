@@ -48,9 +48,9 @@ end
 ```
 We have considered adding an user-configured execution limit based on time or instruction count for reducing type functions where if a type function does not finish executing under the constraint, it fails to reduce. However, time-based timeouts are dependent on CPU; programs that type check on fast CPUs may not type check on slower CPUs. Similarly, instruction-based timeouts are dependent on the compiler version; programs that type check on versions of compilers where they produce less instructions may not type check on compilers that do not carry the same optimizations. We will not (and probably never) allow type functions to call regular functions for the sake of sandboxing the runtime and analysis.
 
-To allow Luau developers to modify the runtime values of types in type functions, this RFC proposes introducing a new userdata called `lType`.  An `lType` object is a runtime representation of all types within the program and provides a basic set of library methods that can be used to modify types. As such, under the hood, each argument of a type function is serialized into a userdata called `lType`. Moreover, they are *only accessible within type functions* and are *not a runtime type for other use cases than type functions*. 
+To allow Luau developers to modify the runtime values of types in type functions, this RFC proposes introducing a new userdata called `typelib`.  An `typelib` object is a runtime representation of all types within the program and provides a basic set of library methods that can be used to modify types. As such, under the hood, each argument of a type function is serialized into a userdata called `typelib`. Moreover, they are *only accessible within type functions* and are *not a runtime type for other use cases than type functions*. 
 
-<details><summary>lType library methods (dropdown)</summary>
+<details><summary>typelib library methods (dropdown)</summary>
 Note: methods under a different type heading (ex: `Singleton`) imply that the methods are only available for those types. At the implementation level, there is a check to make sure that the type-specific methods are being called on the correct types (e.g, for `getIndexer()`, assert that `isTable()` is true).
 
 #### Any
@@ -68,7 +68,7 @@ Note: methods under a different type heading (ex: `Singleton`) imply that the me
 | `isclass()` | `boolean` | returns true if self is of type `class` (do we need this?) |
 | `isbooleansingleton()` | `boolean` | returns true if self is a boolean singleton |
 | `isstringsingleton()` | `boolean` | returns true if self is a string singleton |
-| `isa(arg: lType)` | `boolean` | returns true if arg is the same type as self |
+| `isa(arg: typelib)` | `boolean` | returns true if arg is the same type as self |
 
 #### Primitive
 
@@ -94,7 +94,7 @@ Note: methods under a different type heading (ex: `Singleton`) imply that the me
 | Function Declaration | Return Type | Description |
 | ------------- | ------------- | ------------- |
 | `getname()` | `string` | returns the name of self's class |
-| `getparent()` | `lType` | returns lType userdata of self's parent |
+| `getparent()` | `typelib` | returns typelib userdata of self's parent |
 
 </details>
 
@@ -110,13 +110,13 @@ The implementation of user-defined type functions can be broken down into the fo
 
 **Constraint Solver**: Generate a new `ReduceConstraint` and append it to the list of unsolved constraints when reducing `TypeAliasExpansionConstraint`.
 
-**Reduction Constraint**: Serialize the function arguments into `lType` and execute the body of the function. Reduce to the deserialized version of the function return value.
+**Reduction Constraint**: Serialize the function arguments into `typelib` and execute the body of the function. Reduce to the deserialized version of the function return value.
 
-**lType**: Using the Lua API, create a library that interfaces between C++ and Luau and supports all of the function calls, serialization, and deserialization.
+**typelib**: Using the Lua API, create a library that interfaces between C++ and Luau and supports all of the function calls, serialization, and deserialization.
 
 ## Drawback
 
-Type functions are handled at the analysis time, while `lType` is an implementation in the runtime. As a result, the proposed design causes the analysis time to be dependent on Luau's runtime to reduce user-defined type functions. This is generally discouraged as it is best to isolate the compile time, analysis time, and runtime from each other for the purpose of maintaining a clean separation of concerns, which helps minimize side effects and dependencies across different phases of the program execution and improves the modularity of the compiler. Overlaps between the analysis time and runtime can lead to code that is more complex and harder to manage, potentially increasing the risk of bugs and making the outcomes less predictable.
+Type functions are handled at the analysis time, while `typelib` is an implementation in the runtime. As a result, the proposed design causes the analysis time to be dependent on Luau's runtime to reduce user-defined type functions. This is generally discouraged as it is best to isolate the compile time, analysis time, and runtime from each other for the purpose of maintaining a clean separation of concerns, which helps minimize side effects and dependencies across different phases of the program execution and improves the modularity of the compiler. Overlaps between the analysis time and runtime can lead to code that is more complex and harder to manage, potentially increasing the risk of bugs and making the outcomes less predictable.
 
 The build / analysis times will also be negatively impacted by this feature as reducing type functions takes variable amount of time based on the program. The larger the type function, the longer it will take to reduce it in the constraint solver.
 
@@ -124,7 +124,7 @@ The build / analysis times will also be negatively impacted by this feature as r
 
 ### `table` Runtime Representation
 
-Currently, the runtime representation of types is a userdata called `lType`. Another representation is to use the already-existing type in Luau `table`; instead of serializing types into `lType`, we can serialize them into tables with predefined properties. For instance, the representation for a string singleton `"abc"` could be `{type = "stringSingleton", value = "abc"}`. So instead of writing:
+Currently, the runtime representation of types is a userdata called `typelib`. Another representation is to use the already-existing type in Luau `table`; instead of serializing types into `typelib`, we can serialize them into tables with predefined properties. For instance, the representation for a string singleton `"abc"` could be `{type = "stringSingleton", value = "abc"}`. So instead of writing:
 ```luau
 type function isSingleton(t)
     if t:isStringSingleton() then
@@ -141,7 +141,7 @@ type function isSingleton(t)
 end
 ```
 
-In some sense, this design could be considered "cleaner" than introducing an entirely new userdata, but it requires developers to have a deeper understanding of the type runtime representation. For example, under the proposed design, a new table type can be created using `lType.new("table")`, while under the alternative design, tables must be declared with attributes: `{type = "table", props = {}, indexer = {}}`. This adds complexity to the developer experience and increases the chance of making syntax errors in their program.
+In some sense, this design could be considered "cleaner" than introducing an entirely new userdata, but it requires developers to have a deeper understanding of the type runtime representation. For example, under the proposed design, a new table type can be created using `typelib.new("table")`, while under the alternative design, tables must be declared with attributes: `{type = "table", props = {}, indexer = {}}`. This adds complexity to the developer experience and increases the chance of making syntax errors in their program.
 
 ### More Builtin Type Functions
 
