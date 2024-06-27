@@ -98,7 +98,6 @@ Note: methods under a different type heading (ex: `Singleton`) imply that the me
 
 | Function Declaration | Return Type | Description |
 | ------------- | ------------- | ------------- |
-| `getname()` | `string` | returns the name of self's class |
 | `getparent()` | `typelib` | returns typelib userdata of self's parent |
 
 </details>
