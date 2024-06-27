@@ -38,7 +38,15 @@ type Person = {
 type ty = rawget<Person, "name"> -- ty = string
 ```
 
-Type functions operate on two stages: type analysis and runtime. They are _called_ at the type level of Luau, but _runs_ at runtime to operate on the values of types (such as the arguments of the function). For this reason, type functions are declared using parenthesis and invoked using angle brackets. Moreover, every type functions will be part of and ran within the same scope to allow type functions to call other type functions. We will not (and probably never) allow type functions to call regular functions for the sake of sandboxing the runtime and analysis time. There will also be a user-configurable timeout for type functions based on the number of instructions. For Roblox, this could be done by editing the config file for RCC and Studio and for non-Roblox users, this could be done by setting a flag when running the compiler.
+Type functions operate on two stages: type analysis and runtime. When calling type functions at the type level (e.g. annotating type of type function to a variable), angle brackets must be used, but when calling the at the runtime level (e.g. calling other type functions), parenthesis must be used. Declarations of type functions use parenthesis because it defines the runtime operations on the runtime representation of types.
+
+For the current being (and until we find a better solution), type functions will not be able to refer other type functions, aliases, anything else that is not in the local scope, mainly due to the fact that recursive calls can run for arbitrary amount of time that can halt analysis from making further progress. For example, reducing this type function will recurse until stack overflow and cause the whole analysis to crash:
+```luau
+type function neverending(t)
+    return neverending(t) -- note: we use parenthesis here because we are passing in the runtime value of types, not static values
+end
+```
+We have considered adding an user-configured execution limit based on time or instruction count for reducing type functions where if a type function does not finish executing under the constraint, it fails to reduce. However, time-based timeouts are dependent on CPU; programs that type check on fast CPUs may not type check on slower CPUs. Similarly, instruction-based timeouts are dependent on the compiler version; programs that type check on versions of compilers where they produce less instructions may not type check on compilers that do not carry the same optimizations. We will not (and probably never) allow type functions to call regular functions for the sake of sandboxing the runtime and analysis.
 
 To allow Luau developers to modify the runtime values of types in type functions, this RFC proposes introducing a new userdata called `lType`.  An `lType` object is a runtime representation of all types within the program and provides a basic set of library methods that can be used to modify types. As such, under the hood, each argument of a type function is serialized into a userdata called `lType`. Moreover, they are *only accessible within type functions* and are *not a runtime type for other use cases than type functions*. 
 
