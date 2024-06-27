@@ -30,7 +30,7 @@ type function rawget(tbl, prop)
         error("First parameter of rawget is not a table!") -- fails to reduce
     end
 
-    return tbl.getProps()[prop.getValue()]
+    return tbl.getprops()[prop.getvalue()]
 end
 
 type Person = {
@@ -56,7 +56,7 @@ To give warnings, developers can use `print()` with custom warning messages. To 
 To allow Luau developers to modify the runtime values of types in type functions, this RFC proposes introducing a new userdata called `typelib`.  An `typelib` object is a runtime representation of all types within the program and provides a basic set of library methods that can be used to modify types. As such, under the hood, each argument of a type function is serialized into a userdata called `typelib`. Most importantly, they are *only accessible within type functions* and are *not a runtime type for other use cases than type functions*. 
 
 <details><summary>typelib library methods (dropdown)</summary>
-Note: methods under a different type heading (ex: `Singleton`) imply that the methods are only available for those types. At the implementation level, there is a check to make sure that the type-specific methods are being called on the correct types (e.g, for `getIndexer()`, assert that `isTable()` is true).
+Note: methods under a different type heading (ex: `Singleton`) imply that the methods are only available for those types. At the implementation level, there is a check to make sure that the type-specific methods are being called on the correct types (e.g, for `getindexer()`, assert that `istable()` is true).
 
 #### Any
 
@@ -131,7 +131,7 @@ The build / analysis times will also be negatively impacted by this feature as r
 Currently, the runtime representation of types is a userdata called `typelib`. Another representation is to use the already-existing type in Luau `table`; instead of serializing types into `typelib`, we can serialize them into tables with predefined properties. For instance, the representation for a string singleton `"abc"` could be `{type = "stringSingleton", value = "abc"}`. So instead of writing:
 ```luau
 type function isSingleton(t)
-    if t:isStringSingleton() then
+    if t:isstringsingleton() then
         return t
     end
 end
