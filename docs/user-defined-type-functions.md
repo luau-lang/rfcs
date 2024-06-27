@@ -25,9 +25,12 @@ end
 For instance, the `rawget` type function can be written as:
 ```luau
 type function rawget(tbl, prop)
-    return tbl.getProps()[prop.getValue()]
+    print("First parameter should be a table") -- produces a warning
+    if (~tbl.istable()) then
+        error("First parameter of rawget is not a table!") -- fails to reduce
+    end
 
-    -- returning nothing / nil means that this type function will fail to reduce
+    return tbl.getProps()[prop.getValue()]
 end
 
 type Person = {
@@ -48,7 +51,9 @@ end
 ```
 We have considered adding an user-configured execution limit based on time or instruction count for reducing type functions where if a type function does not finish executing under the constraint, it fails to reduce. However, time-based timeouts are dependent on CPU; programs that type check on fast CPUs may not type check on slower CPUs. Similarly, instruction-based timeouts are dependent on the compiler version; programs that type check on versions of compilers where they produce less instructions may not type check on compilers that do not carry the same optimizations. We will not (and probably never) allow type functions to call regular functions for the sake of sandboxing the runtime and analysis.
 
-To allow Luau developers to modify the runtime values of types in type functions, this RFC proposes introducing a new userdata called `typelib`.  An `typelib` object is a runtime representation of all types within the program and provides a basic set of library methods that can be used to modify types. As such, under the hood, each argument of a type function is serialized into a userdata called `typelib`. Moreover, they are *only accessible within type functions* and are *not a runtime type for other use cases than type functions*. 
+To give warnings, developers can use `print()` with custom warning messages. To fail reductions, developers can use `error()` with custom error messages. If nothing is returned by the type function, it will fail to reduce with the default message: "Failed to reduce \<Name\> type function with no return values".
+
+To allow Luau developers to modify the runtime values of types in type functions, this RFC proposes introducing a new userdata called `typelib`.  An `typelib` object is a runtime representation of all types within the program and provides a basic set of library methods that can be used to modify types. As such, under the hood, each argument of a type function is serialized into a userdata called `typelib`. Most importantly, they are *only accessible within type functions* and are *not a runtime type for other use cases than type functions*. 
 
 <details><summary>typelib library methods (dropdown)</summary>
 Note: methods under a different type heading (ex: `Singleton`) imply that the methods are only available for those types. At the implementation level, there is a check to make sure that the type-specific methods are being called on the correct types (e.g, for `getIndexer()`, assert that `isTable()` is true).
