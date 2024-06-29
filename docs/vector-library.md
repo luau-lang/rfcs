@@ -54,33 +54,33 @@ Returns the angle between two vectors in radians.
 
 `vector.abs(vec: vector): vector`
 
-Applies math.abs component-wise for each vector. Equivalent of: `vector(math.abs(vec.x), ect)`
+Applies math.abs component-wise for each vector. Equivalent of: `vector(math.abs(vec.x), ect)`.
 
 `vector.sign(vec: vector): vector`
 
-Applies math.sign component-wise for each vector. Equivalent of: `vector(math.sign(vec.x), ect)`
+Applies `math.sign` component-wise for each vector. Equivalent of: `vector(math.sign(vec.x), ect)`.
 
 `vector.clamp(vec: vector, min: vector, max: vector): vector`
 
-Applies math.clamp component-wise for each vector. Equivalent of: `vector(math.clamp(vec.x, min.x, max.x), ect)`
+Applies `math.clamp` component-wise for each vector. Equivalent of: `vector(math.clamp(vec.x, min.x, max.x), ect)`.
 
-`vector.max(list: ...vector): vector`
+`vector.max(...: vector): vector`
 
-Finds the highest vector xyz in the list of vectors provided and returns a new vector with its xyz being those highest values
+Applies `math.max` component-wise for each vector. Equivalent of: `vector(math.max((...).x), ect)`.
 
-`vector.min(list: ...vector): vector`
+`vector.min(...: vector): vector`
 
-Inverse of `vector.min` where instead of looking for the highest it looks for the lowest
+Applies `math.min` component-wise for each vector. Equivalent of: `vector(math.max((...).x), ect)`.
 
 ---
 
 `vector.zero`
 
-Vector where `x=0, y=0, z=0, w?=0`
+Vector where `x=0, y=0, z=0, w?=0`.
 
 `vector.one`
 
-Vector where `x=1, y=1, z=1, w?=1`
+Vector where `x=1, y=1, z=1, w?=1`.
 
 ---
 
