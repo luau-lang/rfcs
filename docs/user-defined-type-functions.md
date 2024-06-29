@@ -43,13 +43,22 @@ type ty = rawget<Person, "name"> -- ty = string
 
 Type functions operate on two stages: type analysis and runtime. When calling type functions at the type level (e.g. annotating type of type function to a variable), angle brackets must be used, but when calling the at the runtime level (e.g. calling other type functions), parenthesis must be used. Declarations of type functions use parenthesis because it defines the runtime operations on the runtime representation of types.
 
-For the current being (and until we find a better solution), type functions will not be able to refer other type functions, aliases, anything else that is not in the local scope, mainly due to the fact that recursive calls can run for arbitrary amount of time that can halt analysis from making further progress. For example, reducing this type function will recurse until stack overflow and cause the whole analysis to crash:
+For the first iteration, type functions will support a subset of the Luau language, mainly the constructs that do not allow type functions to run infinitely. Infinite-runtime type functions are problematic because they can halt the analysis from making further progress. For example, reducing this type function will recurse until a stack overflow occurs and cause the whole analysis to crash:
 ```luau
 type function neverending(t)
-    return neverending(t) -- note: we use parenthesis here because we are passing in the runtime value of types, not static values
+    return neverending(t) -- note: parentheses are used here because the runtime value of types is being passed in, rather than the static annotation of types
 end
 ```
-We have considered adding an user-configured execution limit based on time or instruction count for reducing type functions where if a type function does not finish executing under the constraint, it fails to reduce. However, time-based timeouts are dependent on CPU; programs that type check on fast CPUs may not type check on slower CPUs. Similarly, instruction-based timeouts are dependent on the compiler version; programs that type check on versions of compilers where they produce less instructions may not type check on compilers that do not carry the same optimizations. We will not (and probably never) allow type functions to call regular functions for the sake of sandboxing the runtime and analysis.
+As a result, the current plan is to maintain a tightly scoped implementation, focusing on the simplest version of type functions to minimize the risk of developers crashing the analysis, and gradually enhance capabilities through successive iterations.
+
+We have considered implementing a user-configurable execution limit based on time or instruction count for reducing type functions where if a type function exceeds the limit, it fails to reduce. However, these methods are not consistently reliable for terminating type functions that take too long to execute. Time-based timeouts are dependent on CPU performance; programs that type check on fast CPUs may not type check on slower CPUs. Similarly, instruction-based timeouts are dependent on the compiler optimizations; programs that type check on one compiler version may not type check on versions without the same optimizations. We will be experimenting with various forms of limiting the execution of type functions and reserve the right to change how termination of type functions is managed.
+
+<details><summary>List of illegal constructs in type functions</summary>
+
+* `while` / `repeat` loops
+* invoking other type functions / regular functions / lambdas
+    * we will not (and probably never) allow type functions to call regular functions for the sake of sandboxing the runtime and analysis.
+</details>
 
 To give warnings, developers can use `print()` with custom warning messages. To fail reductions, developers can use `error()` with custom error messages. If nothing is returned by the type function, it will fail to reduce with the default message: "Failed to reduce \<Name\> type function with no return values".
 
