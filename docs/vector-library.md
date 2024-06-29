@@ -52,13 +52,25 @@ Equivalent of `math.ceil` for vectors.
 
 Returns the angle between two vectors in radians.
 
-`vector.max(input: vector, maximum: vector): vector`
+`vector.abs(vec: vector): vector`
 
-Applies math.max component-wise for each vector. Equivalent of: `vector(math.max(a.x, b.x), etc)`
+Applies math.abs component-wise for each vector. Equivalent of: `vector(math.abs(vec.x), ect)`
 
-`vector.min(input: vector, minimum: vector): vector`
+`vector.sign(vec: vector): vector`
 
-Same as `vector.max`. Equivalent of: `vector(math.min(a.x, b.x), etc)`
+Applies math.sign component-wise for each vector. Equivalent of: `vector(math.sign(vec.x), ect)`
+
+`vector.clamp(vec: vector, min: vector, max: vector): vector`
+
+Applies math.clamp component-wise for each vector. Equivalent of: `vector(math.clamp(vec.x, min.x, max.x), ect)`
+
+`vector.max(list: ...vector): vector`
+
+Finds the highest vector xyz in the list of vectors provided and returns a new vector with its xyz being those highest values
+
+`vector.min(list: ...vector): vector`
+
+Inverse of `vector.min` where instead of looking for the highest it looks for the lowest
 
 ---
 
