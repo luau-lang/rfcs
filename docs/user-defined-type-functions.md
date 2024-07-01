@@ -25,7 +25,6 @@ end
 For instance, the `rawget` type function can be written as:
 ```luau
 type function rawget(tbl, prop)
-    print("First parameter should be a table") -- produces a warning
     if (~tbl.istable()) then
         error("First parameter of rawget is not a table!") -- fails to reduce
     end
@@ -41,9 +40,9 @@ type Person = {
 type ty = rawget<Person, "name"> -- ty = string
 ```
 
-Type functions operate on two stages: type analysis and runtime. When calling type functions at the type level (e.g. annotating type of type function to a variable), angle brackets must be used, but when calling the at the runtime level (e.g. calling other type functions), parenthesis must be used. Declarations of type functions use parenthesis because it defines the runtime operations on the runtime representation of types.
+Type functions operate on two stages: type analysis and runtime. When calling type functions at the type level (e.g. annotating a variable as a type function), angle brackets must be used, but when calling them at the runtime level (e.g. calling other type functions within type functions), parenthesis must be used. Declarations of type functions use parenthesis because it defines the runtime operations on the runtime representation of types.
 
-For the first iteration, type functions will support a subset of the Luau language, mainly the constructs that do not allow type functions to run infinitely. Infinite-runtime type functions are problematic because they can halt the analysis from making further progress. For example, reducing this type function will recurse until a stack overflow occurs and cause the whole analysis to crash:
+For the first iteration, type functions will support a subset of the Luau language, mainly the constructs that do not allow type functions to run infinitely. Infinitely running type functions are problematic because they can halt the analysis from making further progress. For example, reducing this type function will recurse until a stack overflow occurs and cause the whole analysis to crash:
 ```luau
 type function neverending(t)
     return neverending(t) -- note: parentheses are used here because the runtime value of types is being passed in, rather than the static annotation of types
@@ -58,74 +57,141 @@ We have considered implementing a user-configurable execution limit based on tim
 * `while` / `repeat` loops
 * invoking other type functions / regular functions / lambdas
     * we will not (and probably never) allow type functions to call regular functions for the sake of sandboxing the runtime and analysis.
+* referring to locals in the outer scope
+
+Note: we are aware that for loops can cause infinite runtime. For the time being, we will not be handling this case. In the event that a developer accidentally creates an infinitely long type function, they will need to fix the type function and restart the analysis.
+
 </details>
 
 To give warnings, developers can use `print()` with custom warning messages. To fail reductions, developers can use `error()` with custom error messages. If nothing is returned by the type function, it will fail to reduce with the default message: "Failed to reduce \<Name\> type function with no return values".
 
-To allow Luau developers to modify the runtime values of types in type functions, this RFC proposes introducing a new userdata called `typelib`.  An `typelib` object is a runtime representation of all types within the program and provides a basic set of library methods that can be used to modify types. As such, under the hood, each argument of a type function is serialized into a userdata called `typelib`. Most importantly, they are *only accessible within type functions* and are *not a runtime type for other use cases than type functions*. 
+To allow Luau developers to modify the runtime values of types in type functions, this RFC proposes introducing a new userdata called `typelib`. A `typelib` object is a runtime representation of all types within the program and provides a basic set of library methods that can be used to modify types. As such, under the hood, the `typelib` library will closely mimic the implementation of static types in Luau Analysis. Most importantly, they are *only accessible within type functions* and are *not a runtime type for other use cases than type functions*. 
 
 <details><summary>typelib library methods (dropdown)</summary>
-Note: methods under a different type heading (ex: `Singleton`) imply that the methods are only available for those types. At the implementation level, there is a check to make sure that the type-specific methods are being called on the correct types (e.g, for `getindexer()`, assert that `istable()` is true).
 
-#### Any
+Methods under a different type heading (ex: `Singleton`) imply that the methods are only available for those types. At the implementation level, there is a check to make sure that the type-specific methods are being called on the correct types. For instance, `getindexer()` asserts that `istable()` is true.
 
-| Function Declaration | Return Type | Description |
-| ------------- | ------------- | ------------- |
-| `isstring()` | `boolean` | returns true if self is of type `string` |
-| `isnumber()` | `boolean` | returns true if self is of type `number` |
-| `isboolean()` | `boolean` | returns true if self is of type `boolean` (e.g. true or false) |
-| `istable()` | `boolean` | returns true if self is of type `table` |
-| `isthread()` | `boolean` | returns true if self is of type `thread` |
-| `isfunction()` | `boolean` | returns true if self is of type `function` |
-| `isbuffer()` | `boolean` | returns true if self is of type `buffer` |
-| `isnil()` | `boolean` | returns true if self is of type `nil` |
-| `isclass()` | `boolean` | returns true if self is of type `class` (do we need this?) |
-| `isbooleansingleton()` | `boolean` | returns true if self is a boolean singleton |
-| `isstringsingleton()` | `boolean` | returns true if self is a string singleton |
-| `isa(arg: typelib)` | `boolean` | returns true if arg is the same type as self |
-
-#### Primitive
+#### typelib
+All attributes of newly created typelib are initialized with empty tables / arrays and `typelib.getnil()`. For instance, `typelib.newtable()` initializes its properties with an empty table and index / index result type as `typelib.getnil()`.
 
 | Function Declaration | Return Type | Description |
 | ------------- | ------------- | ------------- |
-| `gettype()` | `string` | returns either "nil", "boolean", "string", "thread", "function", "table", or "buffer" |
+| `getnil()` | `typelib` | returns an immutable runtime representation of the built-in type `nil` |
+| `getunknown()` | `typelib` | returns an immutable runtime representation of the built-in type `unknown` |
+| `getnever()` | `typelib` | returns an immutable runtime representation of the built-in type `never` |
+| `getany()` | `typelib` | returns an immutable runtime representation of the built-in type `any` |
+| `getnegation(arg: typelib)` | `typelib` | returns an immutable runtime representation of the negation of the argument; the argument cannot be `istable()`, `ismetatable` or `isfunction()` |
+| `getboolean()` | `typelib` | returns an immutable runtime representation of the built-in type `boolean` |
+| `getnumber()` | `typelib` | returns an immutable runtime representation of the built-in type `number` |
+| `getstring()` | `typelib` | returns an immutable runtime representation of the built-in type `string` |
+| `getstringsingleton(arg: string)` | `typelib` | returns an immutable runtime representation of a string singleton type of the argument |
+| `getbooleansingleton(arg: boolean)` | `typelib` | returns an immutable runtime representation of a boolean singleton type of the argument |
+| `getunion(arg: {typelib})` | `typelib` | returns an immutable runtime representation of union type of its argument |
+| `getintersection(arg: {typelib})` | `typelib` | returns an immutable runtime representation of intersection type of its argument |
+| `newtable()` | `typelib` | returns a mutable runtime representation of a `table` type |
+| `newmetatable()` | `typelib` | returns a mutable runtime representation of `Metatable` |
+| `newfunction()` | `typelib` | returns a mutable runtime representation of a `function` type |
+| `isnil()` | `boolean` | returns true if self is a runtime representation of the built-in type `nil` |
+| `isunknown()` | `boolean` | returns true if self is a runtime representation of the built-in type `unknown` |
+| `isnever()` | `boolean` | returns true if self is a runtime representation of the built-in type `never` |
+| `isany()` | `boolean` | returns true if self is a runtime representation of the built-in type `any` |
+| `isnegation()` | `boolean` | returns true if self is a runtime representation of a `Negation` |
+| `isboolean()` | `boolean` | returns true if self is a runtime representation of the built-in type`boolean` |
+| `isnumber()` | `boolean` | returns true if self is a runtime representation of the built-in type `number` |
+| `isstring()` | `boolean` | returns true if self is a runtime representation of the built-in type `string` |
+| `isstringsingleton()` | `boolean` | returns true if self is a runtime representation of a string singleton |
+| `isbooleansingleton()` | `boolean` | returns true if self is a runtime representation of a boolean singleton |
+| `isunion()` | `boolean` | returns true if self is a runtime representation of the union type |
+| `isintersection()` | `boolean` | returns true if self is a runtime representation of the intersection type |
+| `istable()` | `boolean` | returns true if self is a runtime representation of a `table` type |
+| `ismetatable()` | `boolean` | returns true if self is a runtime representation of `Metatable` |
+| `isfunction()` | `boolean` | returns true if self is a runtime representation of a `function` type |
+| `isclass()` | `boolean` | returns true if self is a runtime representation of a `class` type |
+| `issubtypeof(arg: typelib)` | `boolean` | returns true if self is a subtype or equal to arg in the type hierarchy |
+| `conformsto(arg: typelib)` | `boolean` | returns true if self is equal to arg in the type hierarchy |
 
-#### Singleton
+#### Negation
 
 | Function Declaration | Return Type | Description |
 | ------------- | ------------- | ------------- |
-| `getvalue()` | `string` | returns either "true", "false", or a string singleton |
+| `gettype()` | `typelib` | returns the runtime representation of the type being negated |
+
+#### String
+
+| Function Declaration | Return Type | Description |
+| ------------- | ------------- | ------------- |
+| `getmetatable()` | `typelib` | returns the runtime representation of `Metatable` |
+
+#### StringSingleton
+
+| Function Declaration | Return Type | Description |
+| ------------- | ------------- | ------------- |
+| `getvalue()` | `string` | returns a string singleton |
+
+#### BooleanSingleton
+
+| Function Declaration | Return Type | Description |
+| ------------- | ------------- | ------------- |
+| `getvalue()` | `boolean` | returns either `true` or `false` |
 
 #### Table
 
 | Function Declaration | Return Type | Description |
 | ------------- | ------------- | ------------- |
-| `getprops()` | `table` | returns a type representation of tables (e.g. {name = "John"} will return {[string] = "string"}) |
-| `getindexer()` | `table` | returns a type representation of arrays (e.g. {1, "hi", 3} will return {[number] = "number" \| "string"}) |
+| `addprops(key: typelib, value: typelib)` | `nil` | adds a key, value pair to self's table properties; if the same key exists already, overrides the value |
+| `delprops(key: typelib)` | `nil` | removes the key from self's table properties along with the value associated with it; if the key doesn't exist, nothing happens |
+| `getprops()` | `{typelib: typelib}` | returns a table of self's table properties (e.g. `{["age"] = 20}` will return `{typelib.getstringsingleton("age") = typelib.getnumber()}`) |
+| `settableindexer(indexty: typelib, indexresultty: typelib)` | `nil` | sets self's index type to the first argument and index result type to the second |
+| `getindextype()` | `typelib` | returns self's index type |
+| `getindexresulttype()` | `typelib` | returns self's index result type |
+| `setsealed(arg: boolean)` | `nil` | sets the table's sealed status. If true, the table becomes a sealed table. Default initialization of tables is unsealed tables (aka setsealed(false)) |
+| `issealed()` | `boolean` | returns the seal status of self |
+
+#### Metatable
+
+| Function Declaration | Return Type | Description |
+| ------------- | ------------- | ------------- |
+| `settable(arg: typelib)` | `nil` | sets self's table to the argument; the argument needs to be `istable()` |
+| `gettable()` | `typelib` | returns self's runtime representation of the type `table` |
+| `setmetatable(arg: typelib)` | `nil` | sets self's metatable to the argument; the argument needs to be `ismetatable()` |
+| `getmetatable()` | `typelib` | returns self's runtime representation of `Metatable` |
+
+#### Function
+
+| Function Declaration | Return Type | Description |
+| ------------- | ------------- | ------------- |
+| `setargtypes(arg: {typelib} \| typelib)` | `nil` | sets self's argument types to the argument, where an array implies a TypePack and the latter implies a Variadic |
+| `getargtypes()` | `{typelib} \| typelib` | returns the runtime representation of self's argument type |
+| `setreturntypes(arg: {typelib} \| typelib)` | `nil` | sets self's return types to the argument, where an array implies a TypePack and the latter implies a Variadic |
+| `getreturntypes()` | `{typelib} \| typelib` | returns the runtime representation of self's return type |
+
+#### Union
+
+| Function Declaration | Return Type | Description |
+| ------------- | ------------- | ------------- |
+| `getoptions()` | `table` | returns an array of types that the union can represent. For instance, `string \| number` returns `{typelib.getstring(), typelib.getnumber()}` |
+
+#### Intersection
+
+| Function Declaration | Return Type | Description |
+| ------------- | ------------- | ------------- |
+| `getparts()` | `table` | returns an array of types represented by the intersection. For instance, `string & number` returns `{typelib.getstring(), typelib.getnumber()}` |
 
 #### Class
 
 | Function Declaration | Return Type | Description |
 | ------------- | ------------- | ------------- |
-| `getparent()` | `typelib` | returns typelib userdata of self's parent |
+| `getprops()` | `table` | returns the runtime representation of table of class's properties |
+| `getparent()` | `typelib \| nil` | returns the runtime representation of self's parent class if it exists, else nil |
+| `getmetatable()` | `typelib \| nil` | returns the runtime representation of self's `Metatable` if it exists, else nil |
 
 </details>
 
+The reason for going with userdata instead using another representation or adding a new compile-time interpreter like many other language is that userdata provides a clean abstraction from the runtime representation and restricts developers to using a set of libraries controlled by the Luau team where we can easily manage changes and listen to feedbacks. Moreover, because Lua was designed to be easily embeddable with C++, we wanted to use this as an advantage for type functions since they only require using a small runtime variant of the VM, making the implementation be simpler than having to implement a new interpreter.
+
 ### Implementation
 
-The implementation of user-defined type functions can be broken down into the following parts:
-
-**AST**: Introduce a new AST node for type functions called `AstStatTypeFunction`.
-
-**Parser**: When parsing TypeAliases, if the next lexeme is "function", parse it into the `AstStatTypeFunction` node.
-
-**Constraint Generator**: Generate a `TypeAliasExpansionConstraint` when visiting the `AstStatTypeFunction` node.
-
-**Constraint Solver**: Generate a new `ReduceConstraint` and append it to the list of unsolved constraints when reducing `TypeAliasExpansionConstraint`.
-
-**Reduction Constraint**: Serialize the function arguments into `typelib` and execute the body of the function. Reduce to the deserialized version of the function return value.
-
-**typelib**: Using the Lua API, create a library that interfaces between C++ and Luau and supports all of the function calls, serialization, and deserialization.
+A `typelib` library will be implemented using the Lua API to interface between C++ and Luau and support the library methods, including type serialization for arguments and deserialization for return values. To implement type functions, a new AST node called `AstStatTypeFunction` will be introduced and created when parsing a type alias followed by the keyword "function." In the constraint generator, visiting this new AST node will generate a `TypeAliasExpansionConstraint` and in the constraint solver, reducing `TypeAliasExpansionConstraint` will generate a `ReduceConstraint`. To reduce `ReduceConstraints`, user-defined type functions will be integrated as built-in type functions in Luau where when being invoked, their arguments will be serialized into an instance of `typelib`. These functions will interact with the Luau VM to execute the function body in an established environment with only the specified libraries and constructs available. The return value of the type function will be deserialized and be the value that the `ReduceConstraint` reduces to.
 
 ## Drawback
 
