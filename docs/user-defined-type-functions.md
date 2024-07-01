@@ -25,7 +25,7 @@ end
 For instance, the `rawget` type function can be written as:
 ```luau
 type function rawget(tbl, prop)
-    if (~tbl:istable()) then
+    if (not tbl:istable()) then
         error("First parameter of rawget is not a table!") -- fails to reduce
     end
 
