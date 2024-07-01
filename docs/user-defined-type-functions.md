@@ -184,6 +184,8 @@ All attributes of newly created typelib are initialized with empty tables / arra
 | `getprops()` | `table` | returns the runtime representation of table of class's properties |
 | `getparent()` | `typelib \| nil` | returns the runtime representation of self's parent class if it exists, else nil |
 | `getmetatable()` | `typelib \| nil` | returns the runtime representation of self's `Metatable` if it exists, else nil |
+| `getindextype()` | `typelib` | returns self's index type |
+| `getindexresulttype()` | `typelib` | returns self's index result type |
 
 </details>
 
