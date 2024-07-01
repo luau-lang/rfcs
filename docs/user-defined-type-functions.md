@@ -72,7 +72,7 @@ To allow Luau developers to modify the runtime values of types in type functions
 Methods under a different type heading (ex: `Singleton`) imply that the methods are only available for those types. At the implementation level, there is a check to make sure that the type-specific methods are being called on the correct types. For instance, `getindexer()` asserts that `istable()` is true.
 
 #### typelib
-All attributes of newly created typelib are initialized with empty tables / arrays and `typelib.getnil()`. For instance, `typelib.newtable()` initializes its properties with an empty table and index / index result type as `typelib.getnil()`.
+All attributes of newly created typelib are initialized with empty tables / arrays and `typelib:getnil()`. For instance, `typelib:newtable()` initializes its properties with an empty table and index / index result type as `typelib:getnil()`.
 
 | Function Declaration | Return Type | Description |
 | ------------- | ------------- | ------------- |
@@ -140,7 +140,7 @@ All attributes of newly created typelib are initialized with empty tables / arra
 | ------------- | ------------- | ------------- |
 | `addprops(key: typelib, value: typelib)` | `nil` | adds a key, value pair to self's table properties; if the same key exists already, overrides the value |
 | `delprops(key: typelib)` | `nil` | removes the key from self's table properties along with the value associated with it; if the key doesn't exist, nothing happens |
-| `getprops()` | `{typelib: typelib}` | returns a table of self's table properties (e.g. `{["age"] = 20}` will return `{typelib.getstringsingleton("age") = typelib.getnumber()}`) |
+| `getprops()` | `{typelib: typelib}` | returns a table of self's table properties (e.g. `{["age"] = 20}` will return `{typelib:getstringsingleton("age") = typelib:getnumber()}`) |
 | `settableindexer(indexty: typelib, indexresultty: typelib)` | `nil` | sets self's index type to the first argument and index result type to the second |
 | `getindextype()` | `typelib` | returns self's index type |
 | `getindexresulttype()` | `typelib` | returns self's index result type |
@@ -169,13 +169,13 @@ All attributes of newly created typelib are initialized with empty tables / arra
 
 | Function Declaration | Return Type | Description |
 | ------------- | ------------- | ------------- |
-| `getoptions()` | `table` | returns an array of types that the union can represent. For instance, `string \| number` returns `{typelib.getstring(), typelib.getnumber()}` |
+| `getoptions()` | `table` | returns an array of types that the union can represent. For instance, `string \| number` returns `{typelib:getstring(), typelib:getnumber()}` |
 
 #### Intersection
 
 | Function Declaration | Return Type | Description |
 | ------------- | ------------- | ------------- |
-| `getparts()` | `table` | returns an array of types represented by the intersection. For instance, `string & number` returns `{typelib.getstring(), typelib.getnumber()}` |
+| `getparts()` | `table` | returns an array of types represented by the intersection. For instance, `string & number` returns `{typelib:getstring(), typelib:getnumber()}` |
 
 #### Class
 
@@ -222,7 +222,7 @@ type function isSingleton(t)
 end
 ```
 
-In some sense, this design could be considered "cleaner" than introducing an entirely new userdata, but it requires developers to have a deeper understanding of the type runtime representation. For example, under the proposed design, a new table type can be created using `typelib.new("table")`, while under the alternative design, tables must be declared with attributes: `{type = "table", props = {}, indexer = {}}`. This adds complexity to the developer experience and increases the chance of making syntax errors in their program.
+In some sense, this design could be considered "cleaner" than introducing an entirely new userdata, but it requires developers to have a deeper understanding of the type runtime representation. For example, under the proposed design, a new table type can be created using `typelib:newtable()`, while under the alternative design, tables must be declared with attributes: `{type = "table", props = {}, indexer = {}}`. This adds complexity to the developer experience and increases the chance of making syntax errors in their program.
 
 ### More Builtin Type Functions
 
