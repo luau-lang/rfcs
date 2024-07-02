@@ -44,13 +44,13 @@ type ty = rawget<Person, "name"> -- ty = string
 
 Type functions operate on two stages: type analysis and runtime. When calling type functions at the type level (e.g. annotating a variable as a type function), angle brackets must be used, but when calling them at the runtime level (e.g. calling other type functions within type functions), parenthesis must be used. Declarations of type functions use parenthesis because it defines the runtime operations on the runtime representation of types.
 
-For the first iteration, type functions will support a subset of the Luau language, mainly the constructs that do not allow type functions to run infinitely. Infinitely running type functions are problematic because they can halt the analysis from making further progress. For example, reducing this type function will recurse until a stack overflow occurs and cause the whole analysis to crash:
+For the first iteration, type functions will support a subset of the Luau language, mainly the constructs that do not allow type functions to run infinitely. Infinitely running type functions are problematic because they can halt the analysis from making further progress. For example, reducing this type function will halt analysis until a stack overflow occurs in the VM:
 ```luau
 type function neverending(t)
     return neverending(t) -- note: parentheses are used here because the runtime value of types is being passed in, rather than the static annotation of types
 end
 ```
-As a result, the current plan is to maintain a tightly scoped implementation, focusing on the simplest version of type functions to minimize the risk of developers crashing the analysis, and gradually enhance capabilities through successive iterations.
+As a result, the current plan is to maintain a tightly scoped implementation, focusing on the simplest version of type functions to minimize the risk of developers accidentally starving themselves of features provided by the analysis, and gradually enhance capabilities through successive iterations.
 
 We have considered implementing a user-configurable execution limit based on time or instruction count for reducing type functions where if a type function exceeds the limit, it fails to reduce. However, these methods are not consistently reliable for terminating type functions that take too long to execute. Time-based timeouts are dependent on CPU performance; programs that type check on fast CPUs may not type check on slower CPUs. Similarly, instruction-based timeouts are dependent on the compiler optimizations; programs that type check on one compiler version may not type check on versions without the same optimizations. We will be experimenting with various forms of limiting the execution of type functions and reserve the right to change how termination of type functions is managed.
 
@@ -58,12 +58,12 @@ We have considered implementing a user-configurable execution limit based on tim
 
 * `while` / `repeat` loops
 * invoking other type functions / regular functions / lambdas
-    * we will not (and probably never) allow type functions to call regular functions for the sake of sandboxing the runtime and analysis.
+    * we will not (and probably never) allow type functions to call regular functions for the sake of maintaining discrete stages between runtime and analysis
 * referring to locals / globals in the outer scope
 * global functions: `getfenv`, `setfenv`, `pcall`, `xpcall`, `require`
 * libraries: `coroutine`, `debug`, `string.gsub`
 
-Note: we are aware that for loops can cause infinite runtime. For the time being, we will not be handling this case. In the event that a developer accidentally creates an infinitely long type function, they will need to fix the type function and restart the analysis.
+Note: we are aware that for loops can cause infinite runtime. For the time being, we will not be handling this case. In the event that a developer accidentally creates an infinitely long type function, autocomplete will timeout in their editor environments and running luau-analyze will not complete. They will need to fix the type function and restart their environment / analysis.
 
 </details>
 
@@ -93,7 +93,7 @@ All attributes of newly created typelib are initialized with empty tables / arra
 | `getunion(arg: {typelib})` | `typelib` | returns an immutable runtime representation of union type of its argument |
 | `getintersection(arg: {typelib})` | `typelib` | returns an immutable runtime representation of intersection type of its argument |
 | `newtable()` | `typelib` | returns a mutable runtime representation of a `table` type |
-| `newmetatable()` | `typelib` | returns a mutable runtime representation of `Metatable` |
+| `newmetatable()` | `typelib` | returns a mutable runtime representation of a metatable represented as a special property of the `table` type |
 | `newfunction()` | `typelib` | returns a mutable runtime representation of a `function` type |
 | `isnil(arg: typelib)` | `boolean` | returns true if the argument is syntactically a runtime representation of the built-in type `nil` |
 | `isunknown(arg: typelib)` | `boolean` | returns true if the argument is syntactically a runtime representation of the built-in type `unknown` |
@@ -108,7 +108,7 @@ All attributes of newly created typelib are initialized with empty tables / arra
 | `isunion(arg: typelib)` | `boolean` | returns true if the argument is syntactically a runtime representation of the union type |
 | `isintersection(arg: typelib)` | `boolean` | returns true if the argument is syntactically a runtime representation of the intersection type |
 | `istable(arg: typelib)` | `boolean` | returns true if the argument is syntactically a runtime representation of a `table` type |
-| `ismetatable(arg: typelib)` | `boolean` | returns true if the argument is syntactically a runtime representation of `Metatable` |
+| `ismetatable(arg: typelib)` | `boolean` | returns true if the argument is syntactically a runtime representation of a metatable represented as a special property of the `table` type |
 | `isfunction(arg: typelib)` | `boolean` | returns true if the argument is syntactically a runtime representation of a `function` type |
 | `isclass(arg: typelib)` | `boolean` | returns true if the argument is syntactically a runtime representation of a `class` type |
 
@@ -116,7 +116,11 @@ All attributes of newly created typelib are initialized with empty tables / arra
 | Function Declaration | Return Type | Description |
 | ------------- | ------------- | ------------- |
 | `issubtypeof(arg: typelib)` | `boolean` | returns true if self is a subtype or equal to arg in the type hierarchy |
-| `conformsto(arg: typelib)` | `boolean` | returns true if self is equal to arg in the type hierarchy |
+| `equalsto(arg: typelib)` | `boolean` | returns true if self is syntactically equal to arg in the type hierarchy |
+
+* `issubtypeof(arg: typelib)` and `equalsto(arg: typelib)` will also overload `__le` and `__eq` respectively
+    * e.g. `t1 <= t2` is equivalent to `t1:issubtypeof(t2)`
+    * e.g. `t1 == t2` is equivalent to `t1:equalsto(t2)`
 
 #### Negation
 
@@ -128,7 +132,7 @@ All attributes of newly created typelib are initialized with empty tables / arra
 
 | Function Declaration | Return Type | Description |
 | ------------- | ------------- | ------------- |
-| `getmetatable()` | `typelib` | returns the runtime representation of self's `Metatable` |
+| `getmetatable()` | `typelib` | returns the runtime representation of self's metatable |
 
 #### StringSingleton
 
@@ -146,52 +150,47 @@ All attributes of newly created typelib are initialized with empty tables / arra
 
 | Function Declaration | Return Type | Description |
 | ------------- | ------------- | ------------- |
-| `addprops(key: typelib, value: typelib)` | `nil` | adds a key, value pair to self's table properties; if the same key exists already, overrides the value |
-| `delprops(key: typelib)` | `nil` | removes the key from self's table properties along with the value associated with it; if the key doesn't exist, nothing happens |
-| `getprops()` | `{typelib: typelib}` | returns a table of self's table properties (e.g. `{["age"] = 20}` will return `{typelib.getstringsingleton("age") = typelib.getnumber()}`) |
-| `settableindexer(indexty: typelib, indexresultty: typelib)` | `nil` | sets self's index type to the first argument and index result type to the second |
-| `getindextype()` | `typelib` | returns self's index type |
-| `getindexresulttype()` | `typelib` | returns self's index result type |
-| `setsealed(arg: boolean)` | `nil` | sets the table's sealed status. If true, the table becomes a sealed table. Default initialization of tables is unsealed tables (aka setsealed(false)) |
-| `issealed()` | `boolean` | returns the seal status of self |
+| `addprop(key: typelib, value: typelib)` | `nil` | adds a key, value pair to self's table properties; if the same key exists already, overrides the value |
+| `delprop(key: typelib)` | `nil` | removes the key from self's table properties along with the value associated with it (equivalent of `addprop(key, nil)`); if the key doesn't exist, nothing happens |
+| `getprops()` | `{[typelib]: typelib}` | returns a table of self's table properties (e.g. `{["age"] = 20}` will return `{typelib.getstringsingleton("age") = typelib.getnumber()}`) |
+| `setindexer(key: typelib, value: typelib)` | `nil` | sets self's indexer key type to the first argument and indexer value type to the second |
+| `getindexerkeytype()` | `typelib` | returns self's indexer key type |
+| `getindexervaluetype()` | `typelib` | returns self's indexer value type |
+| `setmetatable(arg: typelib)` | `nil` | sets self's metatable to the argument; both self and the argument need to be `ismetatable()` |
+| `getmetatable()` | `typelib` | returns self's runtime representation of metatable; self needs to be `ismetatable()` |
 
-#### Metatable
-
-| Function Declaration | Return Type | Description |
-| ------------- | ------------- | ------------- |
-| `settable(arg: typelib)` | `nil` | sets self's table to the argument; the argument needs to be `istable()` |
-| `gettable()` | `typelib` | returns self's runtime representation of the type `table` |
-| `setmetatable(arg: typelib)` | `nil` | sets self's metatable to the argument; the argument needs to be `ismetatable()` |
-| `getmetatable()` | `typelib` | returns self's runtime representation of `Metatable` |
+* `addprop(key: typelib, value: typelib)` will also overload `__newindex`
+    * e.g. `t["myprop"] = mytype -- adds the prop`
+    * e.g. `t["myprop"] = nil -- deletes the prop`
 
 #### Function
 
 | Function Declaration | Return Type | Description |
 | ------------- | ------------- | ------------- |
-| `setargtypes(arg: {typelib} \| typelib)` | `nil` | sets self's argument types to the argument, where an array implies a TypePack and the latter implies a Variadic |
-| `getargtypes()` | `{typelib} \| typelib` | returns the runtime representation of self's argument type |
-| `setreturntypes(arg: {typelib} \| typelib)` | `nil` | sets self's return types to the argument, where an array implies a TypePack and the latter implies a Variadic |
-| `getreturntypes()` | `{typelib} \| typelib` | returns the runtime representation of self's return type |
+| `setparameters(arg: {typelib} \| typelib)` | `nil` | sets self's parameter types to the argument, where an array implies a TypePack and the latter implies a Variadic |
+| `getparameters()` | `{typelib} \| typelib` | returns the runtime representation of self's parameter type |
+| `setreturns(arg: {typelib} \| typelib)` | `nil` | sets self's return types to the argument, where an array implies a TypePack and the latter implies a Variadic |
+| `getreturns()` | `{typelib} \| typelib` | returns the runtime representation of self's return type |
 
 #### Union
 
 | Function Declaration | Return Type | Description |
 | ------------- | ------------- | ------------- |
-| `getoptions()` | `table` | returns an array of types that the self's union can represent. For instance, `string \| number` returns `{typelib.getstring(), typelib.getnumber()}` |
+| `getcomponents()` | `{typelib}` | returns an array of types that the self's union can represent. For instance, `string \| number` returns `{typelib.getstring(), typelib.getnumber()}` |
 
 #### Intersection
 
 | Function Declaration | Return Type | Description |
 | ------------- | ------------- | ------------- |
-| `getparts()` | `table` | returns an array of types represented by self's intersection. For instance, `string & number` returns `{typelib.getstring(), typelib.getnumber()}` |
+| `getcomponents()` | `{typelib}` | returns an array of types represented by self's intersection. For instance, `string & number` returns `{typelib.getstring(), typelib.getnumber()}` |
 
 #### Class
 
 | Function Declaration | Return Type | Description |
 | ------------- | ------------- | ------------- |
-| `getprops()` | `{typelib: typelib}` | returns the runtime representation self's properties |
+| `getprops()` | `{[typelib]: typelib}` | returns the runtime representation self's properties |
 | `getparent()` | `typelib \| nil` | returns the runtime representation of self's parent class if it exists, else nil |
-| `getmetatable()` | `typelib \| nil` | returns the runtime representation of self's `Metatable` if it exists, else nil |
+| `getmetatable()` | `typelib \| nil` | returns the runtime representation of self's metatable if it exists, else nil |
 | `getindextype()` | `typelib` | returns self's index type |
 | `getindexresulttype()` | `typelib` | returns self's index result type |
 
@@ -207,7 +206,7 @@ A `typelib` library will be implemented using the Lua API to interface between C
 
 Type functions are handled at the analysis time, while `typelib` is an implementation in the runtime. As a result, the proposed design causes the analysis time to be dependent on Luau's runtime to reduce user-defined type functions. This is generally discouraged as it is best to isolate the compile time, analysis time, and runtime from each other for the purpose of maintaining a clean separation of concerns, which helps minimize side effects and dependencies across different phases of the program execution and improves the modularity of the compiler. Overlaps between the analysis time and runtime can lead to code that is more complex and harder to manage, potentially increasing the risk of bugs and making the outcomes less predictable.
 
-The build / analysis times will also be negatively impacted by this feature as reducing type functions takes variable amount of time based on the program. The larger the type function, the longer it will take to reduce it in the constraint solver.
+The build / analysis times will also be negatively impacted as reducing type functions takes variable amount of time based on the program. Developers will be able to write non-performant code that impacts their (and any of their depedent code's) analysis time. The larger the type function, the longer it will take to reduce it in the constraint solver.
 
 ## Alternatives
 
