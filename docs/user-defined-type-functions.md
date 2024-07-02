@@ -25,8 +25,10 @@ end
 For instance, the `rawget` type function can be written as:
 ```luau
 type function rawget(tbl, prop)
-    if (not tbl:istable()) then
-        error("First parameter of rawget is not a table!") -- fails to reduce
+    print("An example of how you could give a warning in type functions!")
+
+    if not typelib.istable(tbl) or not (typelib.isstringsingleton(prop) || typelib.isbooleansingleton(prop)) then
+        error("The parameters of rawget type function is wrong!") -- fails to reduce
     end
 
     return tbl:getprops()[prop:getvalue()]
@@ -74,7 +76,7 @@ To allow Luau developers to modify the runtime values of types in type functions
 Methods under a different type heading (ex: `Singleton`) imply that the methods are only available for those types. At the implementation level, there is a check to make sure that the type-specific methods are being called on the correct types. For instance, `getindexer()` asserts that `istable()` is true.
 
 #### typelib
-All attributes of newly created typelib are initialized with empty tables / arrays and `typelib:getnil()`. For instance, `typelib:newtable()` initializes its properties with an empty table and index / index result type as `typelib:getnil()`.
+All attributes of newly created typelib are initialized with empty tables / arrays and `typelib.getnil()`. For instance, `typelib.newtable()` initializes its properties with an empty table and index / index result type as `typelib.getnil()`.
 
 | Function Declaration | Return Type | Description |
 | ------------- | ------------- | ------------- |
@@ -93,22 +95,26 @@ All attributes of newly created typelib are initialized with empty tables / arra
 | `newtable()` | `typelib` | returns a mutable runtime representation of a `table` type |
 | `newmetatable()` | `typelib` | returns a mutable runtime representation of `Metatable` |
 | `newfunction()` | `typelib` | returns a mutable runtime representation of a `function` type |
-| `isnil()` | `boolean` | returns true if self is a runtime representation of the built-in type `nil` |
-| `isunknown()` | `boolean` | returns true if self is a runtime representation of the built-in type `unknown` |
-| `isnever()` | `boolean` | returns true if self is a runtime representation of the built-in type `never` |
-| `isany()` | `boolean` | returns true if self is a runtime representation of the built-in type `any` |
-| `isnegation()` | `boolean` | returns true if self is a runtime representation of a `Negation` |
-| `isboolean()` | `boolean` | returns true if self is a runtime representation of the built-in type`boolean` |
-| `isnumber()` | `boolean` | returns true if self is a runtime representation of the built-in type `number` |
-| `isstring()` | `boolean` | returns true if self is a runtime representation of the built-in type `string` |
-| `isstringsingleton()` | `boolean` | returns true if self is a runtime representation of a string singleton |
-| `isbooleansingleton()` | `boolean` | returns true if self is a runtime representation of a boolean singleton |
-| `isunion()` | `boolean` | returns true if self is a runtime representation of the union type |
-| `isintersection()` | `boolean` | returns true if self is a runtime representation of the intersection type |
-| `istable()` | `boolean` | returns true if self is a runtime representation of a `table` type |
-| `ismetatable()` | `boolean` | returns true if self is a runtime representation of `Metatable` |
-| `isfunction()` | `boolean` | returns true if self is a runtime representation of a `function` type |
-| `isclass()` | `boolean` | returns true if self is a runtime representation of a `class` type |
+| `isnil(arg: typelib)` | `boolean` | returns true if the argument is syntactically a runtime representation of the built-in type `nil` |
+| `isunknown(arg: typelib)` | `boolean` | returns true if the argument is syntactically a runtime representation of the built-in type `unknown` |
+| `isnever(arg: typelib)` | `boolean` | returns true if the argument is syntactically a runtime representation of the built-in type `never` |
+| `isany(arg: typelib)` | `boolean` | returns true if the argument is syntactically a runtime representation of the built-in type `any` |
+| `isnegation(arg: typelib)` | `boolean` | returns true if the argument is syntactically a runtime representation of a `Negation` |
+| `isboolean(arg: typelib)` | `boolean` | returns true if the argument is syntactically a runtime representation of the built-in type`boolean` |
+| `isnumber(arg: typelib)` | `boolean` | returns true if the argument is syntactically a runtime representation of the built-in type `number` |
+| `isstring(arg: typelib)` | `boolean` | returns true if the argument is syntactically a runtime representation of the built-in type `string` |
+| `isstringsingleton(arg: typelib)` | `boolean` | returns true if the argument is syntactically a runtime representation of a string singleton |
+| `isbooleansingleton(arg: typelib)` | `boolean` | returns true if the argument is syntactically a runtime representation of a boolean singleton |
+| `isunion(arg: typelib)` | `boolean` | returns true if the argument is syntactically a runtime representation of the union type |
+| `isintersection(arg: typelib)` | `boolean` | returns true if the argument is syntactically a runtime representation of the intersection type |
+| `istable(arg: typelib)` | `boolean` | returns true if the argument is syntactically a runtime representation of a `table` type |
+| `ismetatable(arg: typelib)` | `boolean` | returns true if the argument is syntactically a runtime representation of `Metatable` |
+| `isfunction(arg: typelib)` | `boolean` | returns true if the argument is syntactically a runtime representation of a `function` type |
+| `isclass(arg: typelib)` | `boolean` | returns true if the argument is syntactically a runtime representation of a `class` type |
+
+#### Any
+| Function Declaration | Return Type | Description |
+| ------------- | ------------- | ------------- |
 | `issubtypeof(arg: typelib)` | `boolean` | returns true if self is a subtype or equal to arg in the type hierarchy |
 | `conformsto(arg: typelib)` | `boolean` | returns true if self is equal to arg in the type hierarchy |
 
@@ -116,25 +122,25 @@ All attributes of newly created typelib are initialized with empty tables / arra
 
 | Function Declaration | Return Type | Description |
 | ------------- | ------------- | ------------- |
-| `gettype()` | `typelib` | returns the runtime representation of the type being negated |
+| `gettype()` | `typelib` | returns the runtime representation of the self's type being negated |
 
 #### String
 
 | Function Declaration | Return Type | Description |
 | ------------- | ------------- | ------------- |
-| `getmetatable()` | `typelib` | returns the runtime representation of `Metatable` |
+| `getmetatable()` | `typelib` | returns the runtime representation of self's `Metatable` |
 
 #### StringSingleton
 
 | Function Declaration | Return Type | Description |
 | ------------- | ------------- | ------------- |
-| `getvalue()` | `string` | returns a string singleton |
+| `getvalue()` | `string` | returns self's value of a string singleton |
 
 #### BooleanSingleton
 
 | Function Declaration | Return Type | Description |
 | ------------- | ------------- | ------------- |
-| `getvalue()` | `boolean` | returns either `true` or `false` |
+| `getvalue()` | `boolean` | returns self's boolean singleton value of either `true` or `false` |
 
 #### Table
 
@@ -142,7 +148,7 @@ All attributes of newly created typelib are initialized with empty tables / arra
 | ------------- | ------------- | ------------- |
 | `addprops(key: typelib, value: typelib)` | `nil` | adds a key, value pair to self's table properties; if the same key exists already, overrides the value |
 | `delprops(key: typelib)` | `nil` | removes the key from self's table properties along with the value associated with it; if the key doesn't exist, nothing happens |
-| `getprops()` | `{typelib: typelib}` | returns a table of self's table properties (e.g. `{["age"] = 20}` will return `{typelib:getstringsingleton("age") = typelib:getnumber()}`) |
+| `getprops()` | `{typelib: typelib}` | returns a table of self's table properties (e.g. `{["age"] = 20}` will return `{typelib.getstringsingleton("age") = typelib.getnumber()}`) |
 | `settableindexer(indexty: typelib, indexresultty: typelib)` | `nil` | sets self's index type to the first argument and index result type to the second |
 | `getindextype()` | `typelib` | returns self's index type |
 | `getindexresulttype()` | `typelib` | returns self's index result type |
@@ -171,19 +177,19 @@ All attributes of newly created typelib are initialized with empty tables / arra
 
 | Function Declaration | Return Type | Description |
 | ------------- | ------------- | ------------- |
-| `getoptions()` | `table` | returns an array of types that the union can represent. For instance, `string \| number` returns `{typelib:getstring(), typelib:getnumber()}` |
+| `getoptions()` | `table` | returns an array of types that the self's union can represent. For instance, `string \| number` returns `{typelib.getstring(), typelib.getnumber()}` |
 
 #### Intersection
 
 | Function Declaration | Return Type | Description |
 | ------------- | ------------- | ------------- |
-| `getparts()` | `table` | returns an array of types represented by the intersection. For instance, `string & number` returns `{typelib:getstring(), typelib:getnumber()}` |
+| `getparts()` | `table` | returns an array of types represented by self's intersection. For instance, `string & number` returns `{typelib.getstring(), typelib.getnumber()}` |
 
 #### Class
 
 | Function Declaration | Return Type | Description |
 | ------------- | ------------- | ------------- |
-| `getprops()` | `table` | returns the runtime representation of table of class's properties |
+| `getprops()` | `{typelib: typelib}` | returns the runtime representation self's properties |
 | `getparent()` | `typelib \| nil` | returns the runtime representation of self's parent class if it exists, else nil |
 | `getmetatable()` | `typelib \| nil` | returns the runtime representation of self's `Metatable` if it exists, else nil |
 | `getindextype()` | `typelib` | returns self's index type |
@@ -210,7 +216,7 @@ The build / analysis times will also be negatively impacted by this feature as r
 Currently, the runtime representation of types is a userdata called `typelib`. Another representation is to use the already-existing type in Luau `table`; instead of serializing types into `typelib`, we can serialize them into tables with predefined properties. For instance, the representation for a string singleton `"abc"` could be `{type = "stringSingleton", value = "abc"}`. So instead of writing:
 ```luau
 type function isSingleton(t)
-    if t:isstringsingleton() then
+    if typelib.isstringsingleton(t) then
         return t
     end
 end
@@ -224,7 +230,7 @@ type function isSingleton(t)
 end
 ```
 
-In some sense, this design could be considered "cleaner" than introducing an entirely new userdata, but it requires developers to have a deeper understanding of the type runtime representation. For example, under the proposed design, a new table type can be created using `typelib:newtable()`, while under the alternative design, tables must be declared with attributes: `{type = "table", props = {}, indexer = {}}`. This adds complexity to the developer experience and increases the chance of making syntax errors in their program.
+In some sense, this design could be considered "cleaner" than introducing an entirely new userdata, but it requires developers to have a deeper understanding of the type runtime representation. For example, under the proposed design, a new table type can be created using `typelib.newtable()`, while under the alternative design, tables must be declared with attributes: `{type = "table", props = {}, indexer = {}}`. This adds complexity to the developer experience and increases the chance of making syntax errors in their program.
 
 ### More Builtin Type Functions
 
