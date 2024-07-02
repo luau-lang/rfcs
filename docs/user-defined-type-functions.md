@@ -57,7 +57,9 @@ We have considered implementing a user-configurable execution limit based on tim
 * `while` / `repeat` loops
 * invoking other type functions / regular functions / lambdas
     * we will not (and probably never) allow type functions to call regular functions for the sake of sandboxing the runtime and analysis.
-* referring to locals in the outer scope
+* referring to locals / globals in the outer scope
+* global functions: `getfenv`, `setfenv`, `pcall`, `xpcall`, `require`
+* libraries: `coroutine`, `debug`, `string.gsub`
 
 Note: we are aware that for loops can cause infinite runtime. For the time being, we will not be handling this case. In the event that a developer accidentally creates an infinitely long type function, they will need to fix the type function and restart the analysis.
 
