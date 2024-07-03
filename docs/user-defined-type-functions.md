@@ -82,7 +82,7 @@ All attributes of newly created typelib are initialized with empty tables / arra
 
 | Instance Attributes | Type | Description |
 | ------------- | ------------- | ------------- |
-| `nil` | `typelib` | an immutable runtime representation of the built-in type `nil` |
+| `niltype` | `typelib` | an immutable runtime representation of the built-in type `nil` |
 | `unknown` | `typelib` | an immutable runtime representation of the built-in type `unknown` |
 | `never` | `typelib` | an immutable runtime representation of the built-in type `never` |
 | `any` | `typelib` | an immutable runtime representation of the built-in type `any` |
