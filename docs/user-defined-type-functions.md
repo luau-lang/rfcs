@@ -92,10 +92,6 @@ All attributes of newly created typelib are initialized with empty tables / arra
 | `issubtypeof(arg: typelib)` | `boolean` | returns true if self is syntactically a subtype or equal to arg in the type hierarchy |
 | `equalsto(arg: typelib)` | `boolean` | returns true if self is syntactically equal to arg in the type hierarchy |
 
-* `issubtypeof(arg: typelib)` and `equalsto(arg: typelib)` will also overload `__le` and `__eq` respectively
-    * e.g. `t1 <= t2` is equivalent to `t1:issubtypeof(t2)`
-    * e.g. `t1 == t2` is equivalent to `t1:equalsto(t2)`
-
 | Static Methods | Return Type | Description |
 | ------------- | ------------- | ------------- |
 | `getnegation(arg: typelib)` | `typelib` | returns an immutable runtime representation of the negation of the argument; the argument cannot be `istable()`, `ismetatable` or `isfunction()` |
@@ -161,10 +157,6 @@ All attributes of newly created typelib are initialized with empty tables / arra
 | `getindexer()` | `{key: typelib, value: typelib}?` | returns a table containing self's indexer key type and value type if they exist, else nil |
 | `setmetatable(arg: typelib)` | `nil` | sets self's metatable to the argument; both self and the argument need to be `ismetatable()` |
 | `getmetatable()` | `typelib?` | returns self's runtime representation of metatable if it exists, else nil; self needs to be `ismetatable()` |
-
-* `addprop(key: typelib, value: typelib)` will also overload `__newindex`
-    * e.g. `t["myprop"] = mytype -- adds the prop`
-    * e.g. `t["myprop"] = nil -- deletes the prop`
 
 #### Function
 
