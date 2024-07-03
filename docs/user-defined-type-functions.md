@@ -90,7 +90,7 @@ All attributes of newly created typelib are initialized with empty tables / arra
 | Instance Methods | Return Type | Description |
 | ------------- | ------------- | ------------- |
 | `issubtypeof(arg: typelib)` | `boolean` | returns true if self is syntactically a subtype or equal to arg in the type hierarchy |
-| `equalsto(arg: typelib)` | `boolean` | returns true if self is syntactically equal to arg in the type hierarchy |
+| `__eq(arg: typelib)` | `boolean` | overrides the == operator to return true if self is syntactically equal to arg in the type hierarchy |
 
 | Static Methods | Return Type | Description |
 | ------------- | ------------- | ------------- |
