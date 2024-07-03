@@ -25,12 +25,12 @@ end
 For instance, the `rawget` type function can be written as:
 ```luau
 type function rawget(tbl, prop)
-    if typelib.isunion(prop) then
-        print("Warning: union types are not supported!") -- output a warning
+    if typelib.isunion(tbl) or typelib.isunion(prop) then
+        print("Warning: union types are not supported!") -- outputs a warning
     end
 
-    if not typelib.istable(tbl) or not (typelib.isstringsingleton(prop) || typelib.isbooleansingleton(prop)) then
-        error("The parameters of rawget type function is wrong!") -- fails to reduce
+    if not typelib.istable(tbl) then
+        error("First argument is not a table!") -- fails to reduce
     end
 
     return tbl:getprops()[prop:getvalue()]
