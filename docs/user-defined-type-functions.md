@@ -150,8 +150,7 @@ All attributes of newly created typelib are initialized with empty tables / arra
 
 | Instance Methods | Return Type | Description |
 | ------------- | ------------- | ------------- |
-| `addprop(key: typelib, value: typelib)` | `nil` | adds a key, value pair to self's table properties; if the same key exists already, overrides the value |
-| `delprop(key: typelib)` | `nil` | removes the key from self's table properties along with the value associated with it; if the key doesn't exist, nothing happens |
+| `setprop(key: typelib, value: typelib?)` | `nil` | adds / overrides (if same key exists) a key, value pair to self's table properties; if value is nil, removes the key, value pair from self's table properties; if the key does not exist and the value is nil, nothing happens |
 | `getprop(key: typelib)` | `typelib?` | returns the value associated with the key from self's table properties if the key exists, else nil |
 | `getprops()` | `{[typelib]: typelib}` | returns a table of self's table properties (e.g. `{["age"] = 20}` will return `{typelib.getstringsingleton("age") = typelib.getnumber()}`) |
 | `setindexer(key: typelib, value: typelib)` | `nil` | sets self's indexer key type to the first argument and indexer value type to the second |
