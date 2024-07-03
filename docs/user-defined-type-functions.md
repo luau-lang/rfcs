@@ -25,7 +25,9 @@ end
 For instance, the `rawget` type function can be written as:
 ```luau
 type function rawget(tbl, prop)
-    print("An example of how you could give a warning in type functions!")
+    if typelib.isunion(prop) then
+        print("Warning: union types are not supported!") -- output a warning
+    end
 
     if not typelib.istable(tbl) or not (typelib.isstringsingleton(prop) || typelib.isbooleansingleton(prop)) then
         error("The parameters of rawget type function is wrong!") -- fails to reduce
@@ -71,19 +73,31 @@ To give warnings, developers can use `print()` with custom warning messages. To 
 
 To allow Luau developers to modify the runtime values of types in type functions, this RFC proposes introducing a new userdata called `typelib`. A `typelib` object is a runtime representation of all types within the program and provides a basic set of library methods that can be used to modify types. As such, under the hood, the `typelib` library will closely mimic the implementation of static types in Luau Analysis. Most importantly, they are *only accessible within type functions* and are *not a runtime type for other use cases than type functions*. 
 
-<details><summary>typelib library methods (dropdown)</summary>
+<details><summary>typelib library (dropdown)</summary>
 
 Methods under a different type heading (ex: `Singleton`) imply that the methods are only available for those types. At the implementation level, there is a check to make sure that the type-specific methods are being called on the correct types. For instance, `getindexer()` asserts that `istable()` is true.
 
 #### typelib
-All attributes of newly created typelib are initialized with empty tables / arrays and `typelib.getnil()`. For instance, `typelib.newtable()` initializes its properties with an empty table and index / index result type as `typelib.getnil()`.
+All attributes of newly created typelib are initialized with empty tables / arrays and `typelib.nil`. For instance, `typelib.newtable()` initializes its properties with an empty table and index / index result type as `typelib.nil`.
 
-| Function Declaration | Return Type | Description |
+| Instance Attributes | Type | Description |
 | ------------- | ------------- | ------------- |
-| `getnil()` | `typelib` | returns an immutable runtime representation of the built-in type `nil` |
-| `getunknown()` | `typelib` | returns an immutable runtime representation of the built-in type `unknown` |
-| `getnever()` | `typelib` | returns an immutable runtime representation of the built-in type `never` |
-| `getany()` | `typelib` | returns an immutable runtime representation of the built-in type `any` |
+| `nil` | `typelib` | an immutable runtime representation of the built-in type `nil` |
+| `unknown` | `typelib` | an immutable runtime representation of the built-in type `unknown` |
+| `never` | `typelib` | an immutable runtime representation of the built-in type `never` |
+| `any` | `typelib` | an immutable runtime representation of the built-in type `any` |
+
+| Instance Methods | Return Type | Description |
+| ------------- | ------------- | ------------- |
+| `issubtypeof(arg: typelib)` | `boolean` | returns true if self is syntactically a subtype or equal to arg in the type hierarchy |
+| `equalsto(arg: typelib)` | `boolean` | returns true if self is syntactically equal to arg in the type hierarchy |
+
+* `issubtypeof(arg: typelib)` and `equalsto(arg: typelib)` will also overload `__le` and `__eq` respectively
+    * e.g. `t1 <= t2` is equivalent to `t1:issubtypeof(t2)`
+    * e.g. `t1 == t2` is equivalent to `t1:equalsto(t2)`
+
+| Static Methods | Return Type | Description |
+| ------------- | ------------- | ------------- |
 | `getnegation(arg: typelib)` | `typelib` | returns an immutable runtime representation of the negation of the argument; the argument cannot be `istable()`, `ismetatable` or `isfunction()` |
 | `getboolean()` | `typelib` | returns an immutable runtime representation of the built-in type `boolean` |
 | `getnumber()` | `typelib` | returns an immutable runtime representation of the built-in type `number` |
@@ -112,52 +126,41 @@ All attributes of newly created typelib are initialized with empty tables / arra
 | `isfunction(arg: typelib)` | `boolean` | returns true if the argument is syntactically a runtime representation of a `function` type |
 | `isclass(arg: typelib)` | `boolean` | returns true if the argument is syntactically a runtime representation of a `class` type |
 
-#### Any
-| Function Declaration | Return Type | Description |
-| ------------- | ------------- | ------------- |
-| `issubtypeof(arg: typelib)` | `boolean` | returns true if self is a subtype or equal to arg in the type hierarchy |
-| `equalsto(arg: typelib)` | `boolean` | returns true if self is syntactically equal to arg in the type hierarchy |
-
-* `issubtypeof(arg: typelib)` and `equalsto(arg: typelib)` will also overload `__le` and `__eq` respectively
-    * e.g. `t1 <= t2` is equivalent to `t1:issubtypeof(t2)`
-    * e.g. `t1 == t2` is equivalent to `t1:equalsto(t2)`
-
 #### Negation
 
-| Function Declaration | Return Type | Description |
+| Instance Methods | Type | Description |
 | ------------- | ------------- | ------------- |
 | `gettype()` | `typelib` | returns the runtime representation of the self's type being negated |
 
 #### String
 
-| Function Declaration | Return Type | Description |
+| Instance Methods | Return Type | Description |
 | ------------- | ------------- | ------------- |
 | `getmetatable()` | `typelib` | returns the runtime representation of self's metatable |
 
 #### StringSingleton
 
-| Function Declaration | Return Type | Description |
+| Instance Methods | Return Type | Description |
 | ------------- | ------------- | ------------- |
 | `getvalue()` | `string` | returns self's value of a string singleton |
 
 #### BooleanSingleton
 
-| Function Declaration | Return Type | Description |
+| Instance Methods | Return Type | Description |
 | ------------- | ------------- | ------------- |
 | `getvalue()` | `boolean` | returns self's boolean singleton value of either `true` or `false` |
 
 #### Table
 
-| Function Declaration | Return Type | Description |
+| Instance Methods | Return Type | Description |
 | ------------- | ------------- | ------------- |
 | `addprop(key: typelib, value: typelib)` | `nil` | adds a key, value pair to self's table properties; if the same key exists already, overrides the value |
 | `delprop(key: typelib)` | `nil` | removes the key from self's table properties along with the value associated with it (equivalent of `addprop(key, nil)`); if the key doesn't exist, nothing happens |
 | `getprops()` | `{[typelib]: typelib}` | returns a table of self's table properties (e.g. `{["age"] = 20}` will return `{typelib.getstringsingleton("age") = typelib.getnumber()}`) |
 | `setindexer(key: typelib, value: typelib)` | `nil` | sets self's indexer key type to the first argument and indexer value type to the second |
-| `getindexerkeytype()` | `typelib` | returns self's indexer key type |
-| `getindexervaluetype()` | `typelib` | returns self's indexer value type |
+| `getindexer()` | `{key: typelib, value: typelib}?` | returns a table containing self's indexer key type and value type if they exist, else nil |
 | `setmetatable(arg: typelib)` | `nil` | sets self's metatable to the argument; both self and the argument need to be `ismetatable()` |
-| `getmetatable()` | `typelib` | returns self's runtime representation of metatable; self needs to be `ismetatable()` |
+| `getmetatable()` | `typelib?` | returns self's runtime representation of metatable if it exists, else nil; self needs to be `ismetatable()` |
 
 * `addprop(key: typelib, value: typelib)` will also overload `__newindex`
     * e.g. `t["myprop"] = mytype -- adds the prop`
@@ -165,34 +168,33 @@ All attributes of newly created typelib are initialized with empty tables / arra
 
 #### Function
 
-| Function Declaration | Return Type | Description |
+| Instance Methods | Return Type | Description |
 | ------------- | ------------- | ------------- |
 | `setparameters(arg: {typelib} \| typelib)` | `nil` | sets self's parameter types to the argument, where an array implies a TypePack and the latter implies a Variadic |
-| `getparameters()` | `{typelib} \| typelib` | returns the runtime representation of self's parameter type |
+| `getparameters()` | `{typelib} \| typelib?` | returns the runtime representation of self's parameter type if it exists, else nil |
 | `setreturns(arg: {typelib} \| typelib)` | `nil` | sets self's return types to the argument, where an array implies a TypePack and the latter implies a Variadic |
-| `getreturns()` | `{typelib} \| typelib` | returns the runtime representation of self's return type |
+| `getreturns()` | `{typelib} \| typelib?` | returns the runtime representation of self's return type if it exists, else nil |
 
 #### Union
 
-| Function Declaration | Return Type | Description |
+| Instance Methods | Return Type | Description |
 | ------------- | ------------- | ------------- |
 | `getcomponents()` | `{typelib}` | returns an array of types that the self's union can represent. For instance, `string \| number` returns `{typelib.getstring(), typelib.getnumber()}` |
 
 #### Intersection
 
-| Function Declaration | Return Type | Description |
+| Instance Methods | Return Type | Description |
 | ------------- | ------------- | ------------- |
 | `getcomponents()` | `{typelib}` | returns an array of types represented by self's intersection. For instance, `string & number` returns `{typelib.getstring(), typelib.getnumber()}` |
 
 #### Class
 
-| Function Declaration | Return Type | Description |
+| Instance Methods | Return Type | Description |
 | ------------- | ------------- | ------------- |
 | `getprops()` | `{[typelib]: typelib}` | returns the runtime representation self's properties |
-| `getparent()` | `typelib \| nil` | returns the runtime representation of self's parent class if it exists, else nil |
-| `getmetatable()` | `typelib \| nil` | returns the runtime representation of self's metatable if it exists, else nil |
-| `getindexerkeytype()` | `typelib` | returns self's indexer key type |
-| `getindexervaluetype()` | `typelib` | returns self's indexer value type |
+| `getparent()` | `typelib?` | returns the runtime representation of self's parent class if it exists, else nil |
+| `getmetatable()` | `typelib?` | returns the runtime representation of self's metatable if it exists, else nil |
+| `getindexer()` | `{key: typelib, value: typelib}?` | returns a table containing self's indexer key type and value type |
 
 </details>
 
