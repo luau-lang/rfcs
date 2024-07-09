@@ -1,5 +1,7 @@
 # Attributes (for Functions)
 
+**Status**: Implemented
+
 ## Summary
 
 Add a syntax for attributes to function declarations in the style of `@name` that can be placed before their declarations to adjust the behavior of the compiler, analyzer, and runtime.
