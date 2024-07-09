@@ -1,5 +1,7 @@
 # Native Attribute for Functions
 
+**Status**: Implemented
+
 ## Summary
 
 This RFC proposes a function-level `@native` attribute to request native compilation for individual functions, independent of the script-level `--!native` comment directive.
