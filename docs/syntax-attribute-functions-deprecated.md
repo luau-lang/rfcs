@@ -26,6 +26,26 @@ The `@deprecated` attribute can only be used on named functions and methods. It 
 
 If `foo` is a member of class `bar`, the warning messages above will start as `"Member 'bar.foo' is deprecated ...`.
 
+Consider the following example. Function `printTable` is marked deprecated.
+
+```lua
+@[deprecated {use = "table.foreach(table, print)", 
+              reason = "`printTable` forces tables to be printed in one style; `table.foreach` allows configurable printing."}]
+local function printTable(t)
+    for k,v in pairs(t) do
+        print(k, v)
+    end
+end
+
+printTable({"a", "b", "c", "d"})
+```
+
+The call to `printTable` causes the linter to issue the following warning message:
+
+```
+Function `printTable` is deprecated, use `table.foreach(table, print)` instead. `printTable` forces tables to be printed in one style; `table.foreach` allows configurable printing.
+```
+
 ## Related Work
 
 Many mainstream languages provide a similar mechanism for deprecating language features. They differ in the kind of program elements that can be deprecated, the ability to convert deprecation warnings to errors, and the ability to specify the version which deprecated the API. 
