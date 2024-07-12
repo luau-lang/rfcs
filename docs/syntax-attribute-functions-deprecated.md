@@ -6,25 +6,25 @@ This RFC proposes a `@deprecated` attribute to annotate Luau functions for depre
 
 ## Motivation
 
-Roblox already has numerous deprecated Luau APIs. LSP strikes out the names of these APIs in the autocompletion popup in Roblox Studio, their use issues deprecation warnings, and their deprecation status is reflected in Roblox's Creator Hub documentation. Unfortunately, Luau lacks support to leverage this tooling for deprecating custom creator-defined functions. Even for core Luau deprecated functions, `getfenv` and `setfenv`, the Linter has hardcoded name comparisons to identify and report deprecation messages. Deprecating new APIs requires ad-hoc modifications to the tooling which can only be performed by the language designers.
+Roblox already has numerous deprecated Luau APIs. LSP strikes out the names of these APIs in the autocompletion popup in Roblox Studio, their use issues deprecation warnings, and their deprecation status is reflected in Roblox's Creator Hub documentation. Unfortunately, Luau lacks support to leverage this tooling for deprecating custom creator-defined functions. Even for core Luau deprecated functions, `getfenv` and `setfenv`, the linter has hardcoded name comparisons to identify their uses and report deprecation messages. Deprecating new APIs requires ad-hoc modifications to the tooling which can only be performed by the language designers.
 
 This RFC proposes the introduction of a `@deprecated` attribute to mark deprecated Luau APIs. This has multiple benefits:
 1. It provides an explicit syntactic marker to identify deprecated functions in Luau code.
-2. The attribute can be read by LSP and the corresponding API can be displayed in a visually distinct style in the autocompletion popup.
-3. Linter can issue warning messages when the deprecated function is used.
+2. The LSP interface can display the deprecated API in a visually distinct style in the autocompletion popup.
+3. The linter can issue a warning message when the deprecated function is used.
 
 ## Design
 
-The `@deprecated` attribute can take upto two named string parameters. The parameters affect the warning message issued by the tooling. The `msg` parameter is the warning message issued by the tooling when it identifies a use of the deprecated function. This should typically include the reason for deprecation. The `alt` parameter is the name of the function that should be used in lieu of the deprecated function. The following table shows the messages issued by the different styles of this attribute when used on a function named `foo`.
+The `@deprecated` attribute can take upto two named string parameters. The parameters affect the warning message issued by the linter. The `reason` parameter gives the reason for deprecation and the `use` parameter gives the name of the function that should be used in lieu of the deprecated function. The following table shows the warning message issued by the different styles of this attribute when used on a function named `foo`.
 
-| Style                                  | Message                                                                |
-| -------------------------------------- | -----------------------------------------------------------------------|
-| `@deprecated`                          | `"Function 'foo' is deprecated."`                                      |
-| `@[deprecated {msg = msg}]`            | `"Function 'foo' is deprecated. <msg>"`                                |
-| `@[deprecated {alt = alt}]`            | `"Function 'foo' is deprecated. Use '<alt>' instead."`                 |
-| `@[deprecated {msg = msg, alt = alt}]` | `"Function 'foo' is deprecated. <msg> Use '<alt>' instead.`            |
+| Style                                           | Message                                                                |
+| ----------------------------------------------- | -----------------------------------------------------------------------|
+| `@deprecated`                                   | `"Function 'foo' is deprecated."`                                      |
+| `@[deprecated {reason = string}]`               | `"Function 'foo' is deprecated. <reason>"`                             |
+| `@[deprecated {use = string}]`                  | `"Function 'foo' is deprecated. Use '<use>' instead."`                 |
+| `@[deprecated {reason = string, use = string}]` | `"Function 'foo' is deprecated. Use '<use>' instead. <reason>`         |
 
-The `@deprecated` attribute can only be used on top-level functions. It does not apply recursively to the functions defined within the lexical scope of the attributed function.
+The `@deprecated` attribute can only be used on named functions. It does not apply recursively to the functions defined within the lexical scope of the attributed function.
 
 ## Related Work
 
@@ -46,14 +46,14 @@ Many mainstream languages provide a similar mechanism for deprecating language f
 
 8. **Python** decorators provide a mechanism for developers to roll their own deprecated decoration. A popular implementation is provided by the `deprecation` library which provides `@deprecation.deprecated(deprecated_in, removed_in, current_version, details)` decorator that updates the docstring of the deprecated method and issues warning when it is used. `deprecated_in` is the version at which the decorated method is considered deprecated, `removed_in` is the version when the decorated method will be removed, and `current_version` is the version information for the currently running code, and `details` string provides extra details added to the method docstring and warning.
 
-The description above shows the full-form of the deprecation annotation. In most cases, its valid to leave the message parameter in favor of a generic deprecation message. Compared to most of these languages, the design proposed for deprecating Luau APIs is simpler. 
-1. Deprecation is only supported for top-level functions but no other program elements. This is because Luau lacks the ability to add attributes to non-function program elements. 
+The description above shows the full-form of the deprecation annotation. In most cases, it is valid to leave the message parameter in favor of a generic deprecation message. Compared to most of these languages, the design proposed for deprecating Luau APIs is simpler. 
+1. Deprecation is not supported for non-function program elements because Luau only supports attributes on functions. 
 2. There is no way to convert deprecation warnings to errors. 
-3. There is no explicit attribute parameter for specifying version string. They can be accommodated in the `msg` parameter. If desired, a future RFC could introduce a `ver` parameter to the `@deprecated` attribute. 
+3. There is no explicit attribute parameter for specifying version string. They can be accommodated in the `reason` parameter. If desired, a future RFC could introduce a `version` parameter to the `@deprecated` attribute.
 
 ## Drawbacks
 
-Adding this attribute increases complexity of code. Once the attribute is released, we can no longer deprecate it.
+Adding this attribute increases complexity of code. Once the attribute is released, we cannnot deprecate it.
 
 ## Alternatives
 
