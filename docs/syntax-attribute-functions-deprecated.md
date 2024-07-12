@@ -24,7 +24,7 @@ The `@deprecated` attribute can take upto two named string parameters. The param
 | `@[deprecated {use = string}]`                  | `"Function 'foo' is deprecated. Use '<use>' instead."`                 |
 | `@[deprecated {reason = string, use = string}]` | `"Function 'foo' is deprecated. Use '<use>' instead. <reason>`         |
 
-The `@deprecated` attribute can only be used on named functions. It does not apply recursively to the functions defined within the lexical scope of the attributed function.
+The `@deprecated` attribute can only be used on named functions and methods. It does not apply recursively to the functions defined within the lexical scope of the attributed function.
 
 ## Related Work
 
