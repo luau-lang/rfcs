@@ -22,7 +22,7 @@ The `@deprecated` attribute can only be used on named functions and methods. It 
 | `@deprecated`                                   | `"Function 'foo' is deprecated."`                                      |
 | `@[deprecated {reason = string}]`               | `"Function 'foo' is deprecated. <reason>"`                             |
 | `@[deprecated {use = string}]`                  | `"Function 'foo' is deprecated, use '<use>' instead."`                 |
-| `@[deprecated {reason = string, use = string}]` | `"Function 'foo' is deprecated, use '<use>' instead. <reason>`         |
+| `@[deprecated {reason = string, use = string}]` | `"Function 'foo' is deprecated, use '<use>' instead. <reason>"`         |
 
 If `foo` is a member of class `bar`, the warning messages above will start as `"Member 'bar.foo' is deprecated ...`.
 
