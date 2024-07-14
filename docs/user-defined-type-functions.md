@@ -104,7 +104,7 @@ All attributes of newly created typelib are initialized with empty tables / arra
 | `getintersection(arg: {typelib})` | `typelib` | returns an immutable runtime representation of intersection type of its argument |
 | `newtable(props: {[typelib]: typelib}, indexer: {key: typelib, value: typelib}?)` | `typelib` | returns a mutable runtime representation of a `table` type |
 | `newmetatable()` | `typelib` | returns a mutable runtime representation of a metatable represented as a special property of the `table` type |
-| `newfunction()` | `typelib` | returns a mutable runtime representation of a `function` type |
+| `newfunction(parameters: {typelib} \| typelib)?, returns: {typelib} \| typelib)?)` | `typelib` | returns a mutable runtime representation of a `function` type |
 | `isnil(arg: typelib)` | `boolean` | returns true if the argument is syntactically a runtime representation of the built-in type `nil` |
 | `isunknown(arg: typelib)` | `boolean` | returns true if the argument is syntactically a runtime representation of the built-in type `unknown` |
 | `isnever(arg: typelib)` | `boolean` | returns true if the argument is syntactically a runtime representation of the built-in type `never` |
@@ -162,9 +162,9 @@ All attributes of newly created typelib are initialized with empty tables / arra
 
 | Instance Methods | Return Type | Description |
 | ------------- | ------------- | ------------- |
-| `setparameters(arg: {typelib} \| typelib)` | `nil` | sets self's parameter types to the argument, where an array implies a TypePack and the latter implies a Variadic |
+| `setparameters(arg: {typelib} \| typelib)?` | `nil` | sets self's parameter types to the argument, where an array implies a TypePack and the latter implies a Variadic |
 | `getparameters()` | `{typelib} \| typelib?` | returns the runtime representation of self's parameter type if it exists, else nil |
-| `setreturns(arg: {typelib} \| typelib)` | `nil` | sets self's return types to the argument, where an array implies a TypePack and the latter implies a Variadic |
+| `setreturns(arg: {typelib} \| typelib)?` | `nil` | sets self's return types to the argument, where an array implies a TypePack and the latter implies a Variadic |
 | `getreturns()` | `{typelib} \| typelib?` | returns the runtime representation of self's return type if it exists, else nil |
 
 #### Union
