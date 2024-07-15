@@ -163,9 +163,9 @@ All attributes of newly created typelib are initialized with empty tables / arra
 | Instance Methods | Return Type | Description |
 | ------------- | ------------- | ------------- |
 | `setparameters(arg: {typelib} \| typelib)` | `nil` | sets self's parameter types to the argument, where an array implies a TypePack and the latter implies a Variadic |
-| `getparameters()` | `{typelib} \| typelib?` | returns the runtime representation of self's parameter type if it exists, else nil |
+| `getparameters()` | `{typelib} \| typelib?` | returns the runtime representation of self's parameter type if it exists, else nil. Return an array implies a TypePack and a single value implies a Variadic |
 | `setreturns(arg: {typelib} \| typelib)` | `nil` | sets self's return types to the argument, where an array implies a TypePack and the latter implies a Variadic |
-| `getreturns()` | `{typelib} \| typelib?` | returns the runtime representation of self's return type if it exists, else nil |
+| `getreturns()` | `{typelib} \| typelib?` | returns the runtime representation of self's return type if it exists, else nil. Return an array implies a TypePack and a single value implies a Variadic |
 
 #### Union
 
