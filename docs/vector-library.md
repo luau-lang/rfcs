@@ -20,11 +20,11 @@ This RFC proposes the following basic functions & constants as a starting point,
 
 `vector(x: number, y: number, z: number)`
 
-Creates a vector with 3 components: x, y, z. If the feature flag for wide vectors is enabled, a fourth argument `w: number?` will be introduced.
+Creates a vector with 3 components: x, y, z. If the `LUA_VECTOR_SIZE` configuration option is set to 4, a fourth argument `w: number?` will be introduced.
 
 Due to the common usage of vectors, vector creation should be ergonomic. Therefore, it is probably worth breaking the `create()` naming standard.
 
-`vector.magnitude(vecA: vector): number`
+`vector.magnitude(vec: vector): number`
 
 Calculates the magnitude of a given vector.
 
