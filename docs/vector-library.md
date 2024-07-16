@@ -30,7 +30,7 @@ Calculates the magnitude of a given vector.
 
 `vector.normalized(vec: vector): vector`
 
-Returns the normalized version (aka unit vector) of a given vector. If a zero vector is passed, return zero. For further clarification, `vector.normalized(vector(0, 0, 0))` should return zero.
+Returns the normalized version (aka unit vector) of a given vector.
 
 `vector.cross(vecA: vector, vecB: vector): vector`
 
@@ -84,13 +84,19 @@ Vector where `x=1, y=1, z=1, w?=1`.
 
 ---
 
+### Buffer Library
+
+`buffer.writevector(b: buffer, offset: number, vec: vector)`
+
+Writes the vector into the buffer at the offset. Each component will be written as a f32. In four component mode, it will write all four components and write 16 bytes. In three component mode, it will write 12 bytes.
+
+`buffer.readvector(b: buffer, offset: number): vector`
+
+Reads a vector from the buffer at the offset. In four component mode it will read 16 bytes and in three component mode it will read 12 bytes.
+
 ### Arithmetic operations
 
 Primitive operators for vectors are already implemented, so this RFC doesn't concern vector arithmetic.
-
-### Native codegen
-
-In the future, vectors will have special treatment in native codegen. This creates an expectation that the vector library will also have special treatment in codegen, but it isn't clear what that will look like, or if the performance benefits make sense.
 
 ### Compiler options
 
