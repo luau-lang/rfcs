@@ -32,11 +32,11 @@ Calculates the magnitude of a given vector.
 
 Returns the normalized version (aka unit vector) of a given vector.
 
-`vector.cross(vecA: vector, vecB: vector): vector`
+`vector.cross(vec1: vector, vec2: vector): vector`
 
 Returns the cross product of two vectors. If 4-wide vectors are enabled, this function will ignore the fourth component, and return the 3-dimensional cross product.
 
-`vector.dot(vecA: vector, vecB: vector): number`
+`vector.dot(vec1: vector, vec2: vector): number`
 
 Returns the dot product of two vectors.
 
@@ -48,9 +48,9 @@ Equivalent of `math.floor` for vectors.
 
 Equivalent of `math.ceil` for vectors.
 
-`vector.angle(vecA: vector, vecB: vector): number`
+`vector.angle(vec1: vector, vec2: vector, axis: vector?): number`
 
-Returns the angle between two vectors in radians.
+Returns the angle between two vectors in radians. The axis, if specified, is used to determine the sign of the angle.
 
 `vector.abs(vec: vector): vector`
 
