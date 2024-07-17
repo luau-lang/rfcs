@@ -102,8 +102,8 @@ All attributes of newly created typelib are initialized with empty tables / arra
 | `getbooleansingleton(arg: boolean)` | `typelib` | returns an immutable runtime representation of a boolean singleton type of the argument |
 | `getunion(arg: {typelib})` | `typelib` | returns an immutable runtime representation of union type of its argument |
 | `getintersection(arg: {typelib})` | `typelib` | returns an immutable runtime representation of intersection type of its argument |
-| `newtable(props: {[typelib]: typelib}, indexer: {key: typelib, value: typelib}?)` | `typelib` | returns a mutable runtime representation of a `table` type |
-| `newmetatable()` | `typelib` | returns a mutable runtime representation of a metatable represented as a special property of the `table` type |
+| `newtable(props: {[typelib]: typelib}?, indexer: {key: typelib, value: typelib}?)` | `typelib` | returns a mutable runtime representation of a `table` type |
+| `newmetatable(props: {[typelib]: typelib}?, indexer: {key: typelib, value: typelib}?, metatable: typelib?)` | `typelib` | returns a mutable runtime representation of a metatable. `metatable` argument needs to be the same type as `typelib.newtable()` |
 | `newfunction(parameters: {typelib} \| typelib?, returns: {typelib} \| typelib?)` | `typelib` | returns a mutable runtime representation of a `function` type. Calling `newfunction(X)` will by default set `parameters` to `X` |
 | `isnil(arg: typelib)` | `boolean` | returns true if the argument is syntactically a runtime representation of the built-in type `nil` |
 | `isunknown(arg: typelib)` | `boolean` | returns true if the argument is syntactically a runtime representation of the built-in type `unknown` |
