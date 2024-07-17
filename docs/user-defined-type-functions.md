@@ -128,12 +128,6 @@ All attributes of newly created typelib are initialized with empty tables / arra
 | ------------- | ------------- | ------------- |
 | `gettype()` | `typelib` | returns the runtime representation of the self's type being negated |
 
-#### String
-
-| Instance Methods | Return Type | Description |
-| ------------- | ------------- | ------------- |
-| `getmetatable()` | `typelib` | returns the runtime representation of self's metatable |
-
 #### StringSingleton
 
 | Instance Methods | Return Type | Description |
