@@ -78,7 +78,7 @@ To allow Luau developers to modify the runtime values of types in type functions
 Methods under a different type heading (ex: `Singleton`) imply that the methods are only available for those types. At the implementation level, there is a check to make sure that the type-specific methods are being called on the correct types. For instance, `getindexer()` asserts that `istable()` is true.
 
 #### typelib
-All attributes of newly created typelib are initialized with empty tables / arrays and `typelib.nil`. For instance, `typelib.newtable()` initializes its properties with an empty table and index / index result type as `typelib.nil`.
+All attributes of newly created typelib are initialized with empty tables / arrays and `nil`. For instance, `typelib.newtable()` initializes its properties with an empty table and index / index result type as `nil`. Additionally, all arguments are passed by references.
 
 | Instance Attributes | Type | Description |
 | ------------- | ------------- | ------------- |
@@ -121,6 +121,7 @@ All attributes of newly created typelib are initialized with empty tables / arra
 | `ismetatable(arg: typelib)` | `boolean` | returns true if the argument is syntactically a runtime representation of a metatable represented as a special property of the `table` type |
 | `isfunction(arg: typelib)` | `boolean` | returns true if the argument is syntactically a runtime representation of a `function` type |
 | `isclass(arg: typelib)` | `boolean` | returns true if the argument is syntactically a runtime representation of a `class` type |
+| `copy(arg: typelib)` | `typelib` | returns a deep copy of the argument |
 
 #### Negation
 
