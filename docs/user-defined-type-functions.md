@@ -15,7 +15,7 @@ The expected outcome is a more versatile type system that can adapt to a wider r
 
 ## Design
 
-Type functions wil be defined with the following syntax:
+Type functions will be defined with the following syntax:
 ```luau
 type function f(...)
     -- implementation of the type function
