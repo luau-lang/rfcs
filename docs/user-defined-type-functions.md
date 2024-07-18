@@ -25,10 +25,6 @@ end
 For instance, the `rawget` type function can be written as:
 ```luau
 type function rawget(tbl, prop)
-    if typelib.isunion(tbl) or typelib.isunion(prop) then
-        print("Warning: union types are not supported!") -- outputs a warning
-    end
-
     if not typelib.istable(tbl) then
         error("First argument is not a table!") -- fails to reduce
     end
@@ -69,7 +65,7 @@ Note: we are aware that for loops can cause infinite runtime. For the time being
 
 </details>
 
-To give warnings, developers can use `print()` with custom warning messages. To fail reductions, developers can use `error()` with custom error messages. If nothing is returned by the type function, it will fail to reduce with the default message: "Failed to reduce \<Name\> type function with no return value". If the return value of the type function is not an instance of typelib, it will fail to reduce with the message: "Failed to reduce \<Name\> type function with non-typelib return value".
+To fail reductions, developers can use `error()` with custom error messages. If nothing is returned by the type function, it will fail to reduce with the default message: "Failed to reduce \<Name\> type function with no return value". If the return value of the type function is not an instance of typelib, it will fail to reduce with the message: "Failed to reduce \<Name\> type function with non-typelib return value".
 
 To allow Luau developers to modify the runtime values of types in type functions, this RFC proposes introducing a new userdata called `typelib`. A `typelib` object is a runtime representation of all types within the program and provides a basic set of library methods that can be used to modify types. As such, under the hood, the `typelib` library will closely mimic the implementation of static types in Luau Analysis. Most importantly, they are *only accessible within type functions* and are *not a runtime type for other use cases than type functions*. 
 
