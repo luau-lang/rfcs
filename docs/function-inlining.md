@@ -98,19 +98,6 @@ end
 ```
 In this example, we declare `Vec3` with an inlined `__add` (`+`) operator overload. To make this inlining work, we would need to do one of two things, (1) confirm the `rhs` and `lhs` share the same shape (i.e, they both have`x`, `y` and `z`) or (2) ensure the `rhs` has a similar operator overload. Due to dynamic dispatch, we cannot make either guarantee making this case unsuitable for overloads.
 
-
-4. Higher Order Functions
-```luau
-@inline
-local function add(x, y)
-  return x + y
-end
-
-local function accumulate(acc, i, lst, f)
-  return if i > #lst then acc else accumulate(f(acc, lst[i]), i + 1, lst, f)
-end
-```
-
 ## Design
 None (yet).
 
