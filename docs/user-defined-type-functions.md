@@ -25,7 +25,7 @@ end
 For instance, the `rawget` type function can be written as:
 ```luau
 type function rawget(tbl, prop)
-    if not typelib.istable(tbl) then
+    if not typelib.type(tbl) == "table" then
         error("First argument is not a table!") -- fails to reduce
     end
 
@@ -82,9 +82,9 @@ All attributes of newly created typelib are initialized with empty tables / arra
 | `unknown` | `typelib` | an immutable runtime representation of the built-in type `unknown` |
 | `never` | `typelib` | an immutable runtime representation of the built-in type `never` |
 | `any` | `typelib` | an immutable runtime representation of the built-in type `any` |
-| `boolean()` | `typelib` | returns an immutable runtime representation of the built-in type `boolean` |
-| `number()` | `typelib` | returns an immutable runtime representation of the built-in type `number` |
-| `string()` | `typelib` | returns an immutable runtime representation of the built-in type `string` |
+| `boolean` | `typelib` | returns an immutable runtime representation of the built-in type `boolean` |
+| `number` | `typelib` | returns an immutable runtime representation of the built-in type `number` |
+| `string` | `typelib` | returns an immutable runtime representation of the built-in type `string` |
 
 | Instance Methods | Return Type | Description |
 | ------------- | ------------- | ------------- |
@@ -101,22 +101,7 @@ All attributes of newly created typelib are initialized with empty tables / arra
 | `newtable(props: {[typelib]: typelib}?, indexer: {key: typelib, value: typelib}?)` | `typelib` | returns a mutable runtime representation of a `table` type |
 | `newmetatable(props: {[typelib]: typelib}?, indexer: {key: typelib, value: typelib}?, metatable: typelib?)` | `typelib` | returns a mutable runtime representation of a metatable. `metatable` argument needs to be the same type as `typelib.newtable()` |
 | `newfunction(parameters: {typelib} \| typelib?, returns: {typelib} \| typelib?)` | `typelib` | returns a mutable runtime representation of a `function` type. Calling `newfunction(X)` will by default set `parameters` to `X` |
-| `isnil(arg: typelib)` | `boolean` | returns true if the argument is syntactically a runtime representation of the built-in type `nil` |
-| `isunknown(arg: typelib)` | `boolean` | returns true if the argument is syntactically a runtime representation of the built-in type `unknown` |
-| `isnever(arg: typelib)` | `boolean` | returns true if the argument is syntactically a runtime representation of the built-in type `never` |
-| `isany(arg: typelib)` | `boolean` | returns true if the argument is syntactically a runtime representation of the built-in type `any` |
-| `isnegation(arg: typelib)` | `boolean` | returns true if the argument is syntactically a runtime representation of a `Negation` |
-| `isboolean(arg: typelib)` | `boolean` | returns true if the argument is syntactically a runtime representation of the built-in type`boolean` |
-| `isnumber(arg: typelib)` | `boolean` | returns true if the argument is syntactically a runtime representation of the built-in type `number` |
-| `isstring(arg: typelib)` | `boolean` | returns true if the argument is syntactically a runtime representation of the built-in type `string` |
-| `isstringsingleton(arg: typelib)` | `boolean` | returns true if the argument is syntactically a runtime representation of a string singleton |
-| `isbooleansingleton(arg: typelib)` | `boolean` | returns true if the argument is syntactically a runtime representation of a boolean singleton |
-| `isunion(arg: typelib)` | `boolean` | returns true if the argument is syntactically a runtime representation of the union type |
-| `isintersection(arg: typelib)` | `boolean` | returns true if the argument is syntactically a runtime representation of the intersection type |
-| `istable(arg: typelib)` | `boolean` | returns true if the argument is syntactically a runtime representation of a `table` type |
-| `ismetatable(arg: typelib)` | `boolean` | returns true if the argument is syntactically a runtime representation of a metatable represented as a special property of the `table` type |
-| `isfunction(arg: typelib)` | `boolean` | returns true if the argument is syntactically a runtime representation of a `function` type |
-| `isclass(arg: typelib)` | `boolean` | returns true if the argument is syntactically a runtime representation of a `class` type |
+| `type(arg: typelib)` | `string` | returns the tag of the argument ("nil", "unknown", "never", "any", "boolean", "number", "string", "boolean singleton", "string singleton", "negation", "union", "intersection", "table", "metatable", "function", "class") |
 | `copy(arg: typelib)` | `typelib` | returns a deep copy of the argument |
 
 #### Negation
@@ -199,16 +184,16 @@ The build / analysis times will also be negatively impacted as reducing type fun
 
 Currently, the runtime representation of types is a userdata called `typelib`. Another representation is to use the already-existing type in Luau `table`; instead of serializing types into `typelib`, we can serialize them into tables with predefined properties. For instance, the representation for a string singleton `"abc"` could be `{type = "stringSingleton", value = "abc"}`. So instead of writing:
 ```luau
-type function isSingleton(t)
-    if typelib.isstringsingleton(t) then
+type function issingleton(t)
+    if typelib.type(t) == "string singleton" then
         return t
     end
 end
 ```
 developers could write:
 ```luau
-type function isSingleton(t)
-    if t.type == "stringSingleton" then
+type function issingleton(t)
+    if t.type == "string singleton" then
         return t
     end
 end
