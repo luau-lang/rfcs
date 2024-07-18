@@ -86,6 +86,9 @@ All attributes of newly created typelib are initialized with empty tables / arra
 | `unknown` | `typelib` | an immutable runtime representation of the built-in type `unknown` |
 | `never` | `typelib` | an immutable runtime representation of the built-in type `never` |
 | `any` | `typelib` | an immutable runtime representation of the built-in type `any` |
+| `boolean()` | `typelib` | returns an immutable runtime representation of the built-in type `boolean` |
+| `number()` | `typelib` | returns an immutable runtime representation of the built-in type `number` |
+| `string()` | `typelib` | returns an immutable runtime representation of the built-in type `string` |
 
 | Instance Methods | Return Type | Description |
 | ------------- | ------------- | ------------- |
@@ -95,9 +98,6 @@ All attributes of newly created typelib are initialized with empty tables / arra
 | Static Methods | Return Type | Description |
 | ------------- | ------------- | ------------- |
 | `getnegation(arg: typelib)` | `typelib` | returns an immutable runtime representation of the negation of the argument; the argument cannot be `istable()`, `ismetatable` or `isfunction()` |
-| `getboolean()` | `typelib` | returns an immutable runtime representation of the built-in type `boolean` |
-| `getnumber()` | `typelib` | returns an immutable runtime representation of the built-in type `number` |
-| `getstring()` | `typelib` | returns an immutable runtime representation of the built-in type `string` |
 | `getstringsingleton(arg: string)` | `typelib` | returns an immutable runtime representation of a string singleton type of the argument |
 | `getbooleansingleton(arg: boolean)` | `typelib` | returns an immutable runtime representation of a boolean singleton type of the argument |
 | `getunion(arg: {typelib})` | `typelib` | returns an immutable runtime representation of union type of its argument |
@@ -166,13 +166,13 @@ All attributes of newly created typelib are initialized with empty tables / arra
 
 | Instance Methods | Return Type | Description |
 | ------------- | ------------- | ------------- |
-| `getcomponents()` | `{typelib}` | returns an array of types that the self's union can represent. For instance, `string \| number` returns `{typelib.getstring(), typelib.getnumber()}` |
+| `getcomponents()` | `{typelib}` | returns an array of types that the self's union can represent. For instance, `string \| number` returns `{typelib.string, typelib.number}` |
 
 #### Intersection
 
 | Instance Methods | Return Type | Description |
 | ------------- | ------------- | ------------- |
-| `getcomponents()` | `{typelib}` | returns an array of types represented by self's intersection. For instance, `string & number` returns `{typelib.getstring(), typelib.getnumber()}` |
+| `getcomponents()` | `{typelib}` | returns an array of types represented by self's intersection. For instance, `string & number` returns `{typelib.string, typelib.number}` |
 
 #### Class
 
