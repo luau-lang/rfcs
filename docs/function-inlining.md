@@ -1,14 +1,11 @@
 # No support for user inlining (yet)
 
 ## Summary
-<!-- https://luau-lang.org/performance#function-inlining-and-loop-unrolling -->
 Luau's bytecode compiler is smart about inlining functions. We would rather focus on improving this automation than risk the chance of its misuse.
 
 ## Motivation
 
-**context**: function inlining replaces function calls with the function's implementation to reduce overhead costs.
-
-Whether the goal is to improve instruction locality or perform context specific optimizations, <!-- force the compiler to optimize the function body in specific contexts --> function inlining can be a great resource for developers. At `-02` or higher, the compiler is able to automatically decide if functions ought to be inlined. In the currrent state of the language, exposing this to users directly could do more harm than good. Not only do these use cases only cater to a tiny subset of the language's users, it exposes our bytecode compiler to stack overflow errors when the larger subset who may not have a working understanding of the compiler adopts it. For Luau, this would happen at around the 5000th recursive call.
+Whether the goal is to improve instruction locality or perform context specific optimizations, function inlining can be a great resource for developers. At `-02` or higher, the compiler is able to automatically decide if functions ought to be inlined. In the currrent state of the language, inlining can only be guaranteed in Luau that is specially crafted to be inlinable, and we demonstrate why below. We argue that exposing this to users could do more harm than good.
 
 ```luau
 local function sum(lst: {number})
@@ -23,9 +20,9 @@ end
 local s = sum({1, 2, 3})
 ```
 
-Consider this "inlined" recursive call, it attempts to sum up numbers in a list but it never terminates as `sum` is recursively called on `lst` which does not shrink. If Luau attempted to inline such a call, it would unroll this up until the 5000th recursive call and end up thrashing our stack. The stack will essentially grow beyond the system's stack limit and could potentially eat up resources meant for other processes.
+Consider this "inlined" recursive call. Inlining a recursive function would mean either the bytecode size is infinite, or the generated code is effectively the same as a loop a la tail call optimization.
 
-More specifically, due to limited number of cases where the compiler can even consider inlining, exposing this feature would not be entirely useful. This section further explores common developer patterns that may adopt `@inline` in ways the compiler cannot handle.
+This section further explores common developer patterns that may adopt `@inline` in ways the compiler cannot handle.
 
 1. Exported a `table`
 ```luau
@@ -85,13 +82,10 @@ function Vec3:__add(rhs)
   return Vec3.new(self.x + rhs.x, self.y + rhs.y, self.z + rhs.z)
 end
 ```
-In this example, we declare `Vec3` with an inlined `__add` (`+`) operator overload. To make this inlining work, we would need to do one of two things, (1) confirm the `rhs` and `lhs` share the same shape (i.e, they both have`x`, `y` and `z` keys) or (2) ensure the `rhs` has the same operator overload, giving the compiler additional confidence. However, due to dynamic dispatch, we cannot make either guarantee making this case unsuitable for inlines.
+In this example, we declare `Vec3` with an inlined `__add` (`+`) operator overload. To make this inlining work, we would need to be able to statically link the `+` to the `__add` metamethod. However, dynamic dispatch means we cannot make this guarantee, making this case not a candidate for inlining.
 
 ## Drawbacks
 The major drawback here is that this prevents developers the opportunity to fine-tune performance-critical optimizations, forcing them to rely on the compiler for fine-grained optimizations, even if their use case may call for it. Doing this assures us that developers have no control over raising the maximum cost of Luau programs, especially in the case where developers would chose to riddle their code base with inlines to make the code "faster".
 
 ## Alternatives
 Automatic function inlining in Luau is already very efficient. We suggest opening Github issues with code samples of legitimate cases that we can use to further improve the compiler's automatic (function inlining and unrolling) optimizations. [File a Github issue](https://github.com/luau-lang/luau/issues/new?assignees=&labels=bug&projects=&template=bug_report.md&title=Inlining%20Support)
-
-
-
