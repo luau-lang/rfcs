@@ -2,7 +2,7 @@
 
 ## Summary
 
-Modify the current generics implementation to allow types to be constrained.
+Modify the current generics implementation to allow generic types to be constrained by a type.
 
 ## Motivation
 
