@@ -82,7 +82,7 @@ local ServiceContainer = {
 
 -- ...
 
-local GameManager = ServiceContainer:Require<GameManager>("@game/GameManager")
+local GameManager = ServiceContainer:Require("@game/GameManager") :: GameManager
 GameManager:Disconnect()
 ```
 
@@ -134,11 +134,7 @@ fireGun("Hello, world!")     -- Type Error: type 'string' and 'Gun' are not rela
 
 The syntax for defining a generic function would remain the same, except, instead of simply taking a `T`, we would take a `T : TypeConstraint`, the syntax remains similar to other features of the language, and it would work by checking if the type that `T` is inferred to be has any kind of relationship with `TypeConstraint`. However, we may also want to be explicit when we are doing generics on this way, therefore a syntax to properly and explicitly specify which types the function takes in its current call would be preferred, this way, we no longer have to use turbofish to type cast into the correct return type `U` constrained by `WeaponResult`.
 
-```luau
-local fireResult = fireGun<Gun, WeaponResult>(gun)
-```
-
-This would allow us to be explicit with what types our generic function takes when calling it, improving overall reliability for the types we write, as they would no longer be an inferred `any` that cannot be type-casted using turbofish. This also allows for more flexible coding styles, and to implement custom require-like functions without them returning `any` and requiring an explicit type cast. This would also be enforced by the type checker, making it so if `GameManager` is not related to `GameService` it warns or errors at the programmer for it, like any other type safe language.
+This would allow us to be more explicit with what types our generic function takes when calling it, improving overall reliability for the generic functions we write, as they would no longer be an inferred `any` that cannot be type-casted. This also allows for more flexible coding styles, and to implement custom require-like functions without them returning `any` and requiring an explicit type cast. This would also be enforced by the type checker, making it so if `GameManager` is not related to `GameService` it warns or errors at the programmer for it, like any other type safe language.
 
 ```luau
 type GameService = {
@@ -163,11 +159,9 @@ local ServiceContainer = {
 
 -- ...
 
-local GameManager = ServiceContainer:Require<GameManager>("@game/GameManager")
+local GameManager = ServiceContainer:Require("@game/GameManager") :: GameManager 
 GameManager:Disconnect()
 ```
-
-This also allows the return of `ServiceContainer:Require<T>("...")` to accidentally not be casted into something unrelated.
 
 
 ## Drawbacks
@@ -211,6 +205,3 @@ The unspoken of alternative to this, is simple type intersection, yet another re
 The design given on the Drawbacks section is indicative of another way of designing the system so that it plays nicely with the current type checker, however, this leads generics in a place where they have nowhere to belong to.
 
 However an implementation that could benefit of the enforcing type constraints on generic functions is that of the require-like function, a possible implementation without type constraints would be marginally less type safe, as we would need to first cast into any to do any conversion into the type `T`. In the case this can be avoided, there could be room for improvement on Luau internals in what relates to native code generation, allowing it to generate performant native versions for functions that fit the type constraint, which could be benefitial overall.
-
-With it aside, it could also allow for factories such as `Instance.new("ProximityPrompt")` to be improved and be more explicit, into a syntax like `Instance.new<ProximityPrompt>()`, and instead of using a string, it could use a type, enforced by the type checker, and not allowing users to make silly mistakes such as adding an incorrect `string` and at runtime causing a problem.
-However, a modification as massive as this one not make it, as it would essentially modify this specific function deeply, and break a lots of code, and the the C API would need to be modified to allow types to be read at runtime for fields, methods and names, essentially adding reflection, something that even though can be highly useful, would increase the complexity of the VM, the compiler and every aspect of the language as well as potentially decreasing performance.
