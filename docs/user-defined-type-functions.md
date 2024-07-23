@@ -25,7 +25,7 @@ end
 For instance, the `rawget` type function can be written as:
 ```luau
 type function rawget(tbl, prop)
-    if not typelib.type(tbl) == "table" then
+    if typelib.type(tbl) ~= "table" then
         error("First argument is not a table!") -- fails to reduce
     end
 
