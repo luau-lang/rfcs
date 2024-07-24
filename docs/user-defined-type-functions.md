@@ -82,9 +82,9 @@ All attributes of newly created typelib are initialized with empty tables / arra
 | `unknown` | `typelib` | an immutable runtime representation of the built-in type `unknown` |
 | `never` | `typelib` | an immutable runtime representation of the built-in type `never` |
 | `any` | `typelib` | an immutable runtime representation of the built-in type `any` |
-| `boolean` | `typelib` | returns an immutable runtime representation of the built-in type `boolean` |
-| `number` | `typelib` | returns an immutable runtime representation of the built-in type `number` |
-| `string` | `typelib` | returns an immutable runtime representation of the built-in type `string` |
+| `boolean` | `typelib` | an immutable runtime representation of the built-in type `boolean` |
+| `number` | `typelib` | an immutable runtime representation of the built-in type `number` |
+| `string` | `typelib` | an immutable runtime representation of the built-in type `string` |
 
 | Instance Methods | Return Type | Description |
 | ------------- | ------------- | ------------- |
