@@ -71,7 +71,7 @@ To allow Luau developers to modify the runtime values of types in type functions
 
 <details><summary>typelib library (dropdown)</summary>
 
-Methods under a different type heading (ex: `Singleton`) imply that the methods are only available for those types. At the implementation level, there is a check to make sure that the type-specific methods are being called on the correct types. For instance, `getindexer()` asserts that `istable()` is true.
+Methods under a different type heading (ex: `Singleton`) imply that the methods are only available for those types. At the implementation level, there is a check to make sure that the type-specific methods are being called on the correct types.
 
 #### typelib
 All attributes of newly created typelib are initialized with empty tables / arrays and `nil`. For instance, `typelib.newtable()` initializes its properties with an empty table and index / index result type as `nil`. Additionally, all arguments are passed by references.
@@ -93,13 +93,12 @@ All attributes of newly created typelib are initialized with empty tables / arra
 
 | Static Methods | Return Type | Description |
 | ------------- | ------------- | ------------- |
-| `getnegation(arg: typelib)` | `typelib` | returns an immutable runtime representation of the negation of the argument; the argument cannot be `istable()`, `ismetatable` or `isfunction()` |
+| `getnegation(arg: typelib)` | `typelib` | returns an immutable runtime representation of the negation of the argument; the argument cannot be an instance of a table or a function. |
 | `getstringsingleton(arg: string)` | `typelib` | returns an immutable runtime representation of a string singleton type of the argument |
 | `getbooleansingleton(arg: boolean)` | `typelib` | returns an immutable runtime representation of a boolean singleton type of the argument |
 | `getunion(arg: {typelib})` | `typelib` | returns an immutable runtime representation of union type of its argument |
 | `getintersection(arg: {typelib})` | `typelib` | returns an immutable runtime representation of intersection type of its argument |
-| `newtable(props: {[typelib]: typelib}?, indexer: {key: typelib, value: typelib}?)` | `typelib` | returns a mutable runtime representation of a `table` type |
-| `newmetatable(props: {[typelib]: typelib}?, indexer: {key: typelib, value: typelib}?, metatable: typelib?)` | `typelib` | returns a mutable runtime representation of a metatable. `metatable` argument needs to be the same type as `typelib.newtable()` |
+| `newtable(props: {[typelib]: typelib}?, indexer: {key: typelib, value: typelib}?, metatable: typelib?)` | `typelib` | returns a mutable runtime representation of a `table` type. If provided the metatable parameter, this table becomes a metatable. |
 | `newfunction(parameters: {typelib} \| typelib?, returns: {typelib} \| typelib?)` | `typelib` | returns a mutable runtime representation of a `function` type. Calling `newfunction(X)` will by default set `parameters` to `X` |
 | `type(arg: typelib)` | `string` | returns the tag of the argument ("nil", "unknown", "never", "any", "boolean", "number", "string", "boolean singleton", "string singleton", "negation", "union", "intersection", "table", "function", "class") |
 | `copy(arg: typelib)` | `typelib` | returns a deep copy of the argument |
@@ -131,8 +130,8 @@ All attributes of newly created typelib are initialized with empty tables / arra
 | `getprops()` | `{[typelib]: typelib}` | returns a table of self's table properties (e.g. `{["age"] = 20}` will return `{typelib.getstringsingleton("age") = typelib.getnumber()}`) |
 | `setindexer(key: typelib, value: typelib)` | `nil` | sets self's indexer key type to the first argument and indexer value type to the second |
 | `getindexer()` | `{key: typelib, value: typelib}?` | returns a table containing self's indexer key type and value type if they exist, else nil |
-| `setmetatable(arg: typelib)` | `nil` | sets self's metatable to the argument; both self and the argument need to be `ismetatable()` |
-| `getmetatable()` | `typelib?` | returns self's runtime representation of metatable if it exists, else nil; self needs to be `ismetatable()` |
+| `setmetatable(arg: typelib)` | `nil` | sets self's metatable to the argument |
+| `getmetatable()` | `typelib?` | returns self's runtime representation of metatable if it exists, else nil |
 
 #### Function
 
