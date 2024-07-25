@@ -101,7 +101,7 @@ All attributes of newly created typelib are initialized with empty tables / arra
 | `newtable(props: {[typelib]: typelib}?, indexer: {key: typelib, value: typelib}?)` | `typelib` | returns a mutable runtime representation of a `table` type |
 | `newmetatable(props: {[typelib]: typelib}?, indexer: {key: typelib, value: typelib}?, metatable: typelib?)` | `typelib` | returns a mutable runtime representation of a metatable. `metatable` argument needs to be the same type as `typelib.newtable()` |
 | `newfunction(parameters: {typelib} \| typelib?, returns: {typelib} \| typelib?)` | `typelib` | returns a mutable runtime representation of a `function` type. Calling `newfunction(X)` will by default set `parameters` to `X` |
-| `type(arg: typelib)` | `string` | returns the tag of the argument ("nil", "unknown", "never", "any", "boolean", "number", "string", "boolean singleton", "string singleton", "negation", "union", "intersection", "table", "metatable", "function", "class") |
+| `type(arg: typelib)` | `string` | returns the tag of the argument ("nil", "unknown", "never", "any", "boolean", "number", "string", "boolean singleton", "string singleton", "negation", "union", "intersection", "table", "function", "class") |
 | `copy(arg: typelib)` | `typelib` | returns a deep copy of the argument |
 
 #### Negation
