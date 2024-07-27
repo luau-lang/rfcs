@@ -25,7 +25,7 @@ end
 For instance, the `rawget` type function can be written as:
 ```luau
 type function rawget(tbl, prop)
-    if not type.type(tbl) == "table" then
+    if not tbl:is("table") then
         error("First argument is not a table!") -- fails to reduce
     end
 
@@ -44,9 +44,13 @@ Type functions operate on two stages: type analysis and runtime. When calling ty
 
 For the first iteration, the body of a type function will be sandboxed, and its scope will be limited, meaning it will be unable to refer statements defined in the outer scope, including other type functions. Additionally, type functions will be limited on what globals/libraries they could call. The list of available globals/libraries are:
 
-- TODO add to this list
+- global functions: `assert`, `error`, `next`, `print`, `rawequal`, `select`, `tonumber`, `tostring`, `type`, `typeof`, `ipairs`, `pairs`, `unpack`
+- math library
+- table library
+- bit32 library
+- buffer library
 
-There is also a problem of infinitely running type functions whom can halt the analysis from making further progress. For example, reducing this type function will halt analysis until the VM stack overflows:
+There is also a problem of infinitely running type functions that can halt the analysis from making further progress. For example, reducing this type function will halt analysis until the VM stack overflows:
 ```luau
 type function neverending(t)
     return neverending(t) -- note: parentheses are used here because the runtime value of types is being passed in, rather than the static annotation of types
@@ -54,11 +58,6 @@ end
 ```
 
 The simplest approach (and the approach we plan on taking for the first iteration) and one that is currently supported by the Luau API is to enforce a time limit to the type function VM. We are aware that this methods are not consistently reliable. Time-based timeouts are dependent on CPU performance; programs that type check on fast CPUs may not type check on slower CPUs. We will be experimenting with various forms of limiting the execution of type functions and reserve the right to change how termination of type functions is managed.
-
-<details><summary>List of illegal constructs in type functions</summary>
-
-* global functions: `getfenv`, `setfenv`, `pcall`, `xpcall`, `require`
-* libraries: `coroutine`, `debug`, `string.gsub`
 
 </details>
 
@@ -88,6 +87,7 @@ All attributes of newly created `type` are initialized with empty tables / array
 | Instance Methods | Return Type | Description |
 | ------------- | ------------- | ------------- |
 | `__eq(arg: type)` | `boolean` | overrides the == operator to return true if self is syntactically equal to arg |
+| `is(arg: typestring)` | `boolean` | returns true if self has the same tag as the argument. List of available tags: "nil", "unknown", "never", "any", "boolean", "number", "string", "boolean singleton", "string singleton", "negation", "union", "intersection", "table", "function", "class".  |
 
 | Static Methods | Return Type | Description |
 | ------------- | ------------- | ------------- |
@@ -98,7 +98,6 @@ All attributes of newly created `type` are initialized with empty tables / array
 | `getintersection(arg: {type})` | `type` | returns an immutable runtime representation of intersection type of its argument |
 | `newtable(props: {[type]: type}?, indexer: {key: type, value: type}?, metatable: type?)` | `type` | returns a mutable runtime representation of a `table` type. If provided the metatable parameter, this table becomes a metatable. |
 | `newfunction(parameters: {type} \| type?, returns: {type} \| type?)` | `type` | returns a mutable runtime representation of a `function` type. Calling `newfunction(X)` will by default set `parameters` to `X` |
-| `type(arg: type)` | `string` | returns the tag of the argument ("nil", "unknown", "never", "any", "boolean", "number", "string", "boolean singleton", "string singleton", "negation", "union", "intersection", "table", "function", "class") |
 | `copy(arg: type)` | `type` | returns a deep copy of the argument |
 
 #### Negation
@@ -182,7 +181,7 @@ The build / analysis times will also be negatively impacted as reducing type fun
 Currently, the runtime representation of types is a userdata called `type`. Another representation is to use the already-existing type in Luau `table`; instead of serializing types into `type`, we can serialize them into tables with predefined properties. For instance, the representation for a string singleton `"abc"` could be `{type = "stringSingleton", value = "abc"}`. So instead of writing:
 ```luau
 type function issingleton(t)
-    if type.type(t) == "string singleton" then
+    if t:is("string singleton") then
         return t
     end
 end
