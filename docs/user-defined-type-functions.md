@@ -56,7 +56,9 @@ For the first iteration, the body of a type function will be sandboxed, and its 
 There is also a problem of infinitely running type functions. For example, reducing this type function will halt analysis until the VM stack overflows:
 ```luau
 type function neverending(t)
-    return neverending(t) -- note: parentheses are used here because the runtime value of types is being passed in, rather than the static annotation of types
+    while true do
+        local a = 1
+    end
 end
 ```
 
