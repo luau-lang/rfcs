@@ -89,13 +89,12 @@ Methods under a different heading (ex: Singleton) imply that the methods are onl
 | Instance Methods | Return Type | Description |
 | ------------- | ------------- | ------------- |
 | `__eq(arg: type)` | `boolean` | overrides the == operator to return true if self is syntactically equal to arg |
-| `is(arg: string)` | `boolean` | returns true if self has the same tag as the argument. List of available tags: "nil", "unknown", "never", "any", "boolean", "number", "string", "boolean singleton", "string singleton", "negation", "union", "intersection", "table", "function", "class"  |
+| `is(arg: string)` | `boolean` | returns true if self has the same tag as the argument. List of available tags: "nil", "unknown", "never", "any", "boolean", "number", "string", "singleton", "negation", "union", "intersection", "table", "function", "class"  |
 
 | Static Methods | Return Type | Description |
 | ------------- | ------------- | ------------- |
 | `getnegation(arg: type)` | `type` | returns an immutable runtime representation of the argument as a negated type; the argument cannot be an instance of a table or a function |
-| `getstringsingleton(arg: string)` | `type` | returns an immutable runtime representation of the argument as a string singleton type |
-| `getbooleansingleton(arg: boolean)` | `type` | returns an immutable runtime representation of the argument as a boolean singleton type |
+| `getsingleton(arg: string \| boolean)` | `type` | returns an immutable runtime representation of the argument as a singleton type |
 | `getunion(...: type)` | `type` | returns an immutable runtime representation of an union type of the arguments; requires the arguments size to be at least 2 |
 | `getintersection(...: type)` | `type` | returns an immutable runtime representation of an intersection type of the arguments |
 | `newtable(props: {[type]: type}?, indexer: {key: type, value: type}?, metatable: type?)` | `type` | returns a mutable runtime representation of a table type; the keys of the table's property must be a runtime representation of the singleton types; if provided the metatable parameter, this table becomes a metatable |
@@ -108,17 +107,11 @@ Methods under a different heading (ex: Singleton) imply that the methods are onl
 | ------------- | ------------- | ------------- |
 | `gettype()` | `type` | returns the `type` being negated |
 
-#### StringSingleton
+#### Singleton
 
 | Instance Methods | Return Type | Description |
 | ------------- | ------------- | ------------- |
-| `getvalue()` | `string` | returns the string value of the string singleton |
-
-#### BooleanSingleton
-
-| Instance Methods | Return Type | Description |
-| ------------- | ------------- | ------------- |
-| `getvalue()` | `boolean` | returns the boolean value of the boolean singleton |
+| `getvalue()` | `string \| boolean` | returns the string value of the  singleton |
 
 #### Table
 
@@ -174,10 +167,10 @@ Enforcing time limits on type functions is quite problematic for the same reason
 
 ### Table Runtime Representation
 
-Instead of serializing types into `type`, we can serialize them into tables with predefined properties. For instance, the representation for a string singleton `"abc"` could be `{type = "string singleton", value = "abc"}`. So instead of writing:
+Instead of serializing types into `type`, we can serialize them into tables with predefined properties. For instance, the representation for a string singleton `"abc"` could be `{type = "singleton", value = "abc"}`. So instead of writing:
 ```luau
 type function issingleton(t)
-    if t:is("string singleton") then
+    if t:is("singleton") then
         return t
     end
 end
@@ -185,7 +178,7 @@ end
 developers could write:
 ```luau
 type function issingleton(t)
-    if t.type == "string singleton" then
+    if t.type == "singleton" then
         return t
     end
 end
