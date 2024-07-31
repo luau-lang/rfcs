@@ -3,7 +3,7 @@
 ## Summary
 
 
-The aim is to allow simple definition of ``self`` when defining functions with ``:``
+The aim is to allow simple definition of ``self`` when defining functions with ``:`` in a class OOP context
 
 ```lua
 function Class:TestMethod()
