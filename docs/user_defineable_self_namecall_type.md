@@ -137,7 +137,7 @@ But this is a **metatable** in a class-construction context. Even Lua designs th
 
 
 
-### Strict Type Alternative
+### Fixed type defined Alternative
 This is an alternative that I captured off from **react-lua**.
 
 ```lua
@@ -166,4 +166,4 @@ function Class:TestMethod()
 end
 ```
 
-``self`` is now a ``string``. By defining ``[string]`` the automatic type resolver won't automatically put the actual things defined in the code into that table as well. That's why it isn't that good, but it's very smart.
+``self`` is now a ``string``. By defining ``[string]`` the automatic type resolver won't automatically put the actual things defined in the code into that table as well. That's why it isn't that good, but it's very smart. Hence why I called it "fixed" as in, _the definition is strictly already given._
