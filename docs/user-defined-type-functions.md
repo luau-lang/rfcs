@@ -72,7 +72,7 @@ Because the name clashes with the global function `type()`, the `type` userdata'
 
 <details><summary>`type` library (dropdown)</summary>
 
-Methods under a different heading (ex: Singleton) imply that the methods are only available for those types. All attributes of newly created `type` instances are initialized with empty tables / arrays and `nil`. Methods with optional arguments will by default set arguments to the leftmost attribute. For instance, `type.newtable(X, Y)` will set properties to be `X`, indexer to be `Y`, and metatable to be `nil`. Additionally, all arguments are passed by references. 
+Methods under a different heading (ex: Singleton) imply that the methods are only available for those types. All attributes of newly created `type` instances are initialized with empty tables / arrays and `nil`. All arguments are passed by references. 
 
 #### `type`
 
