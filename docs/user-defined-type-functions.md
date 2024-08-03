@@ -45,7 +45,7 @@ type ty = rawget<Person, "name"> -- ty = string
 
 Type functions operate on two stages: type analysis and runtime. When calling type functions at the type level (e.g. annotating a variable as a type function), angle brackets must be used, but when calling them at the runtime level (e.g. calling other type functions within type functions), parenthesis must be used. Declarations of type functions use parentheses because it defines the runtime operations on the runtime representation of types.
 
-For the first iteration, the body of a type function will be sandboxed, and its scope will be limited, meaning it will be unable to refer statements defined in the outer scope, including other type functions. Additionally, type functions will be limited on what globals/libraries they could call. The list of available globals/libraries in type functions is:
+For the first iteration, the body of a type function will be sandboxed, and its scope will be limited, meaning it will be unable to refer statements defined in the outer scope, including other type functions. Additionally, type functions cannot be exported and will be limited on what globals/libraries they could call. The list of available globals/libraries in type functions is:
 
 - global functions: `assert`, `error`, `next`, `print`, `rawequal`, `select`, `tonumber`, `tostring`, `type`, `typeof`, `ipairs`, `pairs`, `unpack`
 - math library
