@@ -196,6 +196,6 @@ Another alternative is to create more built-in type functions that cover a wider
 
 ## Future Works
 
-In the future, we could investigate adding type checking to user defined type functions. In Haskell's type families, this is done with _kinds_ (aka types of types). Similarly, we could look into introducing kinds to Luau, but for the purpose of this RFC.
+In the future, we could investigate adding type checking to user defined type functions. In Haskell's type families, this is done with _kinds_ (aka types of types). Similarly, we could look into introducing kinds to Luau, but, for the purpose of this RFC, we consider type checking user-defined type functions to be out of scope.
 
 Other future works include expanding the set of libraries to provide support for more paradigms such as supporting generic types or named parameters for function types. We would additionally want to expand the scope of type functions to be able to refer other type functions and variables and ultimately allow developers to write type functions as freely as possible.
