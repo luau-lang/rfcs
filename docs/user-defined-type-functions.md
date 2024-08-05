@@ -55,6 +55,9 @@ For the first iteration, the body of a type function will be sandboxed, and its 
 - utf8 library
 - buffer library
 
+
+Note that the list above is subject to change. We can add more globals/libraries if we / the community finds a good use case for them in type functions. 
+
 There is also a problem of infinitely running type functions. For example, reducing this type function will halt analysis until the VM stack overflows:
 ```luau
 type function neverending(t)
