@@ -84,7 +84,7 @@ The description above shows the full-form of the deprecation annotation. In most
 
 ## Drawbacks
 
-Adding this attribute increases complexity of code. Once the attribute is released, we cannnot deprecate it.
+Adding this attribute increases complexity of code. Once the attribute is released, we cannot deprecate it.
 
 ## Alternatives
 
