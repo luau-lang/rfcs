@@ -65,7 +65,7 @@ Many mainstream languages provide a similar mechanism for deprecating language f
 
 2. **C#** provides a `[ObsoleteAttribute(msg, error)]` which can be applied to all program elements except assemblies, modules, parameters, and return values. The `msg` string is emitted by the compiler when the deprecated program element is used in code. The `error` flag converts the warning to an error.
 
-3. **Java** provides a `@Deprecated` annotation to deprecate a class, method, or field. The Java compiler issues warnings when these program elements are used. A detailed deprecation message can be supplied by a correspoding javadoc `@deprecated` tag.
+3. **Java** provides a `@Deprecated` annotation to deprecate a class, method, or field. The Java compiler issues warnings when these program elements are used. A detailed deprecation message can be supplied by a corresponding javadoc `@deprecated` tag.
 
 4. **Rust** provides a `#[deprecated(since, note)]` attribute. `since` specifies a version number when the item was deprecated and `note` specifies a string that should be included in the deprecation message. The deprecated attribute can be applied to many program elements such as macros, modules, functions, enums, structs, traits, enum variants, struct fields, etc. When applied to an item containing other items, such as a module, all child items inherit the deprecation attribute.
 
