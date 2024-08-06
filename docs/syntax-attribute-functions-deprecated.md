@@ -29,8 +29,10 @@ If `foo` is a member of class `bar`, the warning messages above will start as `"
 Consider the following example. Function `printTable` is marked deprecated.
 
 ```lua
-@[deprecated {use = "table.foreach(table, print)", 
-              reason = "`printTable` forces tables to be printed in one style; `table.foreach` allows configurable printing."}]
+@[deprecated {
+    use = "table.foreach(table, print)", 
+    reason = "`printTable` forces tables to be printed in one style; `table.foreach` allows configurable printing.",
+}]
 local function printTable(t)
     for k,v in pairs(t) do
         print(k, v)
