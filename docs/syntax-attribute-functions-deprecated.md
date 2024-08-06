@@ -15,7 +15,7 @@ This RFC proposes the introduction of a `@deprecated` attribute to mark deprecat
 
 ## Design
 
-The `@deprecated` attribute can only be used on named functions and methods. It does not apply recursively to the functions defined within the lexical scope of the attributed function. It can take up to two named string parameters. The parameters affect the warning message issued by the linter. The `reason` parameter gives the reason for deprecation and the `use` parameter gives the name of the function that should be used in lieu of the deprecated function. The following table shows the warning message issued by the different styles of this attribute when used on a function named `foo`.
+The `@deprecated` attribute can be used on named functions and properties. It does not apply recursively to the functions defined within the lexical scope of the attributed function. It can take up to two named string parameters. The parameters affect the warning message issued by the linter. The `reason` parameter gives the reason for deprecation and the `use` parameter gives the name of the function that should be used in lieu of the deprecated function. The following table shows the warning message issued by the different styles of this attribute when used on a function named `foo`.
 
 | Style                                                 | Message                                                                |
 | ----------------------------------------------------- | -----------------------------------------------------------------------|
@@ -46,6 +46,15 @@ The call to `printTable` causes the linter to issue the following warning messag
 
 ```
 Function `printTable` is deprecated, use `table.foreach(table, print)` instead. `printTable` forces tables to be printed in one style; `table.foreach` allows configurable printing.
+```
+
+Table and class properties also support deprecated members. In the following example property `m` of table `t` is deprecated.
+
+```lua
+local t = {}
+
+@deprecated
+function t:m() end
 ```
 
 ## Related Work
