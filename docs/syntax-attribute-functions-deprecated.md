@@ -17,12 +17,12 @@ This RFC proposes the introduction of a `@deprecated` attribute to mark deprecat
 
 The `@deprecated` attribute can only be used on named functions and methods. It does not apply recursively to the functions defined within the lexical scope of the attributed function. It can take up to two named string parameters. The parameters affect the warning message issued by the linter. The `reason` parameter gives the reason for deprecation and the `use` parameter gives the name of the function that should be used in lieu of the deprecated function. The following table shows the warning message issued by the different styles of this attribute when used on a function named `foo`.
 
-| Style                                           | Message                                                                |
-| ----------------------------------------------- | -----------------------------------------------------------------------|
-| `@deprecated`                                   | `"Function 'foo' is deprecated."`                                      |
-| `@[deprecated {reason = string}]`               | `"Function 'foo' is deprecated. <reason>"`                             |
-| `@[deprecated {use = string}]`                  | `"Function 'foo' is deprecated, use '<use>' instead."`                 |
-| `@[deprecated {reason = string, use = string}]` | `"Function 'foo' is deprecated, use '<use>' instead. <reason>"`         |
+| Style                                                 | Message                                                                |
+| ----------------------------------------------------- | -----------------------------------------------------------------------|
+| `@deprecated`                                         | `"Function 'foo' is deprecated."`                                      |
+| `@[deprecated {reason = "my reason"}]`                | `"Function 'foo' is deprecated. <reason>"`                             |
+| `@[deprecated {use = "bar()"}]`                       | `"Function 'foo' is deprecated, use '<use>' instead."`                 |
+| `@[deprecated {reason = "my reason", use = "bar()"}]` | `"Function 'foo' is deprecated, use '<use>' instead. <reason>"`        |
 
 If `foo` is a member of class `bar`, the warning messages above will start as `"Member 'bar.foo' is deprecated ...`.
 
