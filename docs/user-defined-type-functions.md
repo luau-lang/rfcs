@@ -2,16 +2,16 @@
 
 ## Summary
 
-The new type solver for Luau supports a limited number of built-in type functions that enable developers to be expressive with their code. To further enhance this expressivity and the flexibility of the type system, this RFC proposes the design and implementation of user-defined type functions, a feature that will allow developers to define custom type functions.
+The new Luau type inference engine (or type solver, for short) adds support for a system of built-in type functions that compute result types from provided argument types. This system is already being used to power support for overloadable operators, and the broad design philosophy is to include built-in type functions that correspond to built-in runtime-level operations in the language. To further enhance the expressivity of the type system, this RFC extends that system with a proposed design for user-defined type functions, allowing developers to define their own type functions in ordinary Luau code.
 
 ## Motivation
 
-The primary motivation for introducing user-defined type functions is to extend the flexibility of the type system and empower developers to create more expressive and type-safe libraries. Current limitations in the type system restrict custom type manipulations, which are crucial for creating advanced patterns and abstractions. By supporting user-defined type functions, we aim to:
-- Enable more precise type definitions that can capture complex relationships and constraints
-- Facilitate the creation of reusable and composable libraries
-- Enhance code safety and maintainability with better type-level programming
+The primary motivation for introducing user-defined type functions is to increase the expressiveness of the type system and empower developers to create more type-safe abstractions in their libraries. Current limitations of the type system prevent programmers from constructing types in relational ways, e.g. producing a new table where the types of every property have changed in some predictable way (like being made optional). These limitations can prevent developers from writing precisely-typed abstracts in their libraries, leading to less type-safe abstractions that rely on the use of `any` casting or less-than-desirable structural changes to their designed APIs. By adding support for user-defined type functions, we aim to:
+- Enable more precise type definitions that can capture complex relations on types
+- Facilitate the creation of type-safe, reusable and composable libraries
+- Enhance Luau's support for type-level programming
 
-The expected outcome is a more versatile type system that can adapt to a wider range of programming patterns, ultimately improving the Luau developer experience.
+The expected outcome is a more versatile type system that can adapt to a wider range of programming patterns, improving the Luau developer experience.
 
 ## Design
 
@@ -22,9 +22,12 @@ type function f(...)
 end
 ```
 
-For instance, the `rawget` type function can be written as:
+The bodies of these functions will consist of fundamentally entirely ordinary Luau code that can interact with types as runtime values. For instance, the built-in `rawget` type function could be written as:
 ```luau
 type function rawget(tbl, key)
+    if not tbl:is("table") then
+        error("first parameter must be a table type!")
+    end
 
     for k, v in tbl:getprops() do
         if k == key then
@@ -40,44 +43,54 @@ type Person = {
     age: number
 }
 
-type ty = rawget<Person, "name"> -- ty = string
+type ty = rawget<Person, "name"> -- resolves to `ty` defined as `string`
 ```
 
-Type functions operate on two stages: type analysis and runtime. When calling type functions at the type level (e.g. annotating a variable as a type function), angle brackets must be used, but when calling them at the runtime level (e.g. calling other type functions within type functions), parenthesis must be used. Declarations of type functions use parentheses because it defines the runtime operations on the runtime representation of types.
+This function takes `tbl`, a table type, and `key`, the type of a property key for the table (typically a string singleton type), and computes the corresponding value type for the property `key` in the table `tbl`. If `tbl` is not a table type, or `key` is not found in `tbl`, then the function raises an error.
 
-For the first iteration, the body of a type function will be sandboxed, and its scope will be limited, meaning it will be unable to refer statements defined in the outer scope, including other type functions. Additionally, type functions cannot be exported and will be limited on what globals/libraries they could call. The list of available globals/libraries in type functions is:
+### The type runtime
 
-- global functions: `assert`, `error`, `next`, `print`, `rawequal`, `select`, `tonumber`, `tostring`, `type`, `typeof`, `ipairs`, `pairs`, `unpack`
-- math library
-- table library
-- string library
-- bit32 library
-- utf8 library
-- buffer library
+To understand how type functions behave, we have to consider a split between stages: type analysis time and runtime. The full types of Luau's type system currently exist only during type analysis, and never during runtime. This RFC proposes changing Luau to include an additional stage, type runtime, that is part of the overall type analysis. During type analysis, when we encounter a user-defined type function, e.g. `rawget<...>` in the example above, we will serialize the type parameters of that call into a form that Luau can manipulate, and then execute the body of the type function in a Luau VM (this stage would be the "type runtime"), and reify its results (returning a value, erroring, etc.) back into type analysis. This means that the type solver will need to maintain a VM instance for evaluating user-defined type functions, and that each reference to a type function corresponds to evaluating a function call in that VM.
 
+The key to making this type runtime work is the introduction of a `type` userdata that Luau's types can be serialized into. For clarity in this RFC, `type` (in code block) always refers to the userdata and type (the unadorned string) refers to the ordinary meaning of the word in the context of Luau (i.e.  the static type of a binding). An instance of the `type` userdata is a type runtime representation of a type within the program, and it provides a set of API calls that can be used to inspect and manipulate the type. As part of the _type runtime_, they are *only accessible within type functions* and are *not available during ordinary function runtimes*. Each type function can take an arbitrary number of `type` arguments, and can return exactly one `type` as a successful result during evaluation. Returning additional results will signal an error to the user for now, but a future RFC may revisit this to support user-defined type pack functions as well. We are currently excluding them since the scope of this RFC is already very large as-is, and even the built-in type function system has yet to find a compelling use for type pack functions.
 
-Note that the list above is subject to change. We can add more globals/libraries if we / the community finds a good use case for them in type functions. 
+Because the name `type` clashes with the global function `type(...)`, the `type` userdata will set the `__call` metamethod will to the original `type(...)` function. This allows us to gracefully preserve the behavior of the built-in `type` function if it is necessary for developers, while still choosing the best possible name for the datatype itself. We considered alternative names like `luautype` `typelib` or `ltype`, but alternatives seemed to feel broadly worse when used in speech and writing.
 
-There is also a problem of infinitely running type functions. For example, reducing this type function will halt analysis until the VM stack overflows:
-```luau
-type function neverending(t)
-    while true do
-        local a = 1
-    end
-end
-```
+Beyond `type`s, type functions will also reify any runtime errors that result from running their body into a type analysis error to report to the user. This means that developers can use the `error` and `assert` global functions to signal errors to consumers of their type function, and can provide detailed error messages that explain what went wrong. It also means that any "ordinary" runtime errors that arise from bad function calls or stack overflows will also become a user-facing error at the point that that type function is called.
 
-For our initial iteration, we plan to implement a straightforward approach by enforcing a time limit on the type function VM. We recognize that this method has its limitations, as time-based timeouts can vary significantly based on CPU performance. Programs that type check efficiently on high-performance CPUs may not do so on slower ones. We plan to experiment with different strategies for limiting the execution of type functions and remain open to adjusting our approach based on insights from the community.
+### A note about syntax
 
-Any runtime errors that result from running the body of the type functions will be ported as an analysis error. This means that developers can intentionally fail type function reductions by using `error()` with custom error messages. Type functions expect to have exactly one return value of a `type` instance.
+Given this realization that type functions are, in fact, functions and their uses are function _calls_, one may wonder a couple things about the syntax that are helpful to clarify here. When programming types, all type functions (whether a user-defined type function, a type alias like `type Array<T> = {T}`, or a built-in type function like `add<T, U>`) are written with their parameters in angle brackets. At a call site, like `add<number, number>` or `rawget<Person, "name">` from above, the angle brackets indicate that the arguments to that call are _types_. By contrast, ordinary Luau functions are defined using parentheses for their parameters and function calls are similarly written with parentheses, e.g. `add(5, 6)`. For user-defined type functions, the arguments are types _serialized as runtime values for a Luau VM_, and so when we _declare_ a type function, we similarly use parentheses since they will be evaluated as functions in the _type runtime_.
 
-To allow Luau developers to modify the runtime values of types in type functions, this RFC proposes introducing a new userdata called `type` (for the purpose of clarity, `type` (in code block) refers to the userdata and type (the literal string) refers to their English definition). A `type` userdata is a runtime representation of all types within the program and provides a basic set of library methods that can be used to modify types. They are *only accessible within type functions* and are *not a runtime value/userdata/library anywhere else*.
+### The environment of type functions
 
-Because the name clashes with the global function `type()`, the `type` userdata's `__call` metamethod will be set to the original `type()` function.
+The type functions will run in a sandboxed VM instance with a limited scope of available libraries and globals. They will not be able to refer to statements defined in the scripts outer scope, nor to any runtime functions declared in the script. For the first iteration of this feature, we aim to be reasonably conservative in what we include to support writing type functions. The reason for this is that it is broadly much more feasible to _add_ new facilities to the language, than it is to take away features that are already in use. At the same time, we're attempting to balance this to ensure that programming type functions still feels like programming ordinary Luau code, so we wish to avoid having lots of "gotchas" or very unexpected exclusions. As such, we propose that the environment for type functions include only the following:
 
-<details><summary>`type` library (dropdown)</summary>
+- `assert`, `error`, and `print`, which will be used by type functions to provide error feedback to consumers of a type function
+- `next`, `ipairs`, `pairs`, `select`, and `unpack`, which support basic iteration and interaction with tables and multiple return
+- `getmetatable`, `setmetable`, `rawget`, `rawset`, `rawlen`, `rawequal`, `tonumber`, `tostring`, `type`, and `typeof`, which are builtin functions that are essentially operators in Luau
+- the `math` library
+- the `table` library
+- the `string` library
+- the `bit32` library
+- the `utf8` library
+- the `buffer` library
 
-Methods under a different heading (ex: Singleton) imply that the methods are only available for those types. All attributes of newly created `type` instances are initialized with empty tables / arrays and `nil`. All arguments are passed by references. 
+This list can be expanded in future RFCs if we learn of compelling usecases for additional libraries in type function contexts.
+
+### The halting problem
+
+In general, we'd like to be able to guarantee that type analysis will always terminate on all programs. Unfortunately, type inference for Luau's type system is already, in general, undecidable, and there are known edgecases where the type inference can be spun into exponential blowup or worse. Adding type functions seems like another space where this problem could be made worse, and so one might wish to try to detect when a type function will not terminate and error instead. Unfortunately, by [Rice's theorem](https://en.wikipedia.org/wiki/Rice%27s_theorem), all non-trivial semantic properties of programs are undecidable.
+
+We could attempt to get around this either by heavily limiting the language in type functions to avoid Turing-completeness or by introducing heuristics to try to detect infinite loops while the type function is running. We propose doing neither. In the former case, the restrictions to the language would be significant, heavily limiting the use of while loops, function calls, etc. This would mean that learning to program type functions would feel _very_ different from learning to program Luau in general. In the latter case, the implementation work is considerable, and it's not clear what kind of impact it might have on the VM itself. 
+
+Instead, this RFC proposes that we accept that type functions, like the rest of Luau's type system, are already not guaranteed to terminate in general, and we should employ the same mitigations that we've already implemented for addressing that problem --- namely, Luau's analysis supports global limits that include an overall runtime limit on analysis and a user-requestable (really, embedder-requestable) cancellation system for analysis. This means that editors, language services, and other software embedding Luau's type analysis will continue to be able to use one simple, unified system for imposing limits on analysis. In an editor tooling context, we expect that it might be useful for us to grow the feedback provided by the cancellation to support editors providing more detailed feedback to the users. It's not hard to imagine a developer experience where your editor informs you that a particular type function call in a particular spot in your program is taking a long time to evaluate. This would actually be a better experience than what is available today when builtin pieces of Luau's type system are unable to complete in an acceptable amount of time, and we are unable to give any actionable feedback to the user. Extending such a system to support identifying problem areas in built-in components of the type system is likely a much harder effort that is out of scope for this RFC.
+
+### `type` API Reference
+
+This section details the initial programming interface we propose for `type`s when they are reflected into type function bodies. Each section is separated by headers (e.g. Singleton) and describe the methods available to that category of type. The initial section, titled `type`, describes the elements of the interface common to every category of type. All attributes of newly-created `type`s are initialized with empty tables / arrays and `nil`. All arguments are passed by references. 
+
+<details><summary>Expand for full type API reference.</summary>
 
 #### `type`
 
@@ -164,15 +177,13 @@ Methods under a different heading (ex: Singleton) imply that the methods are onl
 
 ## Drawback
 
-A drawback to the proposed design is that it makes analysis somewhat be dependent on runtime because type functions are handled during analysis and `type` is an implementation in the runtime. This is generally discouraged for the purpose of maintaining a clear separation of concerns to minimize side effects across different phases of the program execution. 
-
-Enforcing time limits on type functions is quite problematic for the same reasons mentioned previously. 
+The main drawback to the proposed design, particularly the use of the standard Luau VM for execution, is that it makes analysis explicitly depend on the Luau runtime in order to evaluate type functions. This has been historically discouraged for the purpose of maintaining a clear separation of concerns for different parts of Luau's implementation and to minimize side effects across different phases of the program execution. We believe this concern is mitigated since we still retaining a separation between the type runtime and its evaluation of type functions versus the overall runtime and its evaluation of ordinary functions. Further, the ability to use the same VM for both ensures that the runtime semantics of code in type function bodies is _always_ consistent with the runtime semantics of ordinary Luau code. This is not the case for some alternatives, like implementing a separate interpreter.
 
 ## Alternatives
 
 ### Table Runtime Representation
 
-Instead of serializing types into `type`, we can serialize them into tables with predefined properties. For instance, the representation for a string singleton `"abc"` could be `{type = "singleton", value = "abc"}`. So instead of writing:
+Instead of serializing types into `type`, we can serialize them into tables with a predefined structure. For instance, the representation for a string singleton `"abc"` could be `{type = "singleton", value = "abc"}`. So, instead of writing:
 ```luau
 type function issingleton(t)
     if t:is("singleton") then
@@ -189,18 +200,18 @@ type function issingleton(t)
 end
 ```
 
-In some sense, this design could be considered better to write than using userdata in an object-oriented manner. However, using what's already built into the language makes it harder for the Luau team to apply restrictions to type functions. For instance, requiring all union types to have at least 2 elements is something that is hard to enforce under this design because developers could just write `{type = "union", components = {{type = "string"}}}`. Finally, this design makes the creation of new run time instances messy and prone to errors (imagine if your type function didn't work because you forgot to close a bracket!)
+This is a reasonable design in its own right, and was used in the initial prototype of user-defined type functions because of its relative ease of implementation. We decided against continuing with it, however, because it makes it more difficult to apply basic well-formedness restrictions to the interface of type functions. For instance, we want all union types to have at least two elements to them (i.e. to be a non-trivial union), which would be harder to enforce with the table design since developers could just write `{type = "union", components = {{type = "string"}}}`. More generally, this design makes the creation of new types at runtime messier and more prone to errors since there's a greater surface for minor typos and misplaced braces to impact the program.
 
 ### Compile-time Interpreter
 
-A lot of languages have their own compile-time interpreter to reduce things like type functions. They have their benefits such as allowing us to completely isolate analysis and runtime and allow developers to write type functions using syntax that would be illegal in standard Luau (which would involve having to create a language inside Luau). Other than the fact it requires higher complexity and maintenance, the design also goes against one of our goals for type functions. We wanted the experience of writing type functions to feel familiar and the exact same as writing normal Luau code. And because Luau is easily embeddable, it would suffice to use the existing VM and add a new userdata to achieve our goals.
+Many languages implement an additional interpreter for evaluating expressions at compile-time. This approach has its benefits, such as allowing us to completely isolate analysis and runtime and allowing developers to write type functions in a syntax that potentially deviates from Luau's runtime syntax (e.g. supporting constructing intersection and union types using `&` and `|`). This has two main downsides: (1) the implementation required is higher complexity and carries a greater maintenance burden, and (2) the design against one of the stated goals for type functions. We want the experience of writing type functions to feel intrinsically familiar to developers and for the semantics to be the same as ordinary Luau code. Since Luau is already designed around being embeddable, we prefer to use the existing VM and add a new userdata instead.
 
-### More Builtin Type Functions
+### More Built-in Type Functions
 
-Another alternative is to create more built-in type functions that cover a wider range of programming patterns. This approach clearly lacks the flexibility of fully user-defined type functions because type manipulation would still be limited to the predefined set of type functions designed by the Luau team. Furthermore, continuously expanding the set of built-in type functions leads to bloat and complexity within the language, making it harder to maintain.
+Another alternative is to create more built-in type functions that cover a wider range of programming patterns. This approach clearly lacks the flexibility of fully user-defined type functions because type manipulation would still be limited to the predefined set of type functions designed by the Luau team. Furthermore, continuously expanding the set of built-in type functions leads to bloat and complexity within the language, making it harder to keep in your head, harder to maintain, and ultimately running against Luau's core philosophy of simple, general-purpose primitives and a small standard library.
 
-## Future Works
+## Future Work
 
-In the future, we could investigate adding type checking to user defined type functions. In Haskell's type families, this is done with _kinds_ (aka types of types). Similarly, we could look into introducing kinds to Luau, but, for the purpose of this RFC, we consider type checking user-defined type functions to be out of scope.
+In the future, we may consider adding type checking for user-defined type functions. In other advanced type systems, this is typically called _kind checking_ (where a _kind_ is what we'd call the type of a type). So, for instance, the type `number` has the kind `type`, but a type alias like `type Array<T> = {T}` has the kind `(T: type) -> type`, i.e. `Array` is a type function that when applied to a type `T` gives you a type. However, there's additional complexity in building this out in a way where we can reuse the existing type system machinery to implement typing. Since we expect type functions to largely be fairly small and the developer experience is inherently _very_ interactive since they will execute live in your IDE as you write code, we believe that working with dynamically-typed type functions will feel very pleasant, and so taking on the additional complexity is not yet justified.
 
-Other future works include expanding the set of libraries to provide support for more paradigms such as supporting generic types or named parameters for function types. We would additionally want to expand the scope of type functions to be able to refer other type functions and variables and ultimately allow developers to write type functions as freely as possible.
+Other areas of future work may include expanding the set of libraries available in type function environments to enable more expressive type functions, such as those manipulating generic types or named parameters for function types. We also want to investigate making type aliases (which are themselves a sort of _total_ type function) available as part of the type function environment to make type function programming feel even more like conventional Luau programming.
