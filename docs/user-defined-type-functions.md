@@ -69,7 +69,7 @@ The type functions will run in a sandboxed VM instance with a limited scope of a
 - `assert`, `error`, and `print`, which will be used by type functions to provide error feedback to consumers of a type function
 - `next`, `ipairs`, `pairs`, `select`, and `unpack`, which support basic iteration and interaction with tables and multiple return
 - `getmetatable`, `setmetable`, `rawget`, `rawset`, `rawlen`, `rawequal`, `tonumber`, `tostring`, `type`, and `typeof`, which are builtin functions that are essentially operators in Luau
-- the `math` library
+- the `math` library, where we note that `math.randomseed` will be reset automatically on type function entry
 - the `table` library
 - the `string` library
 - the `bit32` library
