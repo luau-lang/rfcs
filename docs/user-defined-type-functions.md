@@ -86,17 +86,16 @@ We could attempt to get around this either by heavily limiting the language in t
 
 Instead, this RFC proposes that we accept that type functions, like the rest of Luau's type system, are already not guaranteed to terminate in general, and we should employ the same mitigations that we've already implemented for addressing that problem --- namely, Luau's analysis supports global limits that include an overall runtime limit on analysis and a user-requestable (really, embedder-requestable) cancellation system for analysis. This means that editors, language services, and other software embedding Luau's type analysis will continue to be able to use one simple, unified system for imposing limits on analysis. In an editor tooling context, we expect that it might be useful for us to grow the feedback provided by the cancellation to support editors providing more detailed feedback to the users. It's not hard to imagine a developer experience where your editor informs you that a particular type function call in a particular spot in your program is taking a long time to evaluate. This would actually be a better experience than what is available today when builtin pieces of Luau's type system are unable to complete in an acceptable amount of time, and we are unable to give any actionable feedback to the user. Extending such a system to support identifying problem areas in built-in components of the type system is likely a much harder effort that is out of scope for this RFC.
 
-### `type` API Reference
+### `types` API Reference
 
-This section details the initial programming interface we propose for `type`s when they are reflected into type function bodies. Each section is separated by headers (e.g. Singleton) and describe the methods available to that category of type. The initial section, titled `type`, describes the elements of the interface common to every category of type. All attributes of newly-created `type`s are initialized with empty tables / arrays and `nil`. All arguments are passed by references. 
+This section details the initial programming interface we propose for `type`s when they are reflected into type function bodies. Each section is separated by headers (e.g. Singleton) and describe the methods available to that category of type. The initial section, titled `types`, describes the elements of the interface common to every category of type. All attributes of newly-created `type`s are initialized with empty tables / arrays and `nil`. All arguments are passed by references. 
 
 <details><summary>Expand for full type API reference.</summary>
 
-#### `type`
+#### `types`
 
 | Instance Attributes | Type | Description |
 | ------------- | ------------- | ------------- |
-| `niltype` | `type` | an immutable runtime representation of the built-in type `nil` |
 | `unknown` | `type` | an immutable runtime representation of the built-in type `unknown` |
 | `never` | `type` | an immutable runtime representation of the built-in type `never` |
 | `any` | `type` | an immutable runtime representation of the built-in type `any` |
@@ -111,10 +110,10 @@ This section details the initial programming interface we propose for `type`s wh
 
 | Static Methods | Return Type | Description |
 | ------------- | ------------- | ------------- |
-| `getnegation(arg: type)` | `type` | returns an immutable runtime representation of the argument as a negated type; the argument cannot be an instance of a table or a function |
-| `getsingleton(arg: string \| boolean)` | `type` | returns an immutable runtime representation of the argument as a singleton type |
-| `getunion(...: type)` | `type` | returns an immutable runtime representation of an union type of the arguments; requires the arguments size to be at least 2 |
-| `getintersection(...: type)` | `type` | returns an immutable runtime representation of an intersection type of the arguments |
+| `get(arg: string \| boolean \| nil)` | `type` | returns an immutable runtime representation of the argument as a singleton type |
+| `negationof(arg: type)` | `type` | returns an immutable runtime representation of the argument as a negated type; the argument cannot be an instance of a table or a function |
+| `unionof(...: type)` | `type` | returns an immutable runtime representation of an union type of the arguments; requires the arguments size to be at least 2 |
+| `intersectionof(...: type)` | `type` | returns an immutable runtime representation of an intersection type of the arguments |
 | `newtable(props: {[type]: type}?, indexer: {key: type, value: type}?, metatable: type?)` | `type` | returns a mutable runtime representation of a table type; the keys of the table's property must be a runtime representation of the singleton types; if provided the metatable parameter, this table becomes a metatable |
 | `newfunction(parameters: {pack: {type}?, variadic: type?}, returns: {pack: {type}?, variadic: type?})` | `type` | returns a mutable runtime representation of a `function` type |
 | `copy(arg: type)` | `type` | returns a deep copy of the argument |
@@ -123,55 +122,55 @@ This section details the initial programming interface we propose for `type`s wh
 
 | Instance Methods | Type | Description |
 | ------------- | ------------- | ------------- |
-| `gettype()` | `type` | returns the `type` being negated |
+| `inner()` | `type` | returns the `type` being negated |
 
 #### Singleton
 
 | Instance Methods | Return Type | Description |
 | ------------- | ------------- | ------------- |
-| `getvalue()` | `string \| boolean` | returns the string value of the  singleton |
+| `value()` | `string \| boolean` | returns the string value of the  singleton |
 
 #### Table
 
 | Instance Methods | Return Type | Description |
 | ------------- | ------------- | ------------- |
-| `setprop(key: type, value: type?)` | `nil` | adds / overrides (if same key exists) a key, value pair to the table's properties; if value is nil, removes the key, value pair; if the key does not exist and the value is nil, nothing happens |
-| `getprop(key: type)` | `type?` | returns the value associated with the key from the table's properties; if the key does not exists, returns nil |
-| `getprops()` | `{[type]: type}` | returns a table of the table's properties |
+| `setproperty(key: type, value: type?)` | `nil` | adds / overrides (if same key exists) a key, value pair to the table's properties; if value is nil, removes the key, value pair; if the key does not exist and the value is nil, nothing happens |
+| `getproperty(key: type)` | `type?` | returns the value associated with the key from the table's properties; if the key does not exists, returns nil |
+| `properties()` | `{[type]: type}` | returns a table of the table's properties |
 | `setindexer(key: type, value: type)` | `nil` | sets the table's indexer with key type as the first argument and value type as the second argument |
-| `getindexer()` | `{key: type, value: type}?` | returns the table's indexer as a table; if the indexer does not exist, returns nil |
+| `indexer()` | `{key: type, value: type}?` | returns the table's indexer as a table; if the indexer does not exist, returns nil |
 | `setmetatable(arg: type)` | `nil` | sets the table's metatable to the argument |
-| `getmetatable()` | `type?` | returns the table's metatable; if the metatable does not exist, returns nil |
+| `metatable()` | `type?` | returns the table's metatable; if the metatable does not exist, returns nil |
 
 #### Function
 
 | Instance Methods | Return Type | Description |
 | ------------- | ------------- | ------------- |
 | `setparameters(pack: {type}?, variadic: type?)` | `nil` | sets the function's parameter types to the arguments |
-| `getparameters()` | `{pack: {type}?, variadic: type?}` | returns the function's parameter types as a table |
+| `parameters()` | `{pack: {type}?, variadic: type?}` | returns the function's parameter types as a table |
 | `setreturns(pack: {type}?, variadic: type?)` | `nil` | sets the function's return types to the arguments |
-| `getreturns()` | `{pack: {type}?, variadic: type?}` | returns the function's return types as a table |
+| `returns()` | `{pack: {type}?, variadic: type?}` | returns the function's return types as a table |
 
 #### Union
 
 | Instance Methods | Return Type | Description |
 | ------------- | ------------- | ------------- |
-| `getcomponents()` | `{type}` | returns an array of `types` being unioned |
+| `components()` | `{type}` | returns an array of `types` being unioned |
 
 #### Intersection
 
 | Instance Methods | Return Type | Description |
 | ------------- | ------------- | ------------- |
-| `getcomponents()` | `{type}` | returns an array of `types` being intersected |
+| `components()` | `{type}` | returns an array of `types` being intersected |
 
 #### Class
 
 | Instance Methods | Return Type | Description |
 | ------------- | ------------- | ------------- |
-| `getprops()` | `{[type]: type}` | returns the class's properties |
-| `getparent()` | `type?` | returns the class's parent class; if the parent class does not exist, returns nil |
-| `getmetatable()` | `type?` | returns the class's metatable; if the metatable does not exists, returns nil |
-| `getindexer()` | `{key: type, value: type}?` | returns the class's indexer as a table; if the indexer does not exist, returns nil |
+| `properties()` | `{[type]: type}` | returns the class's properties |
+| `parent()` | `type?` | returns the class's parent class; if the parent class does not exist, returns nil |
+| `metatable()` | `type?` | returns the class's metatable; if the metatable does not exists, returns nil |
+| `indexer()` | `{key: type, value: type}?` | returns the class's indexer as a table; if the indexer does not exist, returns nil |
 
 </details>
 
