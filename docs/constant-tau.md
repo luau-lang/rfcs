@@ -2,7 +2,7 @@
 
 ## Summary
 
-Implement a constant `math.tau` to hold the tau constant.
+Define a constant value `math.tau` to be the tau constant.
 
 ## Motivation
 
