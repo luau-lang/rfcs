@@ -29,9 +29,13 @@ type function rawget(tbl, key)
         error("first parameter must be a table type!")
     end
 
-    for k, v in tbl:getprops() do
+    for k, v in tbl:properties() do
         if k == key then
-            return v
+            if v.read ~= v.write then
+                error("mismatched read/write types found for the property")
+            end
+
+            return v.read
         end
     end
 
@@ -211,11 +215,11 @@ end
 
 This is a reasonable design in its own right, and was used in the initial prototype of user-defined type functions because of its relative ease of implementation. We decided against continuing with it, however, because it makes it more difficult to apply basic well-formedness restrictions to the interface of type functions. For instance, we want all union types to have at least two elements to them (i.e. to be a non-trivial union), which would be harder to enforce with the table design since developers could just write `{type = "union", components = {{type = "string"}}}`. More generally, this design makes the creation of new types at runtime messier and more prone to errors since there's a greater surface for minor typos and misplaced braces to impact the program.
 
-### Compile-time Interpreter
+### Compile-Time Interpreter
 
 Many languages implement an additional interpreter for evaluating expressions at compile-time. This approach has its benefits, such as allowing us to completely isolate analysis and runtime and allowing developers to write type functions in a syntax that potentially deviates from Luau's runtime syntax (e.g. supporting constructing intersection and union types using `&` and `|`). This has two main downsides: (1) the implementation required is higher complexity and carries a greater maintenance burden, and (2) the design against one of the stated goals for type functions. We want the experience of writing type functions to feel intrinsically familiar to developers and for the semantics to be the same as ordinary Luau code. Since Luau is already designed around being embeddable, we prefer to use the existing VM and add a new userdata instead.
 
-### More Built-in Type Functions
+### More Built-In Type Functions
 
 Another alternative is to create more built-in type functions that cover a wider range of programming patterns. This approach clearly lacks the flexibility of fully user-defined type functions because type manipulation would still be limited to the predefined set of type functions designed by the Luau team. Furthermore, continuously expanding the set of built-in type functions leads to bloat and complexity within the language, making it harder to keep in your head, harder to maintain, and ultimately running against Luau's core philosophy of simple, general-purpose primitives and a small standard library.
 
