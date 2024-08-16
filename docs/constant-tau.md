@@ -8,7 +8,22 @@ Define a constant value `math.tau` to be the tau constant.
 
 Currently the value of tau is used in trigonomic calculations through `math.pi * 2`.
 
-The implementation of tau will simplify equations where otherwise math.pi * 2 may be used.
+The implementation of tau will simplify expressing angles in turns or equations where otherwise math.pi * 2 may be used such as:
+
+```
+-- angular difference along a sphere
+local sphereAngleDiff_pi = (a - b + math.pi / 2) % (math.pi * 2)
+local sphereAngleDiff_tau = (a - b + math.pi / 2) % math.tau
+
+-- angular frequency calculation
+local frequency_pi = math.pi * 2 * angularFrequency
+local frequency_tau = math.tau * angularFrequency
+
+-- random gradient
+local r = math.random() * math.pi * 2
+local r_tau = math.random() * math.tau
+local gradient = vector(math.cos(r), math.sin(r), 0)
+```
 
 ## Design
 
