@@ -20,9 +20,18 @@ local frequency_pi = math.pi * 2 * angularFrequency
 local frequency_tau = math.tau * angularFrequency
 
 -- random gradient
+
+-- pi form
 local r = math.random() * math.pi * 2
-local r_tau = math.random() * math.tau
+-- tau form
+local r = math.random() * math.tau
+
 local gradient = vector(math.cos(r), math.sin(r), 0)
+
+-- pi form
+local radsPerSec = 3.5 * math.pi * 2 -- 3.5 revolutions per second
+-- tau form
+local radsPerSec = 3.5 * math.tau -- 3.5 revolutions per second
 ```
 
 ## Design
