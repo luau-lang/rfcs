@@ -118,8 +118,8 @@ This section details the initial programming interface we propose for `type`s wh
 | `negationof(arg: type)` | `type` | returns an immutable instance of the parameter as a negated type; the parameter cannot be a table or function type |
 | `unionof(...: type)` | `type` | returns an immutable instance of an union type of the arguments; requires at least 2 parameters to be provided |
 | `intersectionof(...: type)` | `type` | returns an immutable instance of an intersection type of the arguments; requires at least 2 parameters to be provided |
-| `newtable(props: {[type]: type}?, indexer: {key: type, value: type}?, metatable: type?)` | `type` | returns a mutable instance of a table type; the keys of the table's property must be a singleton type; if provided the metatable parameter, this table becomes a metatable |
-| `newfunction(parameters: {pack: {type}?, variadic: type?}, returns: {pack: {type}?, variadic: type?})` | `type` | returns a mutable instance of a `function` type |
+| `newtable(props: {[type]: type | { read: type, write: type } }?, indexer: {key: type, value: type}?, metatable: type?)` | `type` | returns a mutable instance of a table type; the keys of the table's property must be a singleton type; sets the table's metatable if one is provided |
+| `newfunction(parameters: { head: {type}?, tail: type? }, returns: { head: {type}?, tail: type? })` | `type` | returns a mutable instance of a `function` type |
 | `copy(arg: type)` | `type` | returns a deep copy of the given `type` |
 
 #### Negation
@@ -132,7 +132,7 @@ This section details the initial programming interface we propose for `type`s wh
 
 | Instance Methods | Return Type | Description |
 | ------------- | ------------- | ------------- |
-| `value()` | `string \| boolean` | returns the string or boolean value of the singleton |
+| `value()` | `string \| boolean` \| `nil` | returns the actual value of the singleton, i.e. a specific string, boolean, or `nil` |
 
 #### Table
 
@@ -143,13 +143,13 @@ This section details the initial programming interface we propose for `type`s wh
 | `setwriteproperty(key: type, value: type?)` | `()` | adds / overrides (if same key exists) a key, value pair to the table's properties; if value is nil, removes the key, value pair; if the key does not exist and the value is nil, nothing happens |
 | `readproperty(key: type)` | `type?` | returns the type used for _reading_ values to this property in the table; if the key does not exist, returns nil |
 | `writeproperty(key: type)` | `type?` | returns the type used for _writing_ values to this property in the table; if the key does not exist, returns nil |
-| `properties()` | `{[type]: { read: type, write: type } }` | returns a table mapping property keys to a table with their respective read and write types |
+| `properties()` | `{[type]: type | { read: type, write: type } }` | returns a table mapping property keys to a table with their respective read and write types |
 | `setindexer(index: type, result: type)` | `()` | sets the table's indexer with the index type as the first parameter, and the result as the second parameter; equivalent to calling `setreadindexer` and `setwriteindexer` with the same parameters |
 | `setreadindexer(index: type, result: type)` | `()` | sets the table's indexer with the index type as the first parameter, and the resulting read type as the second parameter |
 | `setwriteindexer(index: type, result: type)` | `()` | sets the table's indexer with the index type as the first parameter, and the resulting write type as the second parameter |
-| `indexer()` | `{index: type, readresult: type, writeresult: type}?` | returns the table's indexer as a table; if the indexer does not exist, returns nil |
-| `readindexer()` | `{index: type, result: type}?` | returns the table's indexer as a table using the read type of the result; if the indexer does not exist, returns nil |
-| `writeindexer()` | `{index: type, result: type}?` | returns the table's indexer as a table using the write type of the result; if the indexer does not exist, returns nil |
+| `indexer()` | `{ index: type, readresult: type, writeresult: type }?` | returns the table's indexer as a table; if the indexer does not exist, returns nil |
+| `readindexer()` | `{ index: type, result: type }?` | returns the table's indexer as a table using the read type of the result; if the indexer does not exist, returns nil |
+| `writeindexer()` | `{ index: type, result: type }?` | returns the table's indexer as a table using the write type of the result; if the indexer does not exist, returns nil |
 | `setmetatable(arg: type)` | `()` | sets the table's metatable to the argument |
 | `metatable()` | `type?` | returns the table's metatable; if the metatable does not exist, returns nil |
 
@@ -157,10 +157,10 @@ This section details the initial programming interface we propose for `type`s wh
 
 | Instance Methods | Return Type | Description |
 | ------------- | ------------- | ------------- |
-| `setparameters(pack: {type}?, variadic: type?)` | () | sets the function's parameter types to the arguments |
-| `parameters()` | `{pack: {type}?, variadic: type?}` | returns the function's parameter types as a table |
-| `setreturns(pack: {type}?, variadic: type?)` | () | sets the function's return types to the arguments |
-| `returns()` | `{pack: {type}?, variadic: type?}` | returns the function's return types as a table |
+| `setparameters(head: {type}?, tail: type?)` | () | sets the function's parameter types to the given arguments |
+| `parameters()` | `{ head: {type}?, tail: type? }` | returns the function's parameter list as an array of ordered parameter types and optionally a variadic tail |
+| `setreturns(head: {type}?, tail: type?)` | () | sets the function's return types to the given arguments |
+| `returns()` | `{ head: {type}?, tail: type? }` | returns the function's return types as an array of types and optionally a variadic tail |
 
 #### Union
 
@@ -178,13 +178,13 @@ This section details the initial programming interface we propose for `type`s wh
 
 | Instance Methods | Return Type | Description |
 | ------------- | ------------- | ------------- |
-| `properties()` | `{[type]: { read: type, write: type }}` | returns a table mapping class' property keys to a table with their respective read and write types  |
+| `properties()` | `{[type]: type | { read: type, write: type } }` | returns a table mapping class' property keys to a table with their respective read and write types  |
 | `readparent()` | `type?` | returns the read type of class' parent class; if the parent class does not exist, returns nil |
 | `writeparent()` | `type?` | returns the write type class' parent class; if the parent class does not exist, returns nil |
 | `metatable()` | `type?` | returns the class' metatable; if the metatable does not exists, returns nil |
-| `indexer()` | `{index: type, readresult: type, writeresult: type}?` | returns the class' indexer as a table; if the indexer does not exist, returns nil |
-| `readindexer()` | `{index: type, result: type}?` | returns the class' indexer as a table using the read type of the result; if the indexer does not exist, returns nil |
-| `writeindexer()` | `{index: type, result: type}?` | returns the class' indexer as a table using the write type of the result; if the indexer does not exist, returns nil |
+| `indexer()` | `{ index: type, readresult: type, writeresult: type }?` | returns the class' indexer as a table; if the indexer does not exist, returns nil |
+| `readindexer()` | `{ index: type, result: type }?` | returns the class' indexer as a table using the read type of the result; if the indexer does not exist, returns nil |
+| `writeindexer()` | `{ index: type, result: type }?` | returns the class' indexer as a table using the write type of the result; if the indexer does not exist, returns nil |
 
 </details>
 
