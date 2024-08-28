@@ -96,9 +96,9 @@ This section details the initial programming interface we propose for `type`s wh
 
 <details><summary>Expand for full type API reference.</summary>
 
-#### `types`
+### `types` Library
 
-| Instance Attributes | Type | Description |
+| Library Properties | Type | Description |
 | ------------- | ------------- | ------------- |
 | `unknown` | `type` | an immutable instance of the built-in type `unknown` |
 | `never` | `type` | an immutable instance of the built-in type `never` |
@@ -107,34 +107,42 @@ This section details the initial programming interface we propose for `type`s wh
 | `number` | `type` | an immutable instance of the built-in type `number` |
 | `string` | `type` | an immutable instance of the built-in type `string` |
 
-| Instance Methods | Return Type | Description |
-| ------------- | ------------- | ------------- |
-| `__eq(arg: type)` | `boolean` | overrides the == operator to return true if self is syntactically equal to arg |
-| `is(arg: string)` | `boolean` | returns true if self has the same tag as the argument. List of available tags: "nil", "unknown", "never", "any", "boolean", "number", "string", "singleton", "negation", "union", "intersection", "table", "function", "class"  |
-
-| Static Methods | Return Type | Description |
+| Library Functions | Return Type | Description |
 | ------------- | ------------- | ------------- |
 | `singleton(arg: string \| boolean \| nil)` | `type` | returns an immutable instance of the argument as a singleton type |
 | `negationof(arg: type)` | `type` | returns an immutable instance of the parameter as a negated type; the parameter cannot be a table or function type |
 | `unionof(...: type)` | `type` | returns an immutable instance of an union type of the arguments; requires at least 2 parameters to be provided |
 | `intersectionof(...: type)` | `type` | returns an immutable instance of an intersection type of the arguments; requires at least 2 parameters to be provided |
-| `newtable(props: {[type]: type | { read: type, write: type } }?, indexer: {key: type, value: type}?, metatable: type?)` | `type` | returns a mutable instance of a table type; the keys of the table's property must be a singleton type; sets the table's metatable if one is provided |
+| `newtable(props: {[type]: type \| { read: type, write: type } }?, indexer: { key: type, value: type }?, metatable: type?)` | `type` | returns a mutable instance of a table type; the keys of the table's property must be a singleton type; sets the table's metatable if one is provided |
 | `newfunction(parameters: { head: {type}?, tail: type? }, returns: { head: {type}?, tail: type? })` | `type` | returns a mutable instance of a `function` type |
 | `copy(arg: type)` | `type` | returns a deep copy of the given `type` |
 
-#### Negation
+### `type` Instance
+
+| Instance Properties | Type | Description |
+| ------------- | ------------- | ------------- |
+| `tag` | `"nil" \| "unknown" \| "never" \| "any" \| "boolean" \| "number" \| "string" \| "singleton" \| "negation" \| "union" \| "intersection" \| "table" \| "function" \| "class"` | an immutable property holding this type's tag |
+
+| Instance Methods | Return Type | Description |
+| ------------- | ------------- | ------------- |
+| `__eq(arg: type)` | `boolean` | overrides the == operator to return true if self is syntactically equal to arg, note that semantically equivalent types like `true \| false` and `boolean` will _not_ compare equal |
+| `is(arg: string)` | `boolean` | returns true if self has the same tag as the argument. List of available tags: "nil", "unknown", "never", "any", "boolean", "number", "string", "singleton", "negation", "union", "intersection", "table", "function", "class"  |
+
+Depending on the particular `tag`, a `type` instance can have additional properties and methods available as described below.
+
+#### Negation `type` instance
 
 | Instance Methods | Type | Description |
 | ------------- | ------------- | ------------- |
 | `inner()` | `type` | returns the `type` being negated |
 
-#### Singleton
+#### Singleton `type` instance
 
 | Instance Methods | Return Type | Description |
 | ------------- | ------------- | ------------- |
 | `value()` | `string \| boolean` \| `nil` | returns the actual value of the singleton, i.e. a specific string, boolean, or `nil` |
 
-#### Table
+#### Table `type` instance
 
 | Instance Methods | Return Type | Description |
 | ------------- | ------------- | ------------- |
@@ -143,7 +151,7 @@ This section details the initial programming interface we propose for `type`s wh
 | `setwriteproperty(key: type, value: type?)` | `()` | adds / overrides (if same key exists) a key, value pair to the table's properties; if value is nil, removes the key, value pair; if the key does not exist and the value is nil, nothing happens |
 | `readproperty(key: type)` | `type?` | returns the type used for _reading_ values to this property in the table; if the key does not exist, returns nil |
 | `writeproperty(key: type)` | `type?` | returns the type used for _writing_ values to this property in the table; if the key does not exist, returns nil |
-| `properties()` | `{[type]: type | { read: type, write: type } }` | returns a table mapping property keys to a table with their respective read and write types |
+| `properties()` | `{[type]: { read: type, write: type } }` | returns a table mapping property keys to a table with their respective read and write types |
 | `setindexer(index: type, result: type)` | `()` | sets the table's indexer with the index type as the first parameter, and the result as the second parameter; equivalent to calling `setreadindexer` and `setwriteindexer` with the same parameters |
 | `setreadindexer(index: type, result: type)` | `()` | sets the table's indexer with the index type as the first parameter, and the resulting read type as the second parameter |
 | `setwriteindexer(index: type, result: type)` | `()` | sets the table's indexer with the index type as the first parameter, and the resulting write type as the second parameter |
@@ -153,7 +161,7 @@ This section details the initial programming interface we propose for `type`s wh
 | `setmetatable(arg: type)` | `()` | sets the table's metatable to the argument |
 | `metatable()` | `type?` | returns the table's metatable; if the metatable does not exist, returns nil |
 
-#### Function
+#### Function `type` instance
 
 | Instance Methods | Return Type | Description |
 | ------------- | ------------- | ------------- |
@@ -162,23 +170,23 @@ This section details the initial programming interface we propose for `type`s wh
 | `setreturns(head: {type}?, tail: type?)` | () | sets the function's return types to the given arguments |
 | `returns()` | `{ head: {type}?, tail: type? }` | returns the function's return types as an array of types and optionally a variadic tail |
 
-#### Union
+#### Union `type` instance
 
 | Instance Methods | Return Type | Description |
 | ------------- | ------------- | ------------- |
 | `components()` | `{type}` | returns an array of `types` being unioned |
 
-#### Intersection
+#### Intersection `type` instance
 
 | Instance Methods | Return Type | Description |
 | ------------- | ------------- | ------------- |
 | `components()` | `{type}` | returns an array of `types` being intersected |
 
-#### Class
+#### Class `type` instance
 
 | Instance Methods | Return Type | Description |
 | ------------- | ------------- | ------------- |
-| `properties()` | `{[type]: type | { read: type, write: type } }` | returns a table mapping class' property keys to a table with their respective read and write types  |
+| `properties()` | `{[type]: { read: type, write: type } }` | returns a table mapping class' property keys to a table with their respective read and write types  |
 | `readparent()` | `type?` | returns the read type of class' parent class; if the parent class does not exist, returns nil |
 | `writeparent()` | `type?` | returns the write type class' parent class; if the parent class does not exist, returns nil |
 | `metatable()` | `type?` | returns the class' metatable; if the metatable does not exists, returns nil |
