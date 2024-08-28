@@ -140,7 +140,7 @@ Depending on the particular `tag`, a `type` instance can have additional propert
 
 | Instance Methods | Return Type | Description |
 | ------------- | ------------- | ------------- |
-| `value()` | `string \| boolean` \| `nil` | returns the actual value of the singleton, i.e. a specific string, boolean, or `nil` |
+| `value()` | `string \| boolean \| nil` | returns the actual value of the singleton, i.e. a specific string, boolean, or `nil` |
 
 #### Table `type` instance
 
