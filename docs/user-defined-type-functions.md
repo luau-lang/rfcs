@@ -132,7 +132,7 @@ This section details the initial programming interface we propose for `type`s wh
 
 | Instance Methods | Return Type | Description |
 | ------------- | ------------- | ------------- |
-| `value()` | `string \| boolean` | returns the string value of the  singleton |
+| `value()` | `string \| boolean` | returns the string or boolean value of the singleton |
 
 #### Table
 
