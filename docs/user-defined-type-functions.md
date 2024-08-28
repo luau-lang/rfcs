@@ -157,7 +157,7 @@ This section details the initial programming interface we propose for `type`s wh
 
 | Instance Methods | Return Type | Description |
 | ------------- | ------------- | ------------- |
-| `setparameters(pack: {type}?, variadic: type?)` | `nil` | sets the function's parameter types to the arguments |
+| `setparameters(pack: {type}?, variadic: type?)` | () | sets the function's parameter types to the arguments |
 | `parameters()` | `{pack: {type}?, variadic: type?}` | returns the function's parameter types as a table |
 | `setreturns(pack: {type}?, variadic: type?)` | () | sets the function's return types to the arguments |
 | `returns()` | `{pack: {type}?, variadic: type?}` | returns the function's return types as a table |
