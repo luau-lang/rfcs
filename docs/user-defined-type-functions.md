@@ -92,7 +92,7 @@ Instead, this RFC proposes that we accept that type functions, like the rest of 
 
 ### `types` API Reference
 
-This section details the initial programming interface we propose for `type`s when they are reflected into type function bodies. Each section is separated by headers (e.g. Singleton) and describe the methods available to that category of type. The initial section, titled `types`, describes the elements of the interface common to every category of type. All properties of newly-created `type`s are initialized with empty tables / arrays and `nil`. All arguments are passed by references. 
+This section details the initial programming interface we propose for `type`s when they are reflected into type function bodies. Each section is separated by headers (e.g. Singleton) and describe the methods available to that category of type. The "`type` Instance" section, describes the elements of the interface common to every category of type. All properties of newly-created `type`s are initialized with empty tables / arrays and `nil`. All arguments are passed by references. 
 
 <details><summary>Expand for full type API reference.</summary>
 
