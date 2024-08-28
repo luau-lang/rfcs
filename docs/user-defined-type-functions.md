@@ -165,9 +165,9 @@ Depending on the particular `tag`, a `type` instance can have additional propert
 
 | Instance Methods | Return Type | Description |
 | ------------- | ------------- | ------------- |
-| `setparameters(head: {type}?, tail: type?)` | () | sets the function's parameter types to the given arguments |
+| `setparameters(head: {type}?, tail: type?)` | `()` | sets the function's parameter types to the given arguments |
 | `parameters()` | `{ head: {type}?, tail: type? }` | returns the function's parameter list as an array of ordered parameter types and optionally a variadic tail |
-| `setreturns(head: {type}?, tail: type?)` | () | sets the function's return types to the given arguments |
+| `setreturns(head: {type}?, tail: type?)` | `()` | sets the function's return types to the given arguments |
 | `returns()` | `{ head: {type}?, tail: type? }` | returns the function's return types as an array of types and optionally a variadic tail |
 
 #### Union `type` instance
