@@ -23,7 +23,7 @@ end
 ```
 
 When implementing a `lerp` function, we can judge how accurate the function is by the following criteria (credit to [this](https://github.com/rust-lang/rust/issues/86269#issuecomment-869108301) post about the nature of `lerp`). If the `lerp` function can meet all of these criteria, then the function is effectively perfect.
-- Is the function **exact**? This means that `math.lerp(x, y, 0) == x` and `math.lerp(x, y, 1) == ` exactly.
+- Is the function **exact**? This means that `math.lerp(x, y, 0) == x` and `math.lerp(x, y, 1) == y` exactly.
 - Is the function **consistent**? This means that `math.lerp(x, x, alpha) == x`, despite the value of `alpha`.
 - Is the function **monotonic**? This means that if `y` is strictly greater than `x`, `math.lerp(x, y, alpha)` should also strictly increase as `alpha` strictly increases, and vice versa for strictly decreasing. Now, due to the limitations of `double` precision, if `x` and `y` are very close together, there may be overlap where multiple values of `alpha` may correlate to the same result. This is ultimately unavoidable with any kind of `double` and `float` math, as we can observe the same behavior with `math.sin`, `math.cos`, etc.
 
