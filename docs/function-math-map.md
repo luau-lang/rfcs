@@ -25,7 +25,7 @@ Just like common Luau implementations, `x` is allowed to be outside the input ra
 
 ## Drawbacks
 
-This would add a new function to the native library, taking yet another fastcall slot.
+This adds yet another function to the standard library.
 
 The function may also not provide enough performance improvements to warrant its addition, so implementations of this should be benchmarked.
 
