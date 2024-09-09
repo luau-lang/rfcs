@@ -62,7 +62,7 @@ Applies `math.clamp` component-wise for each vector. Equivalent of: `vector(math
 
 `vector.max(...: vector): vector`
 
-Applies `math.max` component-wise for each vector. Equivalent of: `vector(math.max((...).x), etc)`.
+Applies `math.max` component-wise for each vector. Equivalent of: `vector.create(math.max((...).x), etc)`.
 
 `vector.min(...: vector): vector`
 
