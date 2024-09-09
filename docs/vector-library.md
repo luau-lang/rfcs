@@ -42,7 +42,7 @@ Returns the angle between two vectors in radians. The axis, if specified, is use
 
 `vector.floor(vec: vector): vector`
 
-Applies `math.floor` component-wise for each vector. Equivalent of: `vector(math.floor(vec.x), etc)`.
+Applies `math.floor` component-wise for each vector. Equivalent of: `vector.create(math.floor(vec.x), etc)`.
 
 `vector.ceil(vec: vector): vector`
 
