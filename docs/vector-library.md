@@ -66,7 +66,7 @@ Applies `math.sign` component-wise for each vector. Equivalent of: `vector.creat
 
 `vector.clamp(vec: vector, min: vector, max: vector): vector`
 
-Applies `math.clamp` component-wise for each vector. Equivalent of: `vector(math.clamp(vec.x, min.x, max.x), etc)`.
+Applies `math.clamp` component-wise for each vector. Equivalent of: `vector.create(math.clamp(vec.x, min.x, max.x), etc)`.
 
 `vector.max(...: vector): vector`
 
