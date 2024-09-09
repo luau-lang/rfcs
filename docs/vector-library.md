@@ -12,6 +12,10 @@ Currently, vectors are a primitive type implemented internally. All of the heavy
 
 The default metatable for vectors should now be the `vector` library. While buffers and coroutines do not have this, vectors likely should for ergonomics.
 
+Luau VM can be configured in two different vector value modes.
+Default configuration uses vectors with 3 components (`xyz`) and if the `LUA_VECTOR_SIZE` configuration option is set to 4, vector values get an additional forth `w` component.
+This mode will be referred to as '4-wide mode' in this proposal.
+
 ### Library functions & constants
 
 This RFC proposes the following basic functions and constants.
