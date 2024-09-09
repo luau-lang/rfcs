@@ -74,7 +74,7 @@ Applies `math.max` component-wise for each vector. Equivalent of: `vector.create
 
 `vector.min(...: vector): vector`
 
-Applies `math.min` component-wise for each vector. Equivalent of: `vector(math.min((...).x), etc)`.
+Applies `math.min` component-wise for each vector. Equivalent of: `vector.create(math.min((...).x), etc)`.
 
 ---
 
