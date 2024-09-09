@@ -54,7 +54,7 @@ Applies `math.abs` component-wise for each vector. Equivalent of: `vector(math.a
 
 `vector.sign(vec: vector): vector`
 
-Applies `math.sign` component-wise for each vector. Equivalent of: `vector(math.sign(vec.x), etc)`.
+Applies `math.sign` component-wise for each vector. Equivalent of: `vector.create(math.sign(vec.x), etc)`.
 
 `vector.clamp(vec: vector, min: vector, max: vector): vector`
 
