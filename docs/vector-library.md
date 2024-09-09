@@ -92,6 +92,13 @@ Vector where `x=1, y=1, z=1, w?=1`.
 
 Primitive operators for vectors are already implemented, so this RFC doesn't concern vector arithmetic.
 
+### Component access
+
+Component access is already supported in the VM using the fields 'x', 'y', 'z', 'X', 'Y' and 'Z' (plus 'w' and 'W' in 4-wide mode).
+Note that writes to a single component are not supported as the vector value is immutable.
+This RFC doesn't define any changes to this behavior.
+
+
 ### Compiler options
 
 Currently, there are 2 compiler options relating to vectors, `vectorLib` & `vectorCtor`. This poses an interesting problem: a builtin library would remove the _requirement_ for such compiler options, however these options still need to be supported. The intuitive solution to this is to leave both compiler options working and maintained, but provide the built-in vector library by default, allowing two vector libraries and two vector constructors.
