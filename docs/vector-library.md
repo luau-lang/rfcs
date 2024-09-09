@@ -18,7 +18,11 @@ This RFC proposes the following basic functions and constants.
 
 `vector.create(x: number, y: number, z: number): vector`
 
-Creates a new vector with the given components. When in 4-wide mode takes a fourth `w` argument. None of the arguments are optional.
+Creates a new vector with the given components. In 4-wide mode, the forth `w` component value is set to 0.0.
+
+`vector.create(x: number, y: number, z: number, w: number): vector`
+
+Additional constructor available in 4-wide mode. Creates a new vector with the given components.
 
 `vector.magnitude(vec: vector): number`
 
