@@ -46,7 +46,7 @@ Applies `math.floor` component-wise for each vector. Equivalent of: `vector(math
 
 `vector.ceil(vec: vector): vector`
 
-Applies `math.ceil` component-wise for each vector. Equivalent of: `vector(math.ceil(vec.x), etc)`.
+Applies `math.ceil` component-wise for each vector. Equivalent of: `vector.create(math.ceil(vec.x), etc)`.
 
 `vector.abs(vec: vector): vector`
 
