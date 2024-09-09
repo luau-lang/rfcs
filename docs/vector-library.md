@@ -58,7 +58,7 @@ Applies `math.ceil` component-wise for each vector. Equivalent of: `vector.creat
 
 `vector.abs(vec: vector): vector`
 
-Applies `math.abs` component-wise for each vector. Equivalent of: `vector(math.abs(vec.x), etc)`.
+Applies `math.abs` component-wise for each vector. Equivalent of: `vector.create(math.abs(vec.x), etc)`.
 
 `vector.sign(vec: vector): vector`
 
