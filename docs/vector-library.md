@@ -111,7 +111,7 @@ A new primitive `vector` type should be added to the type system.
 
 A better vector constructor with new syntax, such as `<x, y, z>` or `(x, y, z)` or `|x, y, z|` or `vector(x, y, z)` or `[x, y, z]` could be implemented. This would make code that does stuff with vectors much less verbose.
 
-The buffer library could include functions to work with vectors, such as `buffer.writevector2`, `buffer.writevector3`, and in 4-wide mode, `buffer.writevector4`. The corrosponding read functions would of course be included.
+The buffer library could include functions to work with vectors, such as `buffer.writevector2`, `buffer.writevector3`, and in 4-wide mode, `buffer.writevector4`. The corresponding read functions would of course be included.
 
 ## Drawbacks
 
