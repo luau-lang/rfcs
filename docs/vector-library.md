@@ -22,7 +22,7 @@ This RFC proposes the following basic functions and constants.
 
 `vector.create(x: number, y: number, z: number): vector`
 
-Creates a new vector with the given components. In 4-wide mode, the forth `w` component value is set to 0.0.
+Creates a new vector with the given components. In 4-wide mode, the fourth `w` component value is set to 0.0.
 
 `vector.create(x: number, y: number, z: number, w: number): vector`
 
