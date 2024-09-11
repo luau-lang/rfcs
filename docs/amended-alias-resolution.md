@@ -137,6 +137,18 @@ require("./libs/dependency")
 require("@libs/dependency")
 ```
 
+If the `libs` alias did not exist, however, we would have the following:
+```luau
+-- Requires ./libs/dependency.luau
+require("libs/dependency")
+
+-- Requires ./libs/dependency.luau
+require("./libs/dependency")
+
+-- Error: there is no "@libs" alias in .luaurc
+require("@libs/dependency")
+```
+
 #### (3b) Aliases as fallbacks
 
 If aliases were fallbacks, we would have the following behavior.
