@@ -117,7 +117,7 @@ The buffer library could include functions to work with vectors, such as `buffer
 
 As per all additional globals, this creates a new global `vector`. This is a commonly used variable name, and many style guides will advise to avoid using `vector` as a variable name due to the global being added.
 
-Introducing a vector library means introducing more globals. Due to the prescence of vectors in performance-intensive code, it can be assumed that the built-in functions will have fastcalls. This means more fastcall slots will be used.
+Introducing a vector library means introducing more globals. Due to the presence of vectors in performance-intensive code, it can be assumed that the built-in functions will have fastcalls. This means more fastcall slots will be used.
 
 Existing code won't get any improvements from a built-in library. Developers will have to switch over to the built-in library in order to gain any benefit.
 
