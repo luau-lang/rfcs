@@ -19,7 +19,7 @@ Otherwise, we will assume the given string does not contain an alias and will re
 
 There have been disagreements about which approach is more appropriate, so this RFC will serve as a way to document the ongoing discussion and the final decision we make.
 
-## Design and Drawbacks
+## Possible Designs and Drawbacks
 
 Below, we have multiple different options for syntax and resolution semantics.
 For each design, assume that the following `.luaurc` file is defined:
@@ -74,9 +74,26 @@ The main drawback of this approach is that projects with many _internal_ depende
 
 This is similar to [darklua's approach](https://darklua.com/docs/path-require-mode/).
 
+#### (1c) All explicit prefixes necessary
+
+An alternative approach is to combine approaches (1a) and (1b) and always require prefixes for disambiguation.
+In this scenario, any unprefixed path will _always_ result in an error.
+```luau
+-- Error: must have either "@", "./", or "../" prefix
+require("libs/dependency")
+
+-- Requires ./libs/dependency.luau
+require("./libs/dependency")
+
+-- Requires /My/Libraries/Directory/dependency.luau
+require("@libs/dependency")
+```
+
+The main drawback of this approach is that it is not backwards compatible with any existing code that uses unprefixed require statements.
+
 ### (2) Strongly recommend explicit prefixes
 
-We don't make the `@`, `./`, or `../` prefixes necessary, but we strongly recommend them.
+We don't make the `@`, `./`, or `../` prefixes necessary like in approach (1c), but we strongly recommend them.
 
 This can be accomplished by allowing unprefixed paths but throwing an error if they resolve to multiple files.
 There is a performance cost to this: currently, if we successfully match a given path to a file, we stop searching for other matches.
@@ -99,31 +116,13 @@ require("@libs/dependency")
 
 This is a compromise between approaches (1a) and (1b) that sacrifices performance for compatibility and readability.
 
-## Alternatives
-
-### All explicit prefixes necessary
-
-An alternative approach is to combine approaches (1a) and (1b) and always require prefixes for disambiguation.
-In other words, this is similar to approach (2), but any unprefixed path will _always_ result in an error.
-This avoids the performance cost of approach (2), but it is not backwards compatible with existing code.
-```luau
--- Error: must have either "@", "./", or "../" prefix
-require("libs/dependency")
-
--- Requires ./libs/dependency.luau
-require("./libs/dependency")
-
--- Requires /My/Libraries/Directory/dependency.luau
-require("@libs/dependency")
-```
-
-### Use implicit resolution ordering to avoid `@` prefix
+### (3) Use implicit resolution ordering to avoid `@` prefix
 
 If we choose to remove the `@` prefix, we must define an implicit resolution ordering.
 In essence, aliases must either represent overrides or fallbacks for relative path resolution.
 A drawback of this approach is that implicit resolution ordering can be confusing, and people disagree on which ordering is best.
 
-#### Aliases as overrides
+#### (3a) Aliases as overrides
 
 If aliases were overrides, we would have the following behavior.
 This is identical to the [old RFC](https://github.com/luau-lang/luau/pull/969)'s behavior.
@@ -138,7 +137,7 @@ require("./libs/dependency")
 require("@libs/dependency")
 ```
 
-#### Aliases as fallbacks
+#### (3b) Aliases as fallbacks
 
 If aliases were fallbacks, we would have the following behavior.
 ```luau
