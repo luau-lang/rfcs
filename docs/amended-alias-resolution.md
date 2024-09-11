@@ -55,9 +55,9 @@ The main drawback of this approach is that projects with many _external_ depende
 
 This is similar to [Lune's approach](https://lune-org.github.io/docs/getting-started/2-introduction/8-modules#file-require-statements) and is identical to the approach currently described in [require-by-string-aliases.md](require-by-string-aliases.md).
 
-#### (1b) Make relative paths explicit with either `./` or `../` prefix
+#### (1b) Make relative paths explicit with `./` prefix
 
-We make usage of either the `./` or `../` prefix necessary in relative require statements.
+We make usage of the `./` prefix necessary in relative require statements.
 This means that any unprefixed string is always treated as an aliased path.
 ```luau
 -- Requires /My/Libraries/Directory/dependency.luau
@@ -70,7 +70,7 @@ require("./libs/dependency")
 require("@libs/dependency")
 ```
 
-The main drawback of this approach is that projects with many _internal_ dependencies will have many `./` and `../` symbols appearing within require statements.
+The main drawback of this approach is that projects with many _internal_ dependencies will have many `./` symbols appearing within require statements.
 
 This is similar to [darklua's approach](https://darklua.com/docs/path-require-mode/).
 
