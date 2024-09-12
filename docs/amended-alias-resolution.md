@@ -12,10 +12,12 @@ In an [old RFC for require-by-string](https://github.com/luau-lang/luau/pull/969
 the path `require("my/module")` is resolved by first checking if `my` is an alias defined in a `.luaurc` file.
 If so, we perform a string substitution on `my`.
 If not, we try to resolve `my/module` relative to the requiring file.
+This is identical to approach (3a) below.
 
 This design changed in the next few months and became what we now have in [require-by-string-aliases.md](require-by-string-aliases.md):
 when requiring an alias, it must be prepended with the `@` prefix.
 Otherwise, we will assume the given string does not contain an alias and will resolve it relative to the requiring file.
+This is identical to approach (1a) below.
 
 There have been disagreements about which approach is more appropriate, so this RFC will serve as a way to document the ongoing discussion and the final decision we make.
 
