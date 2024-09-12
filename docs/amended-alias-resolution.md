@@ -91,7 +91,12 @@ require("./libs/dependency")
 require("@libs/dependency")
 ```
 
-The main drawback of this approach is that it is not backwards compatible with any existing code that uses unprefixed require statements.
+A benefit of this approach is that the role of autocomplete becomes fairly well-defined.
+When `require("` is typed, autocomplete has only three options to display: the `@`, `./`, and `../` prefixes.
+After a prefix has been typed, autocomplete will either display defined aliases or local modules, depending on the prefix.
+Approaches (1a) and (1b) would be less clear about this, as `require("` could be followed by a string component or one of the three prefixes.
+
+The main drawback of this approach is that it is not backwards compatible with any existing code that uses unprefixed require statements and may result in code that looks cluttered.
 
 ### (2) Strongly recommend explicit prefixes
 
