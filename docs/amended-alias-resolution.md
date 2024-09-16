@@ -98,6 +98,11 @@ Approaches (1a) and (1b) would be less clear about this, as `require("` could be
 
 The main drawback of this approach is that it is not backwards compatible with any existing code that uses unprefixed require statements and may result in code that looks cluttered.
 
+## Alternatives
+
+Below are options that were proposed in an earlier version of this RFC, with their numbered labels preserved.
+These approaches were deemed undesirable during discussion and are no longer being considered.
+
 ### (2) Strongly recommend explicit prefixes
 
 We don't make the `@`, `./`, or `../` prefixes necessary like in approach (1c), but we strongly recommend them.
@@ -122,12 +127,13 @@ require("@libs/dependency")
 ```
 
 This is a compromise between approaches (1a) and (1b) that sacrifices performance for compatibility and readability.
+Unfortunately, this approach could lead to unexpected behavior if users have globally defined `.luaurc` files that conflict with scripts that expect certain aliases to not be defined.
 
 ### (3) Use implicit resolution ordering to avoid `@` prefix
 
 If we choose to remove the `@` prefix, we must define an implicit resolution ordering.
 In essence, aliases must either represent overrides or fallbacks for relative path resolution.
-A drawback of this approach is that implicit resolution ordering can be confusing, and people disagree on which ordering is best.
+These approaches are not being considered since implicit resolution ordering can be confusing, and people may disagree on which ordering is best.
 
 #### (3a) Aliases as overrides
 
