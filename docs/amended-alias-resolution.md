@@ -105,14 +105,14 @@ These approaches were deemed undesirable during discussion and are no longer bei
 
 ### (2) Strongly recommend explicit prefixes
 
-We don't make the `@`, `./`, or `../` prefixes necessary like in approach (1c), but we strongly recommend them.
+We don't make the `@` or `./` prefixes necessary like in approach (1c), but we strongly recommend them.
 
 This can be accomplished by allowing unprefixed paths but throwing an error if they resolve to multiple files.
 There is a performance cost to this: currently, if we successfully match a given path to a file, we stop searching for other matches.
 If this approach were implemented, we would need to search for at most two matching files in case we need to throw an error.
 In the case of multiple nested directories with their own `.luaurc` files and `paths` arrays, this search could take linear time with respect to the total number of paths defined, in the worst case.
 
-Of course, developers could use the `@`, `./`, or `../` prefixes to explicitly specify a search type and eliminate this performance cost.
+Of course, developers could use the `@` or `./` prefixes to explicitly specify a search type and eliminate this performance cost.
 ```luau
 -- Error: ./libs/dependency.luau exists and .luaurc defines a distinct "libs" alias
 -- Would require ./libs/dependency.luau if "libs" alias did not exist
