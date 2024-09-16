@@ -96,6 +96,10 @@ When `require("` is typed, autocomplete has only three options to display: the `
 After a prefix has been typed, autocomplete will either display defined aliases or local modules, depending on the prefix.
 Approaches (1a) and (1b) would be less clear about this, as `require("` could be followed by a string component or one of the three prefixes.
 
+An additional benefit of this approach is that it is forwards compatible with both (1a) and (1b).
+We effectively reserve unprefixed paths with this approach and can support either (1a) or (1b) further down the road.
+After a package manager has been implemented, we will likely have a better sense for which option makes the most sense: mapping unprefixed paths to local modules, to aliased modules, or to nothing (keeping unprefixed paths unsupported).
+
 The main drawback of this approach is that it is not backwards compatible with any existing code that uses unprefixed require statements and may result in code that looks cluttered.
 
 ## Alternatives
