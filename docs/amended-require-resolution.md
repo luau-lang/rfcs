@@ -1,4 +1,4 @@
-# Amended Alias Syntax and Resolution Semantics
+# Amended Require Syntax and Resolution Semantics
 
 ## Summary
 
@@ -23,7 +23,7 @@ There have been disagreements about which approach is more appropriate, so this 
 
 ## Possible Designs and Drawbacks
 
-Below, we have multiple different options for syntax and resolution semantics.
+Below, we have multiple different options for alias syntax and resolution semantics.
 For each design, assume that the following `.luaurc` file is defined:
 ```json
 {
@@ -35,6 +35,9 @@ For each design, assume that the following `.luaurc` file is defined:
 Additionally, assume that we have a file named `dependency.luau` located in these two locations:
 1. `./libs/dependency.luau`
 2. `/My/Libraries/Directory/dependency.luau`
+
+As part of the push to make require statements more explicit, we also propose removing `paths`, as aliases serve a similar purpose and are more explicit.
+The following options operate under the assumption that `paths` is no longer supported in `.luaurc` files, so we do not need to provide a syntax that corresponds to `paths`.
 
 ### (1) Make explicit prefixes necessary
 
