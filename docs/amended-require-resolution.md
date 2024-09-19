@@ -6,8 +6,6 @@ We need to finalize a syntax for aliases in require statements and determine int
 
 ## Motivation
 
-As we prepare to build an official Luau package management system, we need unambiguous alias functionality.
-
 In an [old RFC for require-by-string](https://github.com/luau-lang/luau/pull/969), we removed the `@` prefix from aliases altogether and opted for the following design:
 the path `require("my/module")` is resolved by first checking if `my` is an alias defined in a `.luaurc` file.
 If so, we perform a string substitution on `my`.
@@ -19,12 +17,17 @@ when requiring an alias, it must be prepended with the `@` prefix.
 Otherwise, we will assume the given string does not contain an alias and will resolve it relative to the requiring file.
 This is identical to approach (1a) below.
 
-There have been disagreements about which approach is more appropriate, so this RFC will serve as a way to document the ongoing discussion and the final decision we make.
+As we prepare to build an official Luau package management system, we need unambiguous alias functionality.
+This RFC documents the final design decision made after discussion.
 
-## Possible Designs and Drawbacks
+Note: The numbered labels below are preserved from an earlier version of this document.
+Discussion in the [PR](https://github.com/luau-lang/rfcs/pull/56) refers to these approaches by their labels, so they have been left as-is in this document.
 
-Below, we have multiple different options for alias syntax and resolution semantics.
-For each design, assume that the following `.luaurc` file is defined:
+## Design
+
+### Context
+
+Assume that the following `.luaurc` file is defined:
 ```json
 {
     "aliases": {
@@ -36,10 +39,53 @@ Additionally, assume that we have a file named `dependency.luau` located in thes
 1. `./libs/dependency.luau`
 2. `/My/Libraries/Directory/dependency.luau`
 
-As part of the push to make require statements more explicit, we also propose removing `paths`, as aliases serve a similar purpose and are more explicit.
-The following options operate under the assumption that `paths` is no longer supported in `.luaurc` files, so we do not need to provide a syntax that corresponds to `paths`.
+### (1) Make explicit prefixes necessary
+
+#### (1c) All explicit prefixes necessary
+
+We will always require prefixes for disambiguation.
+In other words, any unprefixed path will _always_ result in an error.
+```luau
+-- Error: must have either "@", "./", or "../" prefix
+require("libs/dependency")
+
+-- Requires ./libs/dependency.luau
+require("./libs/dependency")
+
+-- Requires /My/Libraries/Directory/dependency.luau
+require("@libs/dependency")
+```
+
+A benefit of this approach is that the role of autocomplete becomes fairly well-defined.
+When `require("` is typed, autocomplete has only three options to display: the `@`, `./`, and `../` prefixes.
+After a prefix has been typed, autocomplete will either display defined aliases or local modules, depending on the prefix.
+Approaches (1a) and (1b) would be less clear about this, as `require("` could be followed by a string component or one of the three prefixes.
+
+An additional benefit of this approach is that it is forwards-compatible with both (1a) and (1b), which are now in Alternatives.
+We effectively reserve unprefixed paths with this approach and can support either (1a) or (1b) further down the road.
+After a package manager has been implemented, we will likely have a better sense for which option makes the most sense: mapping unprefixed paths to local modules, to aliased modules, or to nothing (keeping unprefixed paths unsupported).
+
+### Removing `paths`
+
+As part of the push to make require statements more explicit, we will remove `paths`, as aliases defined in `aliases` serve a similar purpose and are more explicit.
+
+## Drawbacks
+
+The main drawback of this approach is that it is quite strict and not backwards-compatible with any existing code that uses unprefixed require statements.
+However, because of its forwards compatibility with approaches (1a) and (1b), it is possible for us to relax these restrictions in the future.
+
+From an aesthetic point of view, this approach is slightly more cluttered than other approaches, as every path must begin with a prefix.
+
+## Alternatives
 
 ### (1) Make explicit prefixes necessary
+
+Although (1a) and (1b) are both explicit approaches, they take opposite stances on whether writing relative-path requires or aliased-path requires should be optimized for the developer.
+Currently, relative-path requires are far more common, which fits well with approach (1a).
+In the context of a package management system, however, we would expect aliased paths to be used more frequently, which fits better with approach (1b).
+
+These approaches have been moved to Alternatives since they are both backwards-compatible with approach (1c).
+Rather than making an arbitrary decision now, it makes more sense for us to choose (1c) now and reevaluate once package management is a reality.
 
 #### (1a) Make aliases explicit with `@` prefix
 
@@ -78,37 +124,6 @@ require("@libs/dependency")
 The main drawback of this approach is that projects with many _internal_ dependencies will have many `./` symbols appearing within require statements.
 
 This is similar to [darklua's approach](https://darklua.com/docs/path-require-mode/).
-
-#### (1c) All explicit prefixes necessary
-
-An alternative approach is to combine approaches (1a) and (1b) and always require prefixes for disambiguation.
-In this scenario, any unprefixed path will _always_ result in an error.
-```luau
--- Error: must have either "@", "./", or "../" prefix
-require("libs/dependency")
-
--- Requires ./libs/dependency.luau
-require("./libs/dependency")
-
--- Requires /My/Libraries/Directory/dependency.luau
-require("@libs/dependency")
-```
-
-A benefit of this approach is that the role of autocomplete becomes fairly well-defined.
-When `require("` is typed, autocomplete has only three options to display: the `@`, `./`, and `../` prefixes.
-After a prefix has been typed, autocomplete will either display defined aliases or local modules, depending on the prefix.
-Approaches (1a) and (1b) would be less clear about this, as `require("` could be followed by a string component or one of the three prefixes.
-
-An additional benefit of this approach is that it is forwards compatible with both (1a) and (1b).
-We effectively reserve unprefixed paths with this approach and can support either (1a) or (1b) further down the road.
-After a package manager has been implemented, we will likely have a better sense for which option makes the most sense: mapping unprefixed paths to local modules, to aliased modules, or to nothing (keeping unprefixed paths unsupported).
-
-The main drawback of this approach is that it is not backwards compatible with any existing code that uses unprefixed require statements and may result in code that looks cluttered.
-
-## Alternatives
-
-Below are options that were proposed in an earlier version of this RFC, with their numbered labels preserved.
-These approaches were deemed undesirable during discussion and are no longer being considered.
 
 ### (2) Strongly recommend explicit prefixes
 
