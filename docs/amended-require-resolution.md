@@ -69,12 +69,42 @@ After a package manager has been implemented, we will likely have a better sense
 
 As part of the push to make require statements more explicit, we will remove `paths`, as aliases defined in `aliases` serve a similar purpose and are more explicit.
 
+### Throw an error if multiple files matched
+
+Currently, we allow `require` to resolve to both `.luau` and `.lua` files, implicitly preferring `.luau` if both are present.
+In line with this proposal's move toward explicit resolution semantics, this behavior will be revised.
+We will continue to support `.luau` and `.lua` files, but we will throw an error if both are present.
+
+We also currently support requiring a directory if it contains an `init.luau` or `init.lua` file.
+If the name of a file matches the name of a sibling directory, we will now also throw an error to avoid ambiguity.
+
+For example, calling `require("./module")` from `requirer.luau` would throw an error in each of these cases (non-exhaustive).
+
+Conflict between `module.lua` and `module.luau`:
+```
+.
+├── module.lua
+├── module.luau
+└── requirer.luau
+```
+
+Conflict between `module` directory and `module.luau`:
+```
+.
+├── module
+│   └── init.luau
+├── module.luau
+└── requirer.luau
+```
+
 ## Drawbacks
 
 The main drawback of this approach is that it is quite strict and not backwards-compatible with any existing code that uses unprefixed require statements.
 However, because of its forwards compatibility with approaches (1a) and (1b), it is possible for us to relax these restrictions in the future.
 
 From an aesthetic point of view, this approach is slightly more cluttered than other approaches, as every path must begin with a prefix.
+
+The removal of `paths` and changes to the implicit resolution order for different file types may also create concerns for backwards compatibility.
 
 ## Alternatives
 
