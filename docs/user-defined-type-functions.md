@@ -153,7 +153,7 @@ Depending on the particular `tag`, a `type` instance can have additional propert
 | `setwriteproperty(key: type, value: type?)` | `()` | adds / overrides (if same key exists) a key, value pair to the table's properties; if value is nil, removes the key, value pair; if the key does not exist and the value is nil, nothing happens |
 | `readproperty(key: type)` | `type?` | returns the type used for _reading_ values to this property in the table; if the key does not exist, returns nil |
 | `writeproperty(key: type)` | `type?` | returns the type used for _writing_ values to this property in the table; if the key does not exist, returns nil |
-| `properties()` | `{[type]: { read: type, write: type } }` | returns a table mapping property keys to a table with their respective read and write types |
+| `properties()` | `{[type]: { read: type?, write: type? } }` | returns a table mapping property keys to a table with their respective read and write types |
 | `setindexer(index: type, result: type)` | `()` | sets the table's indexer with the index type as the first parameter, and the result as the second parameter; equivalent to calling `setreadindexer` and `setwriteindexer` with the same parameters |
 | `setreadindexer(index: type, result: type)` | `()` | sets the table's indexer with the index type as the first parameter, and the resulting read type as the second parameter |
 | `setwriteindexer(index: type, result: type)` | `()` | sets the table's indexer with the index type as the first parameter, and the resulting write type as the second parameter |
