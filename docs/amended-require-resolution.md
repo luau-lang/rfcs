@@ -2,7 +2,7 @@
 
 ## Summary
 
-We need to finalize a syntax for aliases in require statements and determine intuitive resolution semantics as we prepare to build a package management system.
+We need to finalize a syntax for aliases in require expressions and determine intuitive resolution semantics as we prepare to build a package management system.
 
 ## Motivation
 
@@ -67,7 +67,7 @@ After a package manager has been implemented, we will likely have a better sense
 
 ### Removing `paths`
 
-As part of the push to make require statements more explicit, we will remove `paths`, as aliases defined in `aliases` serve a similar purpose and are more explicit.
+As part of the push to make require expressions more explicit, we will remove `paths`, as aliases defined in `aliases` serve a similar purpose and are more explicit.
 
 ### Throw an error if multiple files matched
 
@@ -99,7 +99,7 @@ Conflict between `module` directory and `module.luau`:
 
 ## Drawbacks
 
-The main drawback of this approach is that it is quite strict and not backwards-compatible with any existing code that uses unprefixed require statements.
+The main drawback of this approach is that it is quite strict and not backwards-compatible with any existing code that uses unprefixed require expressions.
 However, because of its forwards compatibility with approaches (1a) and (1b), it is possible for us to relax these restrictions in the future.
 
 From an aesthetic point of view, this approach is slightly more cluttered than other approaches, as every path must begin with a prefix.
@@ -119,7 +119,7 @@ Rather than making an arbitrary decision now, it makes more sense for us to choo
 
 #### (1a) Make aliases explicit with `@` prefix
 
-We make usage of the `@` prefix necessary in aliased require statements.
+We make usage of the `@` prefix necessary in aliased require expressions.
 This means that any unprefixed string is always treated as an unaliased path.
 ```luau
 -- Requires ./libs/dependency.luau
@@ -132,13 +132,13 @@ require("./libs/dependency")
 require("@libs/dependency")
 ```
 
-The main drawback of this approach is that projects with many _external_ dependencies will have many `@` symbols appearing within require statements.
+The main drawback of this approach is that projects with many _external_ dependencies will have many `@` symbols appearing within require expressions.
 
 This is similar to [Lune's approach](https://lune-org.github.io/docs/getting-started/2-introduction/8-modules#file-require-statements) and is identical to the approach currently described in [require-by-string-aliases.md](require-by-string-aliases.md).
 
 #### (1b) Make relative paths explicit with `./` prefix
 
-We make usage of the `./` prefix necessary in relative require statements.
+We make usage of the `./` prefix necessary in relative require expressions.
 This means that any unprefixed string is always treated as an aliased path.
 ```luau
 -- Requires /My/Libraries/Directory/dependency.luau
@@ -151,7 +151,7 @@ require("./libs/dependency")
 require("@libs/dependency")
 ```
 
-The main drawback of this approach is that projects with many _internal_ dependencies will have many `./` symbols appearing within require statements.
+The main drawback of this approach is that projects with many _internal_ dependencies will have many `./` symbols appearing within require expressions.
 
 This is similar to [darklua's approach](https://darklua.com/docs/path-require-mode/).
 
