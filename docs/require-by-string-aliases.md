@@ -12,6 +12,8 @@ Luau itself currently supports a basic require-by-string syntax that allows for 
 
 ## Design
 
+Parts of this design are now obsoleted by [this RFC](https://github.com/luau-lang/rfcs/pull/56).
+
 #### Aliases
 
 Aliases can be used to bind an absolute or relative path to a convenient, case-insensitive name that can be required directly.
