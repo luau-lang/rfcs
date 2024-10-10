@@ -98,380 +98,103 @@ This section details the initial programming interface we propose for `type`s wh
 
 <details><summary>Expand for full type API reference.</summary>
 
-<h3>types Library</h3>
+### `types` Library
 
-<table>
-  <thead>
-    <tr>
-      <th>Library Properties</th>
-      <th>Type</th>
-      <th>Description</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td><code>unknown</code></td>
-      <td><code>type</code></td>
-      <td>an immutable instance of the built-in type <code>unknown</code></td>
-    </tr>
-    <tr>
-      <td><code>never</code></td>
-      <td><code>type</code></td>
-      <td>an immutable instance of the built-in type <code>never</code></td>
-    </tr>
-    <tr>
-      <td><code>any</code></td>
-      <td><code>type</code></td>
-      <td>an immutable instance of the built-in type <code>any</code></td>
-    </tr>
-    <tr>
-      <td><code>boolean</code></td>
-      <td><code>type</code></td>
-      <td>an immutable instance of the built-in type <code>boolean</code></td>
-    </tr>
-    <tr>
-      <td><code>number</code></td>
-      <td><code>type</code></td>
-      <td>an immutable instance of the built-in type <code>number</code></td>
-    </tr>
-    <tr>
-      <td><code>string</code></td>
-      <td><code>type</code></td>
-      <td>an immutable instance of the built-in type <code>string</code></td>
-    </tr>
-  </tbody>
-</table>
+| Library Properties | Type | Description |
+| ------------- | ------------- | ------------- |
+| `unknown` | `type` | an immutable instance of the built-in type `unknown` |
+| `never` | `type` | an immutable instance of the built-in type `never` |
+| `any` | `type` | an immutable instance of the built-in type `any` |
+| `boolean` | `type` | an immutable instance of the built-in type `boolean` |
+| `number` | `type` | an immutable instance of the built-in type `number` |
+| `string` | `type` | an immutable instance of the built-in type `string` |
 
-<table>
-  <thead>
-    <tr>
-      <th>Library Functions</th>
-      <th>Return Type</th>
-      <th>Description</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td><code>singleton(arg: string | boolean | nil)</code></td>
-      <td><code>type</code></td>
-      <td>returns an immutable instance of the argument as a singleton type</td>
-    </tr>
-    <tr>
-      <td><code>negationof(arg: type)</code></td>
-      <td><code>type</code></td>
-      <td>returns an immutable instance of the parameter as a negated type; the parameter cannot be a table or function type</td>
-    </tr>
-    <tr>
-      <td><code>unionof(...: type)</code></td>
-      <td><code>type</code></td>
-      <td>returns an immutable instance of a union type of the arguments; requires at least 2 parameters to be provided</td>
-    </tr>
-    <tr>
-      <td><code>intersectionof(...: type)</code></td>
-      <td><code>type</code></td>
-      <td>returns an immutable instance of an intersection type of the arguments; requires at least 2 parameters to be provided</td>
-    </tr>
-    <tr>
-      <td><code>newtable(props: {[type]: type | { read: type, write: type } }?, indexer: { key: type, value: type }?, metatable: type?)</code></td>
-      <td><code>type</code></td>
-      <td>returns a mutable instance of a table type; the keys of the table's property must be a singleton type; sets the table's metatable if one is provided</td>
-    </tr>
-    <tr>
-      <td><code>newfunction(parameters: { head: {type}?, tail: type? }, returns: { head: {type}?, tail: type? })</code></td>
-      <td><code>type</code></td>
-      <td>returns a mutable instance of a <code>function</code> type</td>
-    </tr>
-    <tr>
-      <td><code>copy(arg: type)</code></td>
-      <td><code>type</code></td>
-      <td>returns a deep copy of the given <code>type</code></td>
-    </tr>
-  </tbody>
-</table>
+| Library Functions | Return Type | Description |
+| ------------- | ------------- | ------------- |
+| `singleton(arg: string \| boolean \| nil)` | `type` | returns an immutable instance of the argument as a singleton type |
+| `negationof(arg: type)` | `type` | returns an immutable instance of the parameter as a negated type; the parameter cannot be a table or function type |
+| `unionof(...: type)` | `type` | returns an immutable instance of an union type of the arguments; requires at least 2 parameters to be provided |
+| `intersectionof(...: type)` | `type` | returns an immutable instance of an intersection type of the arguments; requires at least 2 parameters to be provided |
+| `newtable(props: {[type]: type \| { read: type, write: type } }?, indexer: { key: type, value: type }?, metatable: type?)` | `type` | returns a mutable instance of a table type; the keys of the table's property must be a singleton type; sets the table's metatable if one is provided |
+| `newfunction(parameters: { head: {type}?, tail: type? }, returns: { head: {type}?, tail: type? })` | `type` | returns a mutable instance of a `function` type |
+| `copy(arg: type)` | `type` | returns a deep copy of the given `type` |
 
-<h3>type Instance</h3>
+### `type` Instance
 
-<table>
-  <thead>
-    <tr>
-      <th>Instance Properties</th>
-      <th>Type</th>
-      <th>Description</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td><code>tag</code></td>
-      <td><code>"nil" | "unknown" | "never" | "any" | "boolean" | "number" | "string" | "singleton" | "negation" | "union" | "intersection" | "table" | "function" | "class"</code></td>
-      <td>an immutable property holding this type's tag</td>
-    </tr>
-  </tbody>
-</table>
+| Instance Properties | Type | Description |
+| ------------- | ------------- | ------------- |
+| `tag` | `"nil" \| "unknown" \| "never" \| "any" \| "boolean" \| "number" \| "string" \| "singleton" \| "negation" \| "union" \| "intersection" \| "table" \| "function" \| "class"` | an immutable property holding this type's tag |
 
-<table>
-  <thead>
-    <tr>
-      <th>Instance Methods</th>
-      <th>Return Type</th>
-      <th>Description</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td><code>__eq(arg: type)</code></td>
-      <td><code>boolean</code></td>
-      <td>overrides the == operator to return true if self is syntactically equal to arg, note that semantically equivalent types like <code>true | false</code> and <code>boolean</code> will <i>not</i> compare equal</td>
-    </tr>
-    <tr>
-      <td><code>is(arg: string)</code></td>
-      <td><code>boolean</code></td>
-      <td>returns true if self has the same tag as the argument. List of available tags: "nil", "unknown", "never", "any", "boolean", "number", "string", "singleton", "negation", "union", "intersection", "table", "function", "class"</td>
-    </tr>
-  </tbody>
-</table>
+| Instance Methods | Return Type | Description |
+| ------------- | ------------- | ------------- |
+| `__eq(arg: type)` | `boolean` | overrides the == operator to return true if self is syntactically equal to arg, note that semantically equivalent types like `true \| false` and `boolean` will _not_ compare equal |
+| `is(arg: string)` | `boolean` | returns true if self has the same tag as the argument. List of available tags: "nil", "unknown", "never", "any", "boolean", "number", "string", "singleton", "negation", "union", "intersection", "table", "function", "class"  |
 
-<h4>Negation `type` instance</h4>
+Depending on the particular `tag`, a `type` instance can have additional properties and methods available as described below.
 
-<table>
-  <thead>
-    <tr>
-      <th>Instance Methods</th>
-      <th>Type</th>
-      <th>Description</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td><code>inner()</code></td>
-      <td><code>type</code></td>
-      <td>returns the <code>type</code> being negated</td>
-    </tr>
-  </tbody>
-</table>
+#### Negation `type` instance
 
-<h4>Singleton `type` instance</h4>
+| Instance Methods | Type | Description |
+| ------------- | ------------- | ------------- |
+| `inner()` | `type` | returns the `type` being negated |
 
-<table>
-  <thead>
-    <tr>
-      <th>Instance Methods</th>
-      <th>Return Type</th>
-      <th>Description</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td><code>value()</code></td>
-      <td><code>string | boolean | nil</code></td>
-      <td>returns the actual value of the singleton, i.e., a specific string, boolean, or <code>nil</code></td>
-    </tr>
-  </tbody>
-</table>
+#### Singleton `type` instance
 
-<h4>Table `type` instance</h4>
+| Instance Methods | Return Type | Description |
+| ------------- | ------------- | ------------- |
+| `value()` | `string \| boolean \| nil` | returns the actual value of the singleton, i.e. a specific string, boolean, or `nil` |
 
-<table>
-  <thead>
-    <tr>
-      <th>Instance Methods</th>
-      <th>Return Type</th>
-      <th>Description</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td><code>setproperty(key: type, value: type?)</code></td>
-      <td><code>()</code></td>
-      <td>adds / overrides (if same key exists) a key, value pair to the table's properties; if value is nil, removes the key, value pair; if the key does not exist and the value is nil, nothing happens; equivalent to calling <code>setreadproperty</code> and <code>setwriteproperty</code> with the same parameters</td>
-    </tr>
-    <tr>
-      <td><code>setreadproperty(key: type, value: type?)</code></td>
-      <td><code>()</code></td>
-      <td>adds / overrides (if same key exists) a key, value pair to the table's properties; if value is nil, removes the key, value pair; if the key does not exist and the value is nil, nothing happens</td>
-    </tr>
-    <tr>
-      <td><code>setwriteproperty(key: type, value: type?)</code></td>
-      <td><code>()</code></td>
-      <td>adds / overrides (if same key exists) a key, value pair to the table's properties; if value is nil, removes the key, value pair; if the key does not exist and the value is nil, nothing happens</td>
-    </tr>
-    <tr>
-      <td><code>readproperty(key: type)</code></td>
-      <td><code>type?</code></td>
-      <td>returns the type used for reading values to this property in the table; if the key does not exist, returns nil</td>
-    </tr>
-    <tr>
-      <td><code>writeproperty(key: type)</code></td>
-      <td><code>type?</code></td>
-      <td>returns the type used for writing values to this property in the table; if the key does not exist, returns nil</td>
-    </tr>
-    <tr>
-      <td><code>properties()</code></td>
-      <td><code>{[type]: { read: type?, write: type? } }</code></td>
-      <td>returns a table mapping property keys to a table with their respective read and write types</td>
-    </tr>
-    <tr>
-      <td><code>setindexer(index: type, result: type)</code></td>
-      <td><code>()</code></td>
-      <td>sets the table's indexer with the index type as the first parameter, and the result as the second parameter; equivalent to calling <code>setreadindexer</code> and <code>setwriteindexer</code> with the same parameters</td>
-    </tr>
-    <tr>
-      <td><code>setreadindexer(index: type, result: type)</code></td>
-      <td><code>()</code></td>
-      <td>sets the table's indexer with the index type as the first parameter, and the resulting read type as the second parameter</td>
-    </tr>
-    <tr>
-      <td><code>setwriteindexer(index: type, result: type)</code></td>
-      <td><code>()</code></td>
-      <td>sets the table's indexer with the index type as the first parameter, and the resulting write type as the second parameter</td>
-    </tr>
-    <tr>
-      <td><code>indexer()</code></td>
-      <td><code>{ index: type, readresult: type, writeresult: type }?</code></td>
-      <td>returns the table's indexer as a table; if the indexer does not exist, returns nil</td>
-    </tr>
-    <tr>
-      <td><code>readindexer()</code></td>
-      <td><code>{ index: type, result: type }?</code></td>
-      <td>returns the table's indexer as a table using the read type of the result; if the indexer does not exist, returns nil</td>
-    </tr>
-    <tr>
-      <td><code>writeindexer()</code></td>
-      <td><code>{ index: type, result: type }?</code></td>
-      <td>returns the table's indexer as a table using the write type of the result; if the indexer does not exist, returns nil</td>
-    </tr>
-    <tr>
-      <td><code>setmetatable(arg: type)</code></td>
-      <td><code>()</code></td>
-      <td>sets the table's metatable to the argument</td>
-    </tr>
-    <tr>
-      <td><code>metatable()</code></td>
-      <td><code>type?</code></td>
-      <td>returns the table's metatable; if the metatable does not exist, returns nil</td>
-    </tr>
-  </tbody>
-</table>
+#### Table `type` instance
 
-<h4>Function `type` instance</h4>
+| Instance Methods | Return Type | Description |
+| ------------- | ------------- | ------------- |
+| `setproperty(key: type, value: type?)` | `()` | adds / overrides (if same key exists) a key, value pair to the table's properties; if value is nil, removes the key, value pair; if the key does not exist and the value is nil, nothing happens; equivalent to calling `setreadproperty` and `setwriteproperty` with the same parameters |
+| `setreadproperty(key: type, value: type?)` | `()` | adds / overrides (if same key exists) a key, value pair to the table's properties; if value is nil, removes the key, value pair; if the key does not exist and the value is nil, nothing happens |
+| `setwriteproperty(key: type, value: type?)` | `()` | adds / overrides (if same key exists) a key, value pair to the table's properties; if value is nil, removes the key, value pair; if the key does not exist and the value is nil, nothing happens |
+| `readproperty(key: type)` | `type?` | returns the type used for _reading_ values to this property in the table; if the key does not exist, returns nil |
+| `writeproperty(key: type)` | `type?` | returns the type used for _writing_ values to this property in the table; if the key does not exist, returns nil |
+| `properties()` | `{[type]: { read: type?, write: type? } }` | returns a table mapping property keys to a table with their respective read and write types |
+| `setindexer(index: type, result: type)` | `()` | sets the table's indexer with the index type as the first parameter, and the result as the second parameter; equivalent to calling `setreadindexer` and `setwriteindexer` with the same parameters |
+| `setreadindexer(index: type, result: type)` | `()` | sets the table's indexer with the index type as the first parameter, and the resulting read type as the second parameter |
+| `setwriteindexer(index: type, result: type)` | `()` | sets the table's indexer with the index type as the first parameter, and the resulting write type as the second parameter |
+| `indexer()` | `{ index: type, readresult: type, writeresult: type }?` | returns the table's indexer as a table; if the indexer does not exist, returns nil |
+| `readindexer()` | `{ index: type, result: type }?` | returns the table's indexer as a table using the read type of the result; if the indexer does not exist, returns nil |
+| `writeindexer()` | `{ index: type, result: type }?` | returns the table's indexer as a table using the write type of the result; if the indexer does not exist, returns nil |
+| `setmetatable(arg: type)` | `()` | sets the table's metatable to the argument |
+| `metatable()` | `type?` | returns the table's metatable; if the metatable does not exist, returns nil |
 
-<table>
-  <thead>
-    <tr>
-      <th>Instance Methods</th>
-      <th>Return Type</th>
-      <th>Description</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td><code>setparameters(head: {type}?, tail: type?)</code></td>
-      <td><code>()</code></td>
-      <td>sets the function's parameter types to the given arguments</td>
-    </tr>
-    <tr>
-      <td><code>parameters()</code></td>
-      <td><code>{ head: {type}?, tail: type? }</code></td>
-      <td>returns the function's parameter list as an array of ordered parameter types and optionally a variadic tail</td>
-    </tr>
-    <tr>
-      <td><code>setreturns(head: {type}?, tail: type?)</code></td>
-      <td><code>()</code></td>
-      <td>sets the function's return types to the given arguments</td>
-    </tr>
-    <tr>
-      <td><code>returns()</code></td>
-      <td><code>{ head: {type}?, tail: type? }</code></td>
-      <td>returns the function's return types as an array of types and optionally a variadic tail</td>
-    </tr>
-  </tbody>
-</table>
+#### Function `type` instance
 
-<h4>Union `type` instance</h4>
+| Instance Methods | Return Type | Description |
+| ------------- | ------------- | ------------- |
+| `setparameters(head: {type}?, tail: type?)` | `()` | sets the function's parameter types to the given arguments |
+| `parameters()` | `{ head: {type}?, tail: type? }` | returns the function's parameter list as an array of ordered parameter types and optionally a variadic tail |
+| `setreturns(head: {type}?, tail: type?)` | `()` | sets the function's return types to the given arguments |
+| `returns()` | `{ head: {type}?, tail: type? }` | returns the function's return types as an array of types and optionally a variadic tail |
 
-<table>
-  <thead>
-    <tr>
-      <th>Instance Methods</th>
-      <th>Return Type</th>
-      <th>Description</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td><code>components()</code></td>
-      <td><code>{type}</code></td>
-      <td>returns an array of <code>types</code> being unioned</td>
-    </tr>
-  </tbody>
-</table>
+#### Union `type` instance
 
-<h4>Intersection `type` instance</h4>
+| Instance Methods | Return Type | Description |
+| ------------- | ------------- | ------------- |
+| `components()` | `{type}` | returns an array of `types` being unioned |
 
-<table>
-  <thead>
-    <tr>
-      <th>Instance Methods</th>
-      <th>Return Type</th>
-      <th>Description</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td><code>components()</code></td>
-      <td><code>{type}</code></td>
-      <td>returns an array of <code>types</code> being intersected</td>
-    </tr>
-  </tbody>
-</table>
+#### Intersection `type` instance
 
-<h4>Class `type` instance</h4>
+| Instance Methods | Return Type | Description |
+| ------------- | ------------- | ------------- |
+| `components()` | `{type}` | returns an array of `types` being intersected |
 
-<table>
-  <thead>
-    <tr>
-      <th>Instance Methods</th>
-      <th>Return Type</th>
-      <th>Description</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td><code>properties()</code></td>
-      <td><code>{[type]: { read: type, write: type } }</code></td>
-      <td>returns a table mapping class' property keys to a table with their respective read and write types</td>
-    </tr>
-    <tr>
-      <td><code>readparent()</code></td>
-      <td><code>type?</code></td>
-      <td>returns the read type of class' parent class; if the parent class does not exist, returns nil</td>
-    </tr>
-    <tr>
-      <td><code>writeparent()</code></td>
-      <td><code>type?</code></td>
-      <td>returns the write type class' parent class; if the parent class does not exist, returns nil</td>
-    </tr>
-    <tr>
-      <td><code>metatable()</code></td>
-      <td><code>type?</code></td>
-      <td>returns the class' metatable; if the metatable does not exist, returns nil</td>
-    </tr>
-    <tr>
-      <td><code>indexer()</code></td>
-      <td><code>{ index: type, readresult: type, writeresult: type }?</code></td>
-      <td>returns the class' indexer as a table; if the indexer does not exist, returns nil</td>
-    </tr>
-    <tr>
-      <td><code>readindexer()</code></td>
-      <td><code>{ index: type, result: type }?</code></td>
-      <td>returns the class' indexer as a table using the read type of the result; if the indexer does not exist, returns nil</td>
-    </tr>
-    <tr>
-      <td><code>writeindexer()</code></td>
-      <td><code>{ index: type, result: type }?</code></td>
-      <td>returns the class' indexer as a table using the write type of the result; if the indexer does not exist, returns nil</td>
-    </tr>
-  </tbody>
-</table>
+#### Class `type` instance
+
+| Instance Methods | Return Type | Description |
+| ------------- | ------------- | ------------- |
+| `properties()` | `{[type]: { read: type, write: type } }` | returns a table mapping class' property keys to a table with their respective read and write types  |
+| `readparent()` | `type?` | returns the read type of class' parent class; if the parent class does not exist, returns nil |
+| `writeparent()` | `type?` | returns the write type class' parent class; if the parent class does not exist, returns nil |
+| `metatable()` | `type?` | returns the class' metatable; if the metatable does not exists, returns nil |
+| `indexer()` | `{ index: type, readresult: type, writeresult: type }?` | returns the class' indexer as a table; if the indexer does not exist, returns nil |
+| `readindexer()` | `{ index: type, result: type }?` | returns the class' indexer as a table using the read type of the result; if the indexer does not exist, returns nil |
+| `writeindexer()` | `{ index: type, result: type }?` | returns the class' indexer as a table using the write type of the result; if the indexer does not exist, returns nil |
 
 </details>
 
