@@ -96,8 +96,6 @@ Instead, this RFC proposes that we accept that type functions, like the rest of 
 
 This section details the initial programming interface we propose for `type`s when they are reflected into type function bodies. Each section is separated by headers (e.g. Singleton) and describe the methods available to that category of type. The "`type` Instance" section, describes the elements of the interface common to every category of type. All properties of newly-created `type`s are initialized with empty tables / arrays and `nil`. All arguments are passed by references. 
 
-<details><summary>Expand for full type API reference.</summary>
-
 ### `types` Library
 
 | Library Properties | Type | Description |
@@ -195,8 +193,6 @@ Depending on the particular `tag`, a `type` instance can have additional propert
 | `indexer()` | `{ index: type, readresult: type, writeresult: type }?` | returns the class' indexer as a table; if the indexer does not exist, returns nil |
 | `readindexer()` | `{ index: type, result: type }?` | returns the class' indexer as a table using the read type of the result; if the indexer does not exist, returns nil |
 | `writeindexer()` | `{ index: type, result: type }?` | returns the class' indexer as a table using the write type of the result; if the indexer does not exist, returns nil |
-
-</details>
 
 ## Drawback
 
