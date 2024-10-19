@@ -6,7 +6,7 @@ This proposes that the current function expressions, which are always anonymous 
 
 ## Motivation
 
-This would make some code more readable, enable luau to give function expressions names other than `<anonymous>` in stack traces and with `debug.info`, enable function expressions to be recursive (call themselves), and help in miscellaneous profiling and debugging tools.
+This would make some code more readable, enable Luau to give function expressions names other than `<anonymous>` in stack traces and with `debug.info`, enable function expressions to be recursive (call themselves), and help in miscellaneous profiling and debugging tools.
 
 ## Design
 
