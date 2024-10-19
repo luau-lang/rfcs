@@ -25,7 +25,7 @@ attributes 'function' [NAME] funcbody
 This adds an optional name in function expressions, which can be used like so:
 
 ```luau
-baz(function factorial(n)
+foo(function factorial(n)
 	return if n == 1 then 1 else n * factorial(n - 1)
 end)
 ```
