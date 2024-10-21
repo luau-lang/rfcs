@@ -31,7 +31,7 @@ For a concrete mascot design, I commissioned [Alex Mullins (@AlexMarieFina)](htt
 to produce a cartoon-style drawing of a Hawaiian monk seal in Luau's brand blue color. 
 This mascot is Hina the Seal.
 
-![Hina the Seal](../mascot.png)
+![Hina the Seal](mascot.png)
 
 We propose naming her Hina, after the Hawaiian goddess of the moon. The word moon itself in Hawaiian
 (_mahina_) is derived from this name, and it pays a small homage to Luau's "moon" roots in Lua
