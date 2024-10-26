@@ -19,7 +19,7 @@ switch value
     for "a" do
         -- Code for case "a"
     end
-for "b" do
+    for "b" do
         -- Code for case "b"
         break
     end
