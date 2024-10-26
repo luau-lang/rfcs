@@ -39,7 +39,9 @@ This syntax adds a pattern not found in Luau, and may necessitate concepts for d
 
 ## Alternatives
 
-For instance, in the absence of a syntax for `switch`, developers depend on `if`-`elseif` chains: In the absence of a syntax for `switch`, developers have to depend on `if`-`elseif` chains, which often become cumbersome and harder to read with multiple values to check. To that effect, consider handling the fall-through behavior of `switch` statements. Here every condition is explicitly repeated; thus, code becomes more verbose and error-prone: ```lua if value == "a" then
+For instance, in the absence of a syntax for `switch`, developers depend on `if`-`elseif` chains: In the absence of a syntax for `switch`, developers have to depend on `if`-`elseif` chains, which often become cumbersome and harder to read with multiple values to check. To that effect, consider handling the fall-through behavior of `switch` statements. Here every condition is explicitly repeated; thus, code becomes more verbose and error-prone:
+
+```lua if value == "a" then
 -- Code for case "a"
 elseif value == "b" then
 -- Code for case "b"
@@ -48,8 +50,6 @@ elseif value == "c" or value == "d" then
 else
 -- Default case
 end
-
 ```
 
 Using the above chained `if`s, the convenience a `switch` provides is consumed by repeated comparisons and explicit coding of fall-through behavior. This can result in longer branching code and is more annoying to maintain when cases are added or altered.
-```
