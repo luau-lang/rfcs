@@ -20,7 +20,7 @@ We propose to allow users to write such a type. Formally:
 
 ```ebnf
 ty ::= `~` ty
-     | name [`<` [ty] {`,` ty} `>`]
+     | name [`<` [ty {`,` ty}] `>`]
      | ty {`|` ty}
      | ty {`&` ty}
      | `(` ty `)`
