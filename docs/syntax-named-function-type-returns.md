@@ -69,7 +69,7 @@ local function x(): (return1: number, return2: number)
 
 This syntax is fully backwards compatible as only type names, generic names, or type packs are allowed in return position.
 
-Broadly, return names behave identically to parameter names.
+Return names are documentative - they are not identifiers that are usable in the function body.
 
 Function type comparisons will ignore the return names, this proposal doesn't change the semantics of the language and how typechecking is performed.
 
