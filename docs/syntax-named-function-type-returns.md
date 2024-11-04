@@ -108,7 +108,7 @@ There is a philosophical disagreement over the purpose of the Luau static type s
 - This proposal was written on the grounds that Luau should have internal syntactic consistency and cross-pollination. Runtime, type checking, and documentation features should enmesh and enrich each other as a unified whole, to ensure everything is kept in sync and is easily comprehensible.
 - The primary argument against this proposal is the belief that Luau's type checker should be a "pure proof system", cleanly separated from documentation concerns at every point, so that the type system can exist in a pure realm unconcerned with semantic information.
 
-This could potentially be a core tension about the direction of type checking features as a whole. We should check in with the community on this.
+This feels like a core tension about the direction of type checking features as a whole. We should check in with the community on this.
 
 There is a particular concern that introducing comprehension aids into the type language would imply meaning where there is none. Would users think that return names have functional meaning?
 
