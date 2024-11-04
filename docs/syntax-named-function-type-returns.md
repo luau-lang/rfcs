@@ -105,10 +105,12 @@ receiveStuff(doStuff())
 ## Drawbacks
 
 There is a philosophical disagreement over the purpose of the Luau static type system:
-- This proposal was written on the grounds that Luau should have internal syntactic consistency and should pragmatically weave documentation throughout code, so that it is kept up to date and can helpfully aid in human comprehension of dense code
-- The primary argument against this proposal is that Luau should be a "pure proof system", cleanly separated from documentation concerns, so that the type system can exist in a pure realm and documentation can be authored separately in comments
+- This proposal was written on the grounds that Luau should have internal syntactic consistency and cross-pollination. Runtime, type checking, and documentation features should enmesh and enrich each other as a unified whole, to ensure everything is kept in sync and is easily comprehensible.
+- The primary argument against this proposal is the belief that Luau's type checker should be a "pure proof system", cleanly separated from documentation concerns at every point, so that the type system can exist in a pure realm unconcerned with semantic information.
 
-In particular, there is a concern that introducing comprehension aids into the type language would imply meaning where there is none. 
+This could potentially be a core tension about the direction of type checking features as a whole. We should check in with the community on this.
+
+There is a particular concern that introducing comprehension aids into the type language would imply meaning where there is none. Would users think that return names have functional meaning?
 
 There are other places in Luau where we have previously introduced comprehension aids in the past:
 
@@ -125,11 +127,23 @@ type Foo<OK, Fallback> = (OK, Fallback) -> OK | Fallback
 type Func = (foo: number, bar: number) -> ()
 ```
 
-There is already established precedent and users understand how comprehension aids function in Luau today.
+In particular, it is established convention that Luau does not rearrange the contents of lists bounded by parentheses, even when list items are named:
 
-A common concern is whether these comprehension aids would mislead people into believing Luau is nominally typed rather than structurally typed. 
+```Lua
+local function poem(red: number, blue: number)
+    print("roses are", red, "violets are", blue)
+end
 
-However, we already have precedent for features that indicate we don't do this.
+local blue, red = "blue", "red"
+
+poem(blue, red) --> roses are blue violets are red
+```
+
+So, this proposal posits that there is already established precedent for such features, and that users understand how comprehension aids function in Luau today.
+
+A common concern is whether these comprehension aids would mislead people into believing that names are significant when considering type compatibility.
+
+However, we already have features that clearly indicate we don't do this.
 
 ```Lua
 -- names of generics are ignored
@@ -143,7 +157,7 @@ type Blue = (frob: number?, garb: number?) -> number
 local x: Red = something :: Blue
 ```
 
-There is no reason why named function type returns would be any different. 
+So, there is no reason why named function type returns would be any different. 
 
 The remaining questions are non-technical:
 
@@ -168,7 +182,7 @@ This also raises further non-technical questions:
 - should comments be given meaning? are they meaningful if linters parse their contents to provide lints? if a parser skips comments, are they losing non-decorative information?
 - what documentation syntax do we use? what rules does it follow? how does it fit into Luau's overall design, if it fits at all?
 - what is the scope of documentation syntax? where are the edges of its responsibilities?
-- what about previous proposals where we decided against placing features into comments?
+- what about previous proposals where we decided against placing features into comments? what do they recommend here?
 
 ### Don't do anything
 
