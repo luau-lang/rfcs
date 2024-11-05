@@ -100,8 +100,6 @@ local blue, red = doStuff()
 receiveStuff(doStuff())
 ```
 
-
-
 ## Drawbacks
 
 There is a philosophical disagreement over the purpose of the Luau static type system:
@@ -141,7 +139,7 @@ poem(blue, red) --> roses are blue violets are red
 
 The same principle also applies to multiple assignment in existing parts of Luau:
 
-```
+```Lua
 for value, key in pairs({"hello", "world"}) do
     print(value) --> 1 2
 end
