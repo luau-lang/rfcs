@@ -139,6 +139,14 @@ local blue, red = "blue", "red"
 poem(blue, red) --> roses are blue violets are red
 ```
 
+The same principle also applies to multiple assignment in existing parts of Luau:
+
+```
+for value, key in pairs({"hello", "world"}) do
+    print(value) --> 1 2
+end
+```
+
 So, this proposal posits that there is already established precedent for such features, and that users understand how comprehension aids function in Luau today.
 
 A common concern is whether these comprehension aids would mislead people into believing that names are significant when considering type compatibility.
