@@ -74,4 +74,6 @@ The name of `setmetatable` has an interpretation of implying a side effect; tabl
 
 ## Alternatives
 
+Do nothing, and rely on unique metatable type syntax to achieve what a `setmetatable` type function would achieve. However, this still has the issue of `getmetatable`. It is flat out incorrect at the moment, and a type function would be an ideal solution to that problem. If a type function is introduced, then any user could reasonably expect a counterpart `setmetatable` type function. Both metatable type functions and metatable syntax can exist at the same time, and that might be ideal.
+
 Do nothing. `typeof` solves the current issues with accessibility to the current object-oriented programming patterns, and the issue relating to getmetatable can be solved by overloads.
