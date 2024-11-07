@@ -21,6 +21,8 @@ type Identity = {
 }
 ```
 
+This could cause confusion with table properties named `metatable`. To combat this, a lint could be added which will warn upon setting table properties named `metatable`. To silence this lint, `["metatable"]` would need to be used instead.
+
 ## Alternatives
 
 `type T = { metatable {} }` could be too similar to field syntax. An argument could be made that `type T = { metatable: {} }` is too similar to metatable syntax. We could change the keyword to be `@metatable`, similar to how it is currently expressed as when converting a type to a string. However, this introduces a sigil, which increases cognitive load and harms readability.
