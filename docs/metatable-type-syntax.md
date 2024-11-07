@@ -27,9 +27,9 @@ This could cause confusion with table properties named `metatable`. To combat th
 
 `type T = { metatable {} }` could be too similar to field syntax. An argument could be made that `type T = { metatable: {} }` is too similar to metatable syntax. We could change the keyword to be `@metatable`, similar to how it is currently expressed as when converting a type to a string. However, this introduces a sigil, which increases cognitive load and harms readability.
 
-Do nothing, and instead rely on [metatable type functions](https://github.com/luau-lang/rfcs/pull/69) to achieve what this RFC proposes. However, relying purely on `setmetatable` for metatable type expression isn't ideal, as it involves more verbose syntax than what this RFC proposes.
+We could instead rely on [metatable type functions](https://github.com/luau-lang/rfcs/pull/69) to achieve what this RFC proposes. However, relying purely on `setmetatable` for metatable type expression isn't ideal, as it involves more verbose syntax than what this RFC proposes.
 
-Do nothing, and live with the boilerpalte code required by the `typeof` solution.
+The final alternative is also to just do nothing, and live with the boilerpalte code required by the `typeof` solution. This doesn't add any new functionality.
 
 ## Drawbacks
 
