@@ -6,7 +6,7 @@ In alignment with [named function type arguments](./syntax-named-function-type-a
 
 ## Motivation
 
-Luau does not include semantic information when describing a function returning a tuple of values. This is especially a problem when they can't be distinguished by type alone:
+Luau does not include semantic information when describing a function returning multiple values. This is especially a problem when they can't be distinguished by type alone:
 
 ```Lua
 -- are the euler angles returned in order of application, or alphabetical (XYZ) order?
@@ -56,7 +56,7 @@ toQuat: () -> (x: number, y: number, z: number, w: number)
 
 ## Design
 
-This proposal mirrors the existing named function type argument syntax and allows it to be used in return position. This allows returned tuples to be annotated with their contents.
+This proposal mirrors the existing named function type argument syntax and allows it to be used in return position. This allows returned values to be annotated with their contents.
 
 This is added to all locations where return types can be defined:
 ```Lua
