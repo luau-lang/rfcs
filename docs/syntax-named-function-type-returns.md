@@ -42,7 +42,7 @@ By providing symmetry with named function type arguments, and introducing names 
 
 - consistently apply the pattern of named list members, reducing the mental overhead of learners and less technical Luau users
 - provide a single, well-defined location for placing human-readable identifiers usable by LSP inlay types, autofill, and hover tips
-- encourage the colocation of semantic information alongside code to ensure documentation and runtime are updated in concert, and aren't prone to non-local editing mistakes
+- encourage the colocation of semantic information alongside code, to encourage updating documentation and runtime in concert, and discourage non-local editing mistakes
 - improve the legibility of complex type signatures by adding human affordances that would not otherwise be present
 - do all this with minimal extension to the language and perfect backwards compatibility
 
@@ -103,12 +103,12 @@ receiveStuff(doStuff())
 ## Drawbacks
 
 There is a philosophical disagreement over the purpose of the Luau static type system:
-- This proposal was written on the grounds that Luau should have internal syntactic consistency and cross-pollination. Runtime, type checking, and documentation features should enmesh and enrich each other as a unified whole, to ensure everything is kept in sync and is easily comprehensible.
+- This proposal was written on the grounds that Luau should have internal syntactic consistency and cross-pollination. Type checking and documentation features should enmesh and enrich each other as a unified whole, to ensure everything is kept in sync and is easily comprehensible.
 - The primary argument against this proposal is the belief that Luau's type checker should be a "pure proof system", cleanly separated from documentation concerns at every point, so that the type system can exist in a pure realm unconcerned with semantic information.
 
 This feels like a core tension about the direction of type checking features as a whole. We should check in with the community on this.
 
-There is a particular concern that introducing comprehension aids into the type language would imply meaning where there is none. Would users think that return names have functional meaning?
+There is a particular concern that introducing comprehension aids into the type language would imply meaning where there is none. As parameter names do today, return names would show up in a position where meaning may be expected. Would users think that return names have functional meaning?
 
 There are other places in Luau where we have previously introduced comprehension aids in the past:
 
@@ -125,7 +125,9 @@ type Foo<OK, Fallback> = (OK, Fallback) -> OK | Fallback
 type Func = (foo: number, bar: number) -> ()
 ```
 
-In particular, it is established convention that Luau does not rearrange the contents of lists bounded by parentheses, even when list items are named:
+The existing implementation of parameters in function types does not carry functional meaning. People seem to understand how this works already, though we could more thoroughly assess this for concrete feedback.
+
+Users might think that names override argument position, but it is established convention that Luau does not rearrange the contents of lists bounded by parentheses, even when list items are named:
 
 ```Lua
 local function poem(red: number, blue: number)
@@ -145,14 +147,14 @@ for value, key in pairs({"hello", "world"}) do
 end
 ```
 
-So, this proposal posits that there is already established precedent for such features, and that users understand how comprehension aids function in Luau today.
+So this proposal suggests that there's established precedent for return types to be implemented like this.
 
 A common concern is whether these comprehension aids would mislead people into believing that names are significant when considering type compatibility.
 
 However, we already have features that clearly indicate we don't do this.
 
 ```Lua
--- names of generics are ignored
+-- names of generics are only used to define shape
 type Foo = <A, B>(A) -> B
 type Bar = <X, Y>(X) -> Y
 local x: Foo = something :: Bar
@@ -163,7 +165,7 @@ type Blue = (frob: number?, garb: number?) -> number
 local x: Red = something :: Blue
 ```
 
-So, there is no reason why named function type returns would be any different. 
+So, there is no reason why named function type returns would function any differently than these existing features.
 
 The remaining questions are non-technical:
 
