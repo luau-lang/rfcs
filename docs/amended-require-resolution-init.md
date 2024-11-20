@@ -31,7 +31,7 @@ As written in previous RFCs, if a require string resolves to a directory instead
 
 This proposal changes require resolution when requiring from an `init` file. Relative requires from an `init` file will be resolved relative to the directory containing the `init` file, not the `init` file itself.
 
-This makes requiring a child of a folder from the folder's `init` file unintuitive and inconvenient, `./{self}/child` instead of what currently is `./child`. The solution to this is the child require prefix, `:`. This prefix allows requiring a child of the current directory from an `init` file to be done with `:child`.
+This makes requiring a child of a folder from the folder's `init` file unintuitive and inconvenient, `./{self}/child` instead of what currently is `./child`. The solution to this is the child require prefix, `self/`. This prefix allows requiring a child of the current directory from an `init` file to be done with `self/child`.
 
 As an example, consider the following filesystem project structure and table of require resolutions:
 
@@ -45,21 +45,21 @@ As an example, consider the following filesystem project structure and table of 
     - submodule
 ```
 
-| From                         | To                           | Path                   |
-| ---------------------------- | ---------------------------- | ---------------------- |
-| `sibling`                    | `folder/init`                | `./folder`             |
-| `folder/init`                | `sibling`                    | `./sibling`            |
-| `folder/init`                | `folder/module`              | `:module`              |
-| `folder/init`                | `folder/subfolder/init`      | `:subfolder`           |
-| `folder/init`                | `folder/subfolder/submodule` | `:subfolder/submodule` |
-| `folder/module`              | `folder/init`                | `.`                    |
-| `folder/module`              | `folder/subfolder/init`      | `./subfolder`          |
-| `folder/subfolder/init`      | `sibling`                    | `../sibling`           |
-| `folder/subfolder/init`      | `folder/init`                | `.`                    |
-| `folder/subfolder/init`      | `folder/module`              | `./module`             |
-| `folder/subfolder/init`      | `folder/subfolder/submodule` | `:submodule`           |
-| `folder/subfolder/submodule` | `folder/subfolder/init`      | `.`                    |
-| `folder/subfolder/submodule` | `folder/init`                | `..`                   |
+| From                         | To                           | Path                       |
+| ---------------------------- | ---------------------------- | -------------------------- |
+| `sibling`                    | `folder/init`                | `./folder`                 |
+| `folder/init`                | `sibling`                    | `./sibling`                |
+| `folder/init`                | `folder/module`              | `self/module`              |
+| `folder/init`                | `folder/subfolder/init`      | `self/subfolder`           |
+| `folder/init`                | `folder/subfolder/submodule` | `self/subfolder/submodule` |
+| `folder/module`              | `folder/init`                | `.`                        |
+| `folder/module`              | `folder/subfolder/init`      | `./subfolder`              |
+| `folder/subfolder/init`      | `sibling`                    | `../sibling`               |
+| `folder/subfolder/init`      | `folder/init`                | `.`                        |
+| `folder/subfolder/init`      | `folder/module`              | `./module`                 |
+| `folder/subfolder/init`      | `folder/subfolder/submodule` | `self/submodule`           |
+| `folder/subfolder/submodule` | `folder/subfolder/init`      | `.`                        |
+| `folder/subfolder/submodule` | `folder/init`                | `..`                       |
 
 ## Drawbacks
 
@@ -70,5 +70,5 @@ This proposal has some significant drawbacks that deserve consideration:
 
 ## Alternatives
 
-- As it relates to requiring children of a folder from the folder's `init` file, the child require prefix could be changed to almost anything. Some notable examples include `@mod`, `#`, and `#mod`.
+- As it relates to requiring children of a folder from the folder's `init` file, the child require prefix could be changed to almost anything. Some notable examples include `@mod`, `@self`, `#`, `#self`, and `#mod`.
 - If this proposal is not accepted and the status-quoe is maintained, then projects using Rojo will have to bear significant changes and inconvenience if they wish to benefit from new require resolution semantics. Roblox projects not using Rojo may not have such severe issues, but a common pattern will be made more annoying.
