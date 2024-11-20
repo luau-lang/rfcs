@@ -23,7 +23,7 @@ With the above project, one could could require `module` from `init` with `./mod
 
 Due to this, the proper require would be `./folder/module`. This is inconsistent with the filesystem, and disregarding that, it is unintuitive. This proposal corrects this issue.
 
-# Design
+## Design
 
 For the purposes of this RFC, file extensions will be ommitted. Per previous RFCs, both `luau` and `lua` are valid extensions, but having both at the same path is an error due to ambiguity.
 
@@ -68,7 +68,7 @@ This proposal has some significant drawbacks that deserve consideration:
 - Some users have already migrated to the require resolution semantics that this proposal changes. However, as these require semantics have not made it into Luau's largest user, Roblox, or Luau's primary language server, Luau-LSP, these users are few.
 - This proposal changes require resolution semantics to deviate from the filesystem in a significant way. This will be unintuitive to some users, although it is important to note that other languages like Rust have similar import semantics.
 
-# Alternatives
+## Alternatives
 
 - As it relates to requiring children of a folder from the folder's `init` file, the child require prefix could be changed to almost anything. Some notable examples include `@mod`, `#`, and `#mod`.
 - If this proposal is not accepted and the status-quoe is maintained, then projects using Rojo will have to bear significant changes and inconvenience if they wish to benefit from new require resolution semantics. Roblox projects not using Rojo may not have such severe issues, but a common pattern will be made more annoying.
