@@ -42,7 +42,7 @@ As an example, consider the following filesystem project structure and table of 
   - module
   - subfolder/
     - init
-	- submodule
+    - submodule
 ```
 
 | From                         | To                           | Path                   |
