@@ -8,7 +8,7 @@ The topic of Require By String has been the subject of multiple RFCs:
 - [Require by String with Aliases](./require-by-string-aliases.md)
 - [Amended Require Syntax and Resolution Semantics](./amended-require-resolution.md)
 
-At the time of writing, there are currently multiple RFCs that _also_ amend the Require By String RFC. This RFC exists to ensure further amendments do not break compatibility.
+At the time of writing, there are currently multiple pending RFCs that _also_ amend the Require By String RFC. This RFC exists to ensure further amendments do not break compatibility.
 
 ## Motivation
 
