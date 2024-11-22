@@ -103,7 +103,7 @@ local success, result = pcall(mrow, "cat food", ":3")
 
 ## Alternatives
 
-Allow for type pack unions to be written by developers, with the syntax probably looking like this:
+Allow for type-pack unions to be written by developers, with the syntax probably looking like this:
 ```luau
 local function mrow(meow: string, mrrp: string): (true, string) | (false, nil)
 	-- code here
@@ -114,6 +114,6 @@ With this example breaking backwards compadibility with some types developers ma
 -- inferred as: ((meow: string, mrrp: string) -> (true, string)) | false 
 type mrrp = (meow: string, mrrp: string) -> (true, string) | false
 ```
-Although it should be mentioned that result types are the only valid usecase for type pack unions, and just having a result type would remove a potential footgun of someone using type pack unions for something thats not a result type. 
+Although it should be mentioned that result types are the only valid usecase for type-pack unions, and just having a result type instead of general type-pack union syntax would remove a potential footgun. Of someone using type pack unions for something thats not a result type. 
 
 Do nothing, and leave it up to developers if they want to write overloaded functions, or make their own result type.
