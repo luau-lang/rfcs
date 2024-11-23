@@ -16,10 +16,6 @@ There are a lot of projects which do rely on the current semantics, and changing
 
 Do not change the behavior of requires when it comes to init.luau & relative requires.
 
-## Drawbacks
-
-The mismatch between the type of `...` in function declaration (`number`) and type declaration (`...number`) is a bit awkward. This also gets more complicated when we introduce generic variadic packs.
-
 ## Alternatives
 
 Don't implement this RFC, and instead rely on the Luau maintainers to make the call. This is kind-of fine, because regardless of what the outcome is, the vast majority of Luau users are not using require-by-string.
