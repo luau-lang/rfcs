@@ -10,6 +10,8 @@ There is currently a large amount of debate, and open RFCs, about changing requi
 
 The current semantics are widely used, and similar to other languages with relative requires and an equivalent of `init.luau`. The current semantics also make sense, and they do not have any large issues.
 
+There are a lot of projects which do rely on the current semantics, and changing them to conform to Roblox when the ultimate issue is down to "how do we express requiring children in Roblox" isn't great.
+
 ## Design
 
 Do not change the behavior of requires when it comes to init.luau & relative requires.
@@ -20,4 +22,4 @@ The mismatch between the type of `...` in function declaration (`number`) and ty
 
 ## Alternatives
 
-Don't implement this RFC, and instead rely on the Luau maintainers to make the call. This is kind-of fine, because regardless of what the outcome is, the vast majority of Luau users are not using require-by-string. However there are a lot of projects which do rely on the current semantics, and changing them to conform to Roblox when the ultimate issue is down to "how do we express requiring children in Roblox" isn't great.
+Don't implement this RFC, and instead rely on the Luau maintainers to make the call. This is kind-of fine, because regardless of what the outcome is, the vast majority of Luau users are not using require-by-string.
