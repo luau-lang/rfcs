@@ -1,8 +1,8 @@
-# Require Resolution with Libraries
+# Absolute Requires
 
 ## Summary
 
-This proposal describes a new syntax to support require-by-string in a format that can work for filesystems and embedded applications such as the Roblox platform, replacing the existing syntax we have today.
+This proposal describes a new absolute syntax to support require-by-string in a format that can work for filesystems and embedded applications such as the Roblox platform, replacing the existing syntax we have today.
 
 ## Motivation
 
@@ -77,11 +77,9 @@ However, one subtle change is that you won't be allowed to require init.luau dir
 
 There are no changes to aliases in this proposal.
 
-### Relative Paths
+### Comparison with Relative Paths
 
-Support for relative paths will be dropped as any libraries written with relative paths would still be incompatible for the aforementioned reasons.
-
-### Comparison with Current Behavior
+We will continue to support relative paths, however recommend updating to absolute paths to guarantee portability between different environments.
 
 ```
 ├── folder
@@ -94,7 +92,7 @@ Support for relative paths will be dropped as any libraries written with relativ
 └── init.luau
 ```
 
-| **From**          | **To**                   | **Current Syntax**                              | **Proposed Syntax**  |
+| **From**          | **To**                   | **Relative Path**                               | **Absolute Path**    |
 |-------------------|--------------------------|-------------------------------------------------|----------------------|
 | init.luau         | module.luau              | ./module                                        | module               |
 | init.luau         | folder/init.luau         | ./folder                                        | folder               |
@@ -106,11 +104,11 @@ Support for relative paths will be dropped as any libraries written with relativ
 | folder/init.luau  | library/folder/file.luau | ./../library/folder/file ../library/folder/file | library/folder/file  |
 | library/init.luau | library/folder/file.luau | ./folder/file                                   | folder/file          |
 
-As paths are now relative to the root directory the only ones that change are those in files under a subdirectory. All other paths remain the same as the current syntax.
+As paths are relative to the root directory with the absolute syntax the only ones that change are those in files under a subdirectory. All other paths remain the same as the current syntax.
 
 ## Drawbacks
 
-While still fairly new, some users have already adopted the current syntax, which will mean they need to update their code to use the proposed syntax. We could maintain support for relative paths however this would be inadvisable due to the compatibility issue mentioned prior.
+As relative paths are still available, we haven't completely solved the problem. Users could still opt to use them, leading to the issue mentioned above. However, there may be options (such as tooling) to guide users away from relative paths over time to help address this.
 
 ## Alternatives
 
