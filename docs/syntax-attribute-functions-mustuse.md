@@ -2,7 +2,7 @@
 
 ## Summary
 
-This RFC proposes a `@mustuse` attribute, which may be applied at the type or function level, that enforces the usage of a function's return value. 
+This RFC proposes a `@mustuse` attribute, which may be applied to a function, that enforces the usage of a function's return value. 
 
 If the return value is not used, a lint should be raised during analysis time. 
 
