@@ -66,6 +66,6 @@ Introducing the `@mustuse` attribute may lead to several drawbacks:
 
 An alternative approach would be to rely on documentation and code reviews to ensure that return values are used appropriately. This would avoid the complexity of introducing a new attribute but may not be as effective in preventing bugs.
 
-Another alternative could be to implement such a feature into an existing Luau linter like [Selene](https://github.com/Kampfkarren/selene) This would allow for flexible adoption, where developers would need to opt-in to use a linter which encourages best practices.
+Another alternative could be to implement such a feature into an existing Luau linter like [Selene](https://github.com/Kampfkarren/selene). This would allow for flexible adoption, where developers would need to opt-in to use a linter which encourages best practices.
 
 Lastly, Luau could consider a user-defined attribute system, where developers can implement their own attributes, such as `@mustuse`. However, it is more complex to implement such a feature into Luau at its current stage.
