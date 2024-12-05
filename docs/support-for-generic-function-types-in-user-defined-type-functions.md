@@ -2,14 +2,14 @@
 
 ## Summary
 
-Add support for generic function types in user-defined type function to allow more types to be accepted by them, including tables and classes which might contain generic function types.
+Add support for generic function types in user-defined type functions to allow more types to be accepted by them, including tables and classes which might contain generic function types.
 
 ## Motivation
 
 Generic functions are very common in Luau, especially when inferred by the typechecking engine. They are also often present in classes.
 
 Omitting generic types from appearing in user-defined type functions limits their use.
-Even if there is no direct manipulation of generics, an serialization error appears immediately.
+Even if there is no direct manipulation of generics, a serialization error appears immediately.
 
 ## Design
 
@@ -31,12 +31,12 @@ For example, consider a type `<T, U>(T, U, <T>(T) -> U) -> ()`
 From the typechecking perspective, inner and outer function 'T' types are different, but they are still represented by the same runtime generic named 'T'.
 
 The ambiguity is resolved purely on the scoping of the generic in question.
-When runtime type is returned back to the typechecking engine, only those generics that are in current set of function type generic lists are allowed to be mentioned.
-When inner generic function list places name 'T' again, it represents a different typechecking type and hides outer 'T'.
+When the runtime type is returned back to the typechecking engine, only those generics that are in the current set of function type generic lists are allowed to be mentioned.
+When the inner generic function list places the name 'T' again, it represents a different typechecking type and hides the outer 'T'.
 
 So we can say generics are defined by the lexical scope and that actually matches how they are written out in code.
 
-Just like in the syntax of the language, reusing the same generic name, even between types and packs in a single list in a duplicate generic definition error.
+Just like in the syntax of the language, reusing the same generic name, even between types and packs in a single list results in a duplicate generic definition error.
 
 ### Examples
 
@@ -107,7 +107,7 @@ end
 
 We can assign a different `tag` to a generic pack instead of the `ispack` property.
 
-It is also possible to split generic type and packs list into two.
+It is also possible to split a single list containing both generic types and packs into two.
 This was done in an initial prototype implementation as was inconvenient to specify.
 One benefit was that you didn't have to split them manually when reading them.
 
