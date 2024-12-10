@@ -1,5 +1,7 @@
 # Require by String with Relative Paths
 
+**Status**: Implemented
+
 ## Summary
 
 We need to add relative paths to `require` statements to facilitate the grouping together of related Luau files into libraries and allow for future package managers to be developed and integrated easily.
