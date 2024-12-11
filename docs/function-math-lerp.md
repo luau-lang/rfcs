@@ -64,9 +64,9 @@ return t < 0.5f ? a + (b - a) * t : b + (b - a) * (t - 1);
 return a == b ? a : a * (1 - t) + b * t;
 ```
 
-The only two functions that seemingly satisfy our 4 (of 5) desired criteria are the implementation proposed in the design section, and another version that switches behavior around 0.5. Both do not guarantee determinacy due to potential overflow in `b - a`, but seem to guarantee (empirically or provably) other properties for `a <= b` and `0 <= t <= 1`.
+The only two functions that seemingly satisfy our 4 (of 5) desired criteria are the implementation proposed in the design section, and another version that switches behavior around `t=0.5`. Both do not guarantee determinacy due to potential overflow in `b - a`, but seem to guarantee (empirically or provably) other properties for `a <= b` and `0 <= t <= 1`.
 
-While the last variant can have more precision in certain cases, it is also noticeably slower: a branchless implementation requires 6/9 instructions on A64/X64 (absent `fma`) for the proposed implementation, and 9/16 instructions for the last variant of the lerp. The standard implementation should strike the best balance between correctness and performance, and the `t == 1` variant seems to fit the bill.
+While switching direction around `t=0.5` can increase precision in certain cases, it is also noticeably slower: a branchless implementation requires 6/9 instructions on A64/X64 (absent `fma`) for the proposed implementation, and 9/16 instructions for the last variant of the lerp. The standard implementation should strike the best balance between correctness and performance, and the `t == 1` variant seems to fit the bill.
 
 Our proposed implementation is trivially exact and consistent due to floating-point properties. Due to floating-point properties, it is monotonic with one possible exception of values around 1. Specifically, it's unclear what the relation is between:
 
