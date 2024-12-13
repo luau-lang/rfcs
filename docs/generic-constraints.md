@@ -40,7 +40,7 @@ The following snippet would also thus be correctly inferred.
 ```lua
 local qux = { foo = 10, bar = "string" }
 
-local function callbackProperty<T, K & keyof(T)>( object: T, key: K, callback: (index<T, K>) -> () )
+local function callbackProperty<T, K & keyof<T>>( object: T, key: K, callback: (index<T, K>) -> () )
   callback( object[key] )
 end
 
@@ -51,7 +51,7 @@ end)
 An alternative syntax could be the following, but does not satisfy current requirements about `:` only being used inside `()` and `{}`, and personally does not look as good.
 ```lua
 local function getProperty<T, K: keyof<T>>( object: T, key: K ) ... end
-local function callbackProperty<T, K: keyof(T)>( object: T, key: K, callback: (index<T, K>) -> () ) ... end
+local function callbackProperty<T, K: keyof<T>>( object: T, key: K, callback: (index<T, K>) -> () ) ... end
 ```
 ## Drawbacks
 - I am not personally familiar with the internals of the typechecker, but this has a chance to further complicate type inference.
