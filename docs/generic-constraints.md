@@ -2,8 +2,8 @@
 ## Summary
 Introduce syntax to extend/constrain the type of a generic.
 ## Motivation
-Luau currently does not provide a way in order to constrain the type of a generic without direct assertions.
-```lua
+Luau currently does not provide a way in order to constrain the type of a generic without direct assertions, and even so, would not properly infer the right type.
+```luau
 local qux = { foo = 10, bar = "string" }
 
 local function getProperty<T>( object: T, key: keyof<T> )
@@ -17,13 +17,13 @@ local bar = getProperty( qux, "bar" )
 ```
 This is wrong! We would expect foo to be a number, with bar being a string.
 In the following snippet, it is impossible to tell whether or not the key variable is the same as the one being used to index T in the callback.
-```lua
+```luau
 local function callbackProperty<T>( object: T, key: keyof<T>, callback: (index<T, keyof<T>>) -> () )
-...
+....
 ```
 ## Design
 The design of this would take inspiration from TypeScript's `extends`, where instead of the additional keyword, we would use `&`.
-```lua
+```luau
 local qux = { foo = 10, bar = "string" }
 
 local function getProperty<T, K & keyof<T>>( object: T, key: K )
@@ -37,7 +37,7 @@ local bar = getProperty( qux, "bar" )
 ```
 This would correctly infer the type of the each key's value.
 The following snippet would also thus be correctly inferred.
-```lua
+```luau
 local qux = { foo = 10, bar = "string" }
 
 local function callbackProperty<T, K & keyof<T>>( object: T, key: K, callback: (index<T, K>) -> () )
@@ -49,9 +49,9 @@ callbackProperty( qux, "foo", function( foo )
 end)
 ```
 An alternative syntax could be the following, but does not satisfy current requirements about `:` only being used inside `()` and `{}`, and personally does not look as good.
-```lua
-local function getProperty<T, K: keyof<T>>( object: T, key: K ) ... end
-local function callbackProperty<T, K: keyof<T>>( object: T, key: K, callback: (index<T, K>) -> () ) ... end
+```luau
+local function getProperty<T, K: keyof<T>>( object: T, key: K ) .... end
+local function callbackProperty<T, K: keyof<T>>( object: T, key: K, callback: (index<T, K>) -> () ) .... end
 ```
 ## Drawbacks
 - I am not personally familiar with the internals of the typechecker, but this has a chance to further complicate type inference.
