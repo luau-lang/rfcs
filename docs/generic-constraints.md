@@ -44,7 +44,7 @@ local function callbackProperty<T, K & keyof<T>>( object: T, key: K, callback: (
   callback( object[key] )
 end
 
-callbackProperty( object, "foo", function( foo )
+callbackProperty( qux, "foo", function( foo )
   -- foo: number -- this is expected!
 end)
 ```
