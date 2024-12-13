@@ -58,4 +58,4 @@ local function callbackProperty<T, K: keyof(T)>( object: T, key: K, callback: (i
 - Adding an extra use to `&` could make its usage more confusing to novices.
 ## Alternatives
 - Don't do this; this would make it impossible for functions like above to be able to be inferred correctly. Just let people explicitly type their variables instead of inferring types. This makes code more verbose and would likely not allow for full optimization.
-- Use overloaded functions as previously mentioned, but this wouldn't allow the usage of a generic with correct type inference and would require users to add a new overload for each key.
+- Use overloaded functions as previously mentioned, but this wouldn't allow the usage of a generic, would require users to add a new overload for each key.
