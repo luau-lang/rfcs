@@ -54,7 +54,7 @@ local function getProperty<T, K: keyof<T>>( object: T, key: K ) ... end
 local function callbackProperty<T, K: keyof(T)>( object: T, key: K, callback: (index<T, K>) -> () ) ... end
 ```
 ## Drawbacks
-- I am not familiar with the internals of the typechecker but this would further complicate type inference.
+- I am not personally familiar with the internals of the typechecker, but this has a chance to further complicate type inference.
 - Adding an extra use to `&` could make its usage more confusing to novices.
 ## Alternatives
 - Don't do this; this would make it impossible for functions like above to be able to be inferred correctly. Just let people explicitly type their variables instead of inferring types. This makes code more verbose and would likely not allow for full optimization.
