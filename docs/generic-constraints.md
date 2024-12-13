@@ -7,7 +7,7 @@ Luau currently does not provide a way in order to constrain the type of a generi
 local qux = { foo = 10, bar = "string" }
 
 local function getProperty<T>( object: T, key: keyof<T> ): index<T, keyof<T>>
-  return object[key]
+	return object[key]
 end
 
 local foo = getProperty( qux, "foo" )
@@ -34,7 +34,7 @@ There are a few options for the syntax of generic constraints.
 1. Treat the generic parameter as a variable--annotate it as declaring a new variable.
 ```luau
 local function getProperty<T, K: keyof<T>>( object: T, key: K ): index<T, K>
-  return object[ key ]
+	return object[ key ]
 end
 
 type getProperty<T, K: keyof<T>> = ( object: T, key: K ) -> index<T, K>
@@ -44,8 +44,7 @@ This would match the current expectation of `:` being used to type annotate a va
 2. Use a `where` clause.
 ```luau
 local function getProperty<T, K where K: keyof<T>>( object: T, key: K ): index<T, K>
-
-  return object[ key ]
+	return object[ key ]
 end
 
 type getProperty<T, K> = ( object: T, key: K ) -> ( index<T, K> ) where< K: keyof<T> >
@@ -58,7 +57,7 @@ This would allow users to specify the constraints of the separately from the gen
 This is the problem posed at the beginning of this RFC.
 ```lua
 local function callbackProperty<T, K: keyof<T>>( object: T, key: K, callback: (property: index<T, K>) -> () )
-  callback( object[ key ] )
+	callback( object[ key ] )
 end
 ```
 `K` will be constrained to be `keyof<T>`. This would allow `index<T, K>` to infer the type properly.
@@ -66,11 +65,11 @@ end
 ```luau
 -- Attempt 1
 local function sumSpecific( a: number | vector, b: number | vector ): number | vector
-  return a + b -- not okay!
+	return a + b -- not okay!
 end
 -- Attempt 2
 local function sumSpecific<T>( a: T, b: T ): T
-  return a + b -- not okay! not all types are addable.
+	return a + b -- not okay! not all types are addable.
 end
 ```
 This is to be expected. Luau does not interpret `a` and `b` as the same type, but if we use a generic then Luau throws an error that not all types are addable.
@@ -83,7 +82,7 @@ end
 This is fine, but is not concise whatsoever, and does not allow for the traditional function declaration syntax.
 ```luau
 local function sumSpecific<T: number | vector>( a: T, b: T ): T
-  return a + b
+	return a + b
 end
 
 sumSpecific( vector.create( 42, 42, 42 ) + vector.create( 143, 143, 143 ) ) -- okay!
