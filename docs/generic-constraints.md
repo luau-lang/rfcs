@@ -110,7 +110,7 @@ multiply(10, vector.create(10, 10, 10)) -- okay!
 multiply(10, 41) -- okay!
 multiply(10, "hello!") -- error! add<10, "hello"> is not okay.
 ```
-The `multiply` function would be bounded by `T: number`, along with `mul<T, K>`. This can be used to create any type of constraint if user-defined type functions exist in the future.
+The `multiply` function would be bounded by `T: number`, along with `mul<T, K>`. This can be used to create any type of constraint if user-defined type functions work with generics in the future.
 
 ## Drawbacks
 - There are no built-in inequality constraints nor not-subtyping constraints.
