@@ -30,7 +30,7 @@ This does not work in Luau.
 
 ## Design
 ### Syntax
-There are a few options for the syntax of generic constraints.
+There are two new options for syntax that come with this generic constraints.
 1. Treat the generic parameter as a variable--annotate it as declaring a new variable.
 ```luau
 local function getProperty<T, K: keyof<T>>( object: T, key: K ): index<T, K>
@@ -49,8 +49,15 @@ end
 
 type getProperty<T, K where K: keyof<T>> = ( object: T, key: K ) -> ( index<T, K> )
 ```
-This would allow users to specify the constraints of the separately from the generic declaration itself. This would be reminiscent to users of C#. Imposing multiple constraints on different generics can be done by delimiting with `,`. This would be backwards compatible, without major performance implications, as it could just be a conditional keyword. This could be used in conjuction with option 1.
-> This isn't nearly as elegant for smaller types compared to option 1, but would be incredibly powerful for generics with lots of constraints. This allows for neatly distributing the declaration along multiple lines.
+This would allow users to specify the constraints of the separately from the generic declaration itself. This would be reminiscent to users of C#. Imposing multiple constraints on different generics can be done by delimiting with `,`. This would be backwards compatible, without major performance implications, as it could just be a conditional keyword. 
+
+The `where` clause syntax can be further expanded to pose custom bounds on generics.
+```luau
+local function add<T, K where add<T, K>>( a: T, b: K )
+	return a + b
+end
+```
+The `add` function would only accept `T` and `K` if `add<T, K` is not `never`. This is currently available in Luau, but this behaviour is locked behind `add<T, K>` being the return type.
 
 ### Usage
 #### Subtyping Constraints
@@ -62,6 +69,7 @@ end
 ```
 `K` will be constrained to be `keyof<T>`. This would allow `index<T, K>` to infer the type properly.
 #### Equality Constraints
+Suppose we wanted to make a function that could only add `number`s or `vector`s.
 ```luau
 -- Attempt 1
 local function sumSpecific( a: number | vector, b: number | vector ): number | vector
@@ -92,13 +100,25 @@ sumSpecific( vector.create( 42, 42, 42 ), 143 ) -- error! a and b do not match.
 ```
 In this example, `T` must either be a number or vector, and setting annotating variables `a` and `b` as `T` would solve this. This can also be done by overloading the function but is more verbose and less elegant than this solution. This cannot be done with Luau's `add` type function, as it would allow all 'addable' types, and could not guarantee the return type being the same as both inputs.
 
+#### Other Constraints
+```luau
+local function multiply<T, K where T: number, mul<T, K>>( a: T, b: K )
+	return a + b
+end
+
+multiply(10, vector.create(10, 10, 10)) -- okay!
+multiply(10, 41) -- okay!
+multiply(10, "hello!") -- error! add<10, "hello"> is not okay.
+```
+The `multiply` function would be bounded by `T: number`, along with `mul<T, K>`. This can be used to create any type of constraint if user-defined type functions exist in the future.
+
 ## Drawbacks
-- There are no inequality constraints nor not-subtyping constraints.
+- There are no built-in inequality constraints nor not-subtyping constraints.
 	> This drawback is difficult justify in Luau's current state. The introduction of type negation could solve this, but is outside the scope of this RFC. If type negation were to be added, the proposed syntax would allow for both of these types of constraints.
 - This would complicate Luau's grammar and add an extra keyword, and would thus add an additional learning curve to the language.
 	> Any addition would add further complexity to the language. Adding the `where` keyword would also introduce another conditional keyword to the language.
 - If user-defined type functions supported generics, it would have to be expanded to support type constraints.
-	> This has major backwards compatibility implications depending on how user-defined type functions handle generics in the future. This won't be a problem if bounded polymorphism is implemented before that.
+	> This has major backwards compatibility implications depending on how user-defined type functions handle generics in the future.
 
 ## Alternatives
 1. **Don't do this.**
