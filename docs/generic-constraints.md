@@ -104,4 +104,4 @@ In this example, `T` must either be a number or vector, and setting annotating v
 1. Don't do this; this would make it impossible for functions like above to be able to be automatically inferred correctly. Just let people explicitly annotate their variables instead of inferring types. This makes code more verbose.
 	> This would disallow for code that specifically makes use of generics to automatically output a response.
 2. Manually write verbose overloaded functions types.
-	> This is not ideal, and suffers the same pitfalls as alternative 1.
+	> This suffers the same pitfalls as alternative 1, and does not allow for code to be easily expandable. An example can be found as Attempt 3 of Equality Constraints.
