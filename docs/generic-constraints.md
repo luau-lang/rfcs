@@ -23,7 +23,7 @@ local function callbackProperty<T>( object: T, key: keyof<T>, callback: (propert
 It is impossible to tell whether or not `key` is the same variable being used to index `T` in the callback, and thus Luau infers the type of `property` to be `number | string`.
 ```luau
 local function callbackProperty<T>( object: T, key: keyof<T>, callback: (property: index<T, K>) -> () )
-...
+....
 ```
 This does not work in Luau.
 > Ideally, this behaviour should work out of the box, but, could be solved with bounded polymorphism.
