@@ -94,16 +94,14 @@ In this example, `T` must either be a number or vector, and setting annotating v
 
 ## Drawbacks
 - There are no inequality constraints nor not-subtyping constraints.
-> This drawback is difficult justify in Luau's current state. The introduction of type negation could solve this, but is outside the scope of this RFC. If type negation were to be added, the proposed syntax would allow for both of these types of constraints.
+	> This drawback is difficult justify in Luau's current state. The introduction of type negation could solve this, but is outside the scope of this RFC. If type negation were to be added, the proposed syntax would allow for both of these types of constraints.
 - This would complicate Luau's grammar and add an extra keyword.
-> Any addition would add further complexity to the language. Adding the `where` keyword would also introduce another conditional keyword to the language.
+	> Any addition would add further complexity to the language. Adding the `where` keyword would also introduce another conditional keyword to the language.
+- If user-defined type functions supported generics, it would have to be expanded to support type constraints.
+	> This has major backwards compatibility implications depending on how user-defined type functions handle generics in the future. This won't be a problem if bounded polymorphism is implemented before that.
 
 ## Alternatives
 1. Don't do this; this would make it impossible for functions like above to be able to be automatically inferred correctly. Just let people explicitly annotate their variables instead of inferring types. This makes code more verbose.
-> This would disallow for code that specifically makes use of generics to automatically output a response.
+	> This would disallow for code that specifically makes use of generics to automatically output a response.
 2. Manually write verbose overloaded functions types.
-> This is not ideal, and suffers the same pitfalls as alternative 1.
-
-## Future Work
-- If user-defined type functions supported generics, it would have to be expanded to support type constraints.
-> This has major backwards compatibility implications depending on how user-defined type functions handle generics in the future. This won't be a problem if bounded polymorphism is implemented before that.
+	> This is not ideal, and suffers the same pitfalls as alternative 1.
