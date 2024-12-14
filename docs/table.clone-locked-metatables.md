@@ -64,7 +64,7 @@ This is a valid concern. The issue at hand being an avenue to assign metatables 
 However, this is not an issue as the changes proposed in this RFC do not allow for such behavior.
 
 Another potential drawback that could be levied at this proposal is a reduced debuggability of not hard-failing when the expected behavior would be to create a shallow copy with the metatable of the original table.
-However, this point is most certainly moot in practice, as most users very likely are not even aware, or desire the fact that `table.clone` can assign the metatables of the original table to the clone.
+However, this point is most certainly moot in practice, as most users are very likely not even aware, or desire the fact that `table.clone` can assign the metatables of the original table to the clone.
 
 ## Alternatives
 
