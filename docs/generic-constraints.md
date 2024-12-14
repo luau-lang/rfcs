@@ -120,4 +120,3 @@ local function add<T, K>( a: T, b: K )
 end
 ```
 As such, the engine successfully bounds both `T` and `K` such that it satisfies `add<T, K>`. This alternative could work if the engine eventually becomes smart enough, but manually placing bounds would still have a role as per the usage section of this RFC.
-4. 
