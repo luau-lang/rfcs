@@ -95,13 +95,29 @@ In this example, `T` must either be a number or vector, and setting annotating v
 ## Drawbacks
 - There are no inequality constraints nor not-subtyping constraints.
 	> This drawback is difficult justify in Luau's current state. The introduction of type negation could solve this, but is outside the scope of this RFC. If type negation were to be added, the proposed syntax would allow for both of these types of constraints.
-- This would complicate Luau's grammar and add an extra keyword.
+- This would complicate Luau's grammar and add an extra keyword, and would thus add an additional learning curve to the language.
 	> Any addition would add further complexity to the language. Adding the `where` keyword would also introduce another conditional keyword to the language.
 - If user-defined type functions supported generics, it would have to be expanded to support type constraints.
 	> This has major backwards compatibility implications depending on how user-defined type functions handle generics in the future. This won't be a problem if bounded polymorphism is implemented before that.
 
 ## Alternatives
-1. Don't do this; this would make it impossible for functions like above to be able to be automatically inferred correctly. Just let people explicitly annotate their variables instead of inferring types. This makes code more verbose.
-	> This would disallow for code that specifically makes use of generics to automatically output a response.
-2. Manually write verbose overloaded functions types.
-	> This suffers the same pitfalls as alternative 1, and does not allow for code to be easily expandable. An example can be found as Attempt 3 of Equality Constraints.
+1. **Don't do this.**
+This would make it impossible for functions like above to be able to be automatically inferred correctly. Just let people explicitly annotate 
+their variables instead of inferring types. This makes code more verbose. This would disallow for code that specifically makes use of generics to automatically output a response.
+2. **Manually write verbose overloaded functions types.**
+This suffers the same pitfalls as alternative 1, and does not allow for code to be easily expandable. An example can be found as Attempt 3 of Equality Constraints.
+3. **Get Luau to automatically infer bounds.**
+This is really desirable behaviour, but is definitely non-trivial. Allowing for generic constraints removes ambiguity that might occur for generics. Specifically in one of the first examples...
+```luau
+local function getProperty<T, K>( object: T, key: K ): index<T, K>
+  return object[key]
+end
+```
+This should be possible, but simply isn't. The type inference engine currently cannot bound `K` such that `K` is `keyof<T>`. An example of where this does work is as follows.
+```luau
+local function add<T, K>( a: T, b: K )
+  return a + b
+end
+```
+As such, the engine successfully bounds both `T` and `K` such that it satisfies `add<T, K>`. This alternative could work if the engine eventually becomes smart enough, but manually placing bounds would still have a role as per the usage section of this RFC.
+4. 
