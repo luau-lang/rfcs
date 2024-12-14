@@ -47,7 +47,7 @@ local function getProperty<T, K where K: keyof<T>>( object: T, key: K ): index<T
 	return object[ key ]
 end
 
-type getProperty<T, K> = ( object: T, key: K ) -> ( index<T, K> ) where< K: keyof<T> >
+type getProperty<T, K where K: keyof<T>> = ( object: T, key: K ) -> ( index<T, K> )
 ```
 This would allow users to specify the constraints of the separately from the generic declaration itself. This would be reminiscent to users of C#. Imposing multiple constraints on different generics can be done by delimiting with `,`. This would be backwards compatible, without major performance implications, as it could just be a conditional keyword. This could be used in conjuction with option 1.
 > This isn't nearly as elegant for smaller types compared to option 1, but would be incredibly powerful for generics with lots of constraints. This allows for neatly distributing the declaration along multiple lines.
