@@ -26,7 +26,7 @@ local function callbackProperty<T>( object: T, key: keyof<T>, callback: (propert
 ....
 ```
 This does not work in Luau.
-> Ideally, this behaviour should work out of the box, but, could be solved with bounded polymorphism.
+> Ideally, this behaviour should work out of the box, but, could be solved with updates to the type engine.
 
 ## Design
 ### Syntax
