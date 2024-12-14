@@ -39,7 +39,7 @@ end
 
 type getProperty<T, K: keyof<T>> = ( object: T, key: K ) -> index<T, K>
 ```
-This would match the current expectation of `:` being used to type annotate a variable. This would be backwards compatible without performance implications. As a note, the ordering of `T` and `K` is arbitrary and can be switched if desired.
+This would match the current expectation of `:` being used to type annotate a variable. This would be backwards compatible without major performance implications. As a note, the ordering of `T` and `K` is arbitrary and can be switched if desired.
 
 2. Use a `where` clause.
 ```luau
@@ -97,8 +97,6 @@ In this example, `T` must either be a number or vector, and setting annotating v
 > This drawback is difficult justify in Luau's current state. The introduction of type negation could solve this, but is outside the scope of this RFC. If type negation were to be added, the proposed syntax would allow for both of these types of constraints.
 - This would complicate Luau's grammar and add an extra keyword.
 > Any addition would add further complexity to the language. Adding the `where` keyword would also introduce another conditional keyword to the language.
-- The introduction of bounded polymorphism would greatly complicate the compiler.
-> I am not personally familiar with the internals of the typechecker.
 
 ## Alternatives
 1. Don't do this; this would make it impossible for functions like above to be able to be automatically inferred correctly. Just let people explicitly annotate their variables instead of inferring types. This makes code more verbose.
