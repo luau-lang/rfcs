@@ -10,34 +10,6 @@ The Roblox engine does not currently support require-by-string. One motivation f
 
 Luau itself currently supports a basic require-by-string syntax that allows for requiring Luau modules by relative or absolute path. Unfortunately, the current implementation does not support aliases.
 
-## Design
-
-Parts of this design are now obsoleted by [this RFC](https://github.com/luau-lang/rfcs/pull/56).
-
-#### Aliases
-
-Aliases can be used to bind an absolute or relative path to a convenient, case-insensitive name that can be required directly.
-
-```json
-"aliases": {
-    "Roact": "C:/LuauModules/Roact-v1.4.2"
-}
-```
-
-Based on the alias map above, you would be able to require Roact directly with an `@` prefix:
-
-```luau
-local Roact = require("@Roact")
-```
-
-Or even a sub-module:
-
-```luau
-local createElement = require("@Roact/createElement")
-```
-
-Aliases are overrides. Whenever the first component of a path exactly matches a pre-defined alias, it will be replaced before the path is resolved to a file. Alias names are also restricted to the charset `[A-Za-z0-9.\-_]`. We restrict the charset and make them case insensitive because we envision alias names to be primarily used as package names, which tend to be case insensitive and alphanumeric. They also must be preceded by an `@` symbol.
-
 ### Package management
 
 While package management itself is outside of the scope of this RFC, we want to make it possible for a package management solution to be developed in a way that integrates well with our require syntax.
@@ -65,11 +37,37 @@ local result = require("../../../../../HelperModules/graphing")
 local result = require("@src/HelperModules/graphing")
 ```
 
-##### Versioning
+## Design
+
+### Aliases
+
+Aliases can be used to bind an absolute or relative path to a convenient, case-insensitive name that can be required directly.
+
+```json
+"aliases": {
+    "Roact": "C:/LuauModules/Roact-v1.4.2"
+}
+```
+
+Based on the alias map above, you would be able to require Roact directly with an `@` prefix:
+
+```luau
+local Roact = require("@Roact")
+```
+
+Or even a sub-module:
+
+```luau
+local createElement = require("@Roact/createElement")
+```
+
+Aliases are overrides. Whenever the first component of a path exactly matches a pre-defined alias, it will be replaced before the path is resolved to a file. Alias names are also restricted to the charset `[A-Za-z0-9.\-_]`. We restrict the charset and make them case insensitive because we envision alias names to be primarily used as package names, which tend to be case insensitive and alphanumeric. They also must be preceded by an `@` symbol.
+
+#### Versioning
 
 Aliases are simple bindings and aren't concerned with versioning. The intention is to allow package management software to leverage aliases by automatically adding and updating the alias map to reflect a package's dependencies. For manual versioning, a user could always "version" their aliases: `@MyModule-v1`, `@MyModule-v2`, etc.
 
-##### Library root alias
+#### Library root alias
 
 In the past, it has been proposed to define an alias (e.g. "`@`") to represent the root directory of a file's encapsulating library.
 - However, the concept of a "Luau library" and its root directory is not yet rigorously defined in Luau, in terms of folder/file structure.
@@ -84,13 +82,42 @@ Of course, users can still use the alias map to explicitly define this behavior 
 }
 ```
 
-#### Paths
+#### Current limitations of aliases
+
+- Aliases cannot reference other aliases. (However, this is compatible with this proposal and will likely be implemented in the future.)
+- Alias names cannot contain the directory separators `/` and `\`.
+- Aliases can only occur at the beginning of a path.
+
+#### Configuring alias maps: .luaurc
+
+As part of this proposal, alias maps will be configured in `.luaurc`, which follows a JSON-like syntax.
+
+Proposed structure of an alias map:
+```json
+{
+    "aliases": {
+        "alias1": "/path/of/alias1",
+        "alias2": "/path/of/alias2"
+    }
+}
+```
+
+Missing aliases in `.luaurc` are inherited from the alias maps of any parent directories, and fields can be overridden.
+
+Additionally, if an alias is bound to a relative path, the path will be evaluated relative to the `.luaurc` file in which the alias was defined.
+
+Finally, providing support for alias maps within the Roblox engine is out of the scope of this RFC but is being considered internally.
+
+### Paths
+
+**This section is now obsoleted by [this RFC](https://github.com/luau-lang/rfcs/pull/56):**
+The `paths` array described below is no longer supported.
 
 Similar to [paths in TypeScript](https://www.typescriptlang.org/tsconfig#paths), we will introduce a `paths` array that can be configured in `.luaurc` files. Whenever a path is passed to `require` and does not begin with `./` or `../`, the path will first be resolved relative to the requiring file. If this fails, we will attempt to resolve paths relative to each path in the `paths` array.
 
 The `paths` array can contain absolute paths, and relative paths are resolved relative to `.luaurc` file in which they appear.
 
-##### Example Definition
+#### Example Definition
 
 With the given `paths` definition (`.luaurc` file located in `/Users/johndoe/Projects/MyProject/src`):
 ```json
@@ -111,61 +138,6 @@ We would search the following directories, in order:
 - `/Users/johndoe/MyLuauLibraries`
 - `/Users/johndoe/MyOtherLuauLibraries`
 
-### Paths array
-
-The `paths` configuration variable provides convenience and allows Luau developers to build complex, well-organized libraries. Imagine the following project structure:
-
-```
-luau-paths-project
-├── .luaurc
-├── dependencies
-│   └── dependency.luau
-└── src
-    └── module.luau
-```
-
-If `.luaurc` contained the following `paths` array:
-```json
-{
-    "paths": ["./dependencies"]
-}
-```
-
-Then, `module.luau` could simply require `dependency.luau` like this:
-```luau
-local dependency = require("dependency")
-
--- Instead of: require("../dependencies/dependency")
-```
-
-Using the `paths` array allows Luau developers to organize their projects however they like without compromising code readability.
-
-##### Current limitations of aliases
-
-- Aliases cannot reference other aliases. (However, this is compatible with this proposal and will likely be implemented in the future.)
-- Alias names cannot contain the directory separators `/` and `\`.
-- Aliases can only occur at the beginning of a path.
-
-##### Configuring alias maps: .luaurc
-
-As part of this proposal, alias maps will be configured in `.luaurc`, which follows a JSON-like syntax.
-
-Proposed structure of an alias map:
-```json
-{
-    "aliases": {
-        "alias1": "/path/of/alias1",
-        "alias2": "/path/of/alias2"
-    }
-}
-```
-
-Missing aliases in `.luaurc` are inherited from the alias maps of any parent directories, and fields can be overridden.
-
-Additionally, if an alias is bound to a relative path, the path will be evaluated relative to the `.luaurc` file in which the alias was defined.
-
-Finally, providing support for alias maps within the Roblox engine is out of the scope of this RFC but is being considered internally.
-
 ### Symlinks
 
 Symlinks carry some security concerns; for example, a link's target might exist outside of the project folder in which the link was defined. For the first version of this implementation, symlinks will not be supported and will be treated as ordinary files.
@@ -177,6 +149,7 @@ Similar examples:
 - https://webpack.js.org/configuration/resolve/#resolvesymlinks
 
 ## Use Cases
+
 ### Alias map
 
 Using alias maps, Luau developers can require globally installed Luau libraries in their code without needing to specify their locations in Luau scripts.
@@ -205,6 +178,38 @@ local Component = require("@Roact/Component")
 ```
 
 If we ever wanted to change the version of `Roact` used by `luau-aliases-project`, we would simply change the absolute path to `Roact` in `.luaurc`. By abstracting away the exact location of globally installed libraries like this, we get clean, readable code, and we make it easier for a future package manager to update dependencies by modifying `.luaurc` files.
+
+### Paths array
+
+**This section is now obsoleted by [this RFC](https://github.com/luau-lang/rfcs/pull/56):**
+The `paths` array described below is no longer supported.
+
+The `paths` configuration variable provides convenience and allows Luau developers to build complex, well-organized libraries. Imagine the following project structure:
+
+```
+luau-paths-project
+├── .luaurc
+├── dependencies
+│   └── dependency.luau
+└── src
+    └── module.luau
+```
+
+If `.luaurc` contained the following `paths` array:
+```json
+{
+    "paths": ["./dependencies"]
+}
+```
+
+Then, `module.luau` could simply require `dependency.luau` like this:
+```luau
+local dependency = require("dependency")
+
+-- Instead of: require("../dependencies/dependency")
+```
+
+Using the `paths` array allows Luau developers to organize their projects however they like without compromising code readability.
 
 ### Large-scale projects in Luau
 
