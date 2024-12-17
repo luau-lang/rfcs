@@ -57,8 +57,6 @@ end
 
 ## Drawbacks
 
-There are no drawbacks to this.
-
 The original RFC puts forth a rationale for restricting cloning tables with locked metatables due to security reasons.
 This is a valid concern. The issue at hand being an avenue to assign metatables to unintended tables.
 However, this is not an issue as the changes proposed in this RFC do not allow for such behavior.
