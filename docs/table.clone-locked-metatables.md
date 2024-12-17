@@ -7,7 +7,7 @@ Allow `table.clone` to copy tables with locked metatables.
 ## Motivation
 
 As proposed by the [`table.clone` RFC](function-table-clone.md), the function `table.clone` cannot create shallow copies of a table if it has a locked metatable.
-Due to this ugly limitation, it is extremely un-ergonomic to create shallow copies of arbitrary tables.
+Due to this limitation, it is very un-ergonomic to create shallow copies of arbitrary tables.
 The current behavior of using `table.clone` on a table with a locked metatable is a hard-fail approach where `table.clone` spits out an error instead of having a soft-fail approach wherein a clone is generated without a metatable.
 This hard-fail approach severely hinders the usefulness of `table.clone` due to in practice users having to re-implement the function in many scenarios.
 
