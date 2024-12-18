@@ -9,7 +9,7 @@ Add a `lerp` function to the `math` library, which performs linear interpolation
 Linear interpolation is a very common operation in game development. It is present in standard libraries of some general purpose languages (C++, C#, Zig) and all shading languages (HLSL, GLSL, Slang). It can be used for implementing object motion, GUI sliders, color transitions, gameplay logic, etc.
 
 Implementation of linear interpolation seems straightforward, but not all implementations have various numerical properties that can be important in practice. As such, a naive manual implementation may lead to unintended results.
-Using `math.map` as a replacement with bounds 0..1 seems easy, but it results in worse performance and numerical properties compared to specialized function, and is less intuitive than `lerp`. In presence of `math.map` and absence of `math.lerp`, users may gravitate towards the slower, numerically worse and less ergonomic solution.
+Using `math.map` as a replacement with bounds 0..1 seems easy, but it results in worse performance and numerical properties compared to a specialized function, and is less intuitive than `lerp`. In presence of `math.map` and absence of `math.lerp`, users may gravitate towards the slower, numerically worse and less ergonomic solution.
 
 A native function would help boost ergonomics and provide a good quality-performance tradeoff by default.
 
@@ -25,7 +25,7 @@ end
 
 Just like common Luau implementations, `t` is allowed to be outside the input range. Since clamped mapping is not as widely used and can be easily replicated using `math.clamp`, it would not be supported out of the box.
 
-Similarly, `a` and `b` range is allowed to be reversed; the behavior of suggested implementation is intuitive on a reversed range, and enforcing the additional restriction `a <= b` will reduce performance and limit usecases.
+Similarly, `a` and `b` range is allowed to be reversed; the behavior of suggested implementation is intuitive on a reversed range, and enforcing the additional restriction `a <= b` will reduce performance and limit use cases.
 
 The next section will explain the rationale for choosing the proposed implementation.
 
@@ -41,11 +41,11 @@ In addition to performance, interpolation functions can be evaluated using a set
 
 Some applications may require some of these properties but not others. Enforcing all of these properties is expensive, with the most difficult property being determinacy, as many pairs of `b` and `a` of opposite signs will overflow the `b-a` computation. [C++ std::lerp](https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2019/p0811r3.html) uses a different formula to handle interpolation for `a` and `b` of different signs.
 
-In practice, exactness can be crucial for some applications as in common use cases, such as interpolating object's motion from A to B, not reaching the exact final position may result in not triggering conditions based on comparing the result. Boundedness may be important when the result of `lerp` is an input to another function; for example, reverse trigonometric functions like `math.acos` will produce NaN for out of range inputs. Consistency can be valuable to avoid sub-pixel jitter in cases where the object is supposed to stay in place during an animation sequence where the position is being interpolated between two equal points. Similarly, monotonicity can be valuable to avoid sub-pixel jitter in reverse direction of motion in case the object is interpolated between two points.
+In practice, exactness can be crucial for some applications as in common use cases, such as interpolating an object's motion from A to B, not reaching the exact final position may result in not triggering conditions based on comparing the result. Boundedness may be important when the result of `lerp` is an input to another function; for example, reverse trigonometric functions like `math.acos` will produce NaN for out of range inputs. Consistency can be valuable to avoid sub-pixel jitter in cases where the object is supposed to stay in place during an animation sequence where the position is being interpolated between two equal points. Similarly, monotonicity can be valuable to avoid sub-pixel jitter in reverse direction of motion in case the object is interpolated between two points.
 
 Thus, ideally we would like to find a function that is exact, monotonic, bounded and consistent; and, of course, enforcing these properties should come at the minimum performance cost.
 
-The following commonly encountered formulas have been evaluated for numerical properties, using a combination of numerical reasoning, exhaustive searches and randomized fuzzing. The analysis has been performed for 32-bit floats; it should hold for 64-bit floats as well. Monotonicity is only checked in `[0, 1]` interval; we also assume `a <= b` for the sake of this analysis.
+The following commonly encountered formulas have been evaluated for numerical properties, using a combination of numerical reasoning, exhaustive searches and randomized fuzzing. The analysis has been performed for 32-bit floats; it should hold for 64-bit floats as well. Monotonicity is only checked in the `[0, 1]` interval; we also assume `a <= b` for the sake of this analysis.
 
 ```c++
 // exactness 0, monotonicity 1, determinacy 0, boundedness 0, consistency 1
@@ -80,7 +80,7 @@ Since the fuzzer has not been able to find a counter-example for our implementat
 
 In the event monotonicity is indeed somehow broken around 1, the author still considers the `lerp` function described above practically useful and a good balance between performance and correctness.
 
-> Note: the evaluation and analysis has been performed without fused fma; while it *probably* holds when `+` and `*` are fused, that has not been established.
+> Note: the evaluation and analysis has been performed without fma; while it *probably* holds when `+` and `*` are fused, that has not been established.
 
 Additional references:
 
