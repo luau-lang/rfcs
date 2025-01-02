@@ -23,7 +23,7 @@ A global `eprint` would be added to the global environment. It would have the sa
 - Python has `print` designed around this passing stream handles: `print(...)` prints to `stdout` and `print(..., file=sys.stderr)` prints to `stderr`
 - C has `fprintf` that works similiar to Python's `print`: `printf(stdout, ...)` and `printf(stderr, ...)`
 
-These are just examples. Based on further research on this that it seems roughly split between functions that accept a stream handle to write in (like C or Python) and those that use globals (like JavaScript or Rust). Given Luau currently has no concept of stream handles and `print` already exists, it seems more reasonable to propose the latter.
+These are just examples. Based on further research on this, it seems roughly split between functions that accept a stream handle to write in (like C or Python) and those that use globals (like JavaScript or Rust). Given Luau currently has no concept of stream handles and `print` already exists, it seems more reasonable to propose the latter.
 
 By default, `stderr` is generally not buffered in the same way as `stdout`. This RFC acknowledges this, but does not specify whether `stderr` should be changed to buffer or not: this is likely better left to the embedder rather than decided by Luau itself.
 
