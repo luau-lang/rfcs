@@ -9,15 +9,15 @@ Add support for generic function types in type functions to allow more types to 
 Generic functions are very common in Luau, especially when inferred by the typechecking engine. They are also often present in classes defined by the environment.
 
 Omitting generic types from appearing in type functions limits their use.
-Today, even if there is no direct manipulation of generics, a serialization error appears immediately.
-Ideally, we want use-defined type functions to support any possible type, aside from temporary implementation-detail types of the type solver.
+Today, even if there is no direct manipulation of generics, a serialization error appears immediately for any generic function or class containing them.
+Ideally, we want user-defined type functions to support any possible type, aside from temporary implementation-detail types of the type solver.
 
 ## Design
 
 We will introduce a single 'generic' kind of runtime type for both generic types and generic packs.
 
 While this doesn't match up the typechecking engine representation directly, we avoid having to deal with two different userdata types.
-Being content of a generic type or pack is not known upfront, assigning separate tags is not that different from having an extra property on it.
+Since the value of a generic type or pack is not known upfront, assigning separate tags is not that different from having an extra property on it.
 
 We already have variadic types (`...number`) that get represented as a regular runtime type and only gain that special meaning when placed in a 'tail' spot.
 We also have a different representation of a table with a metatable between type functions and typechecking.
@@ -33,10 +33,10 @@ For example, consider a type `<T, U>(T, U, <T>(T) -> U) -> ()`
 From the typechecking perspective, inner and outer function 'T' types are different, but they are still represented by the same runtime generic named 'T'.
 
 The ambiguity is resolved based on the scoping of the generic in question.
-When the runtime type is returned back to the typechecking engine, only those generics that are in the current set of function type generic lists are allowed to be mentioned.
+When the runtime type is returned back to the typechecking engine, only those generics that are in the current set of function type generic lists are allowed to be mentioned. Usage of ill-scoped generics will result in serialization errors.
 When the inner generic function list places the name 'T' again, it represents a different typechecking type and hides the outer 'T' until the scope of the inner type ends.
 
-So we can say generics are defined by the lexical scope, which matches how they are written out in source code.
+As such, generics are defined by their lexical scope, matching how they are written out in source code.
 
 Just like in the syntax of the language, reusing the same generic name, even between types and packs in a single list results in a duplicate generic definition error.
 
@@ -117,4 +117,4 @@ One benefit was that list didn't have to be split manually when reading types or
 
 Generics do bring additional complexity to type functions, especially with the way we can now hold a generic type pack as a separate item (while `type T = U...` impossible to define in the syntax of the language).
 
-The way they bring in lexical scoping consideration is also new for type function runtime.
+The way they bring in lexical scoping considerations is also new for the type function runtime.
