@@ -21,6 +21,8 @@ Since the value of a generic type or pack is not known upfront, assigning separa
 
 We already have variadic types (`...number`) that get represented as a regular runtime type and only gain that special meaning when placed in a 'tail' spot.
 We also have a different representation of a table with a metatable between type functions and typechecking.
+There alternative representations were chosen to improve developer experience working with user-defined type functions based on the experience of people working on the type checker.
+It is still compatible with potential extensions to have other kinds of type packs represented as types in the future.
 
 Generics are created by specifying a name and a boolean marking it as a type or a pack.
 Generics that are coming from type inference might not have a display name, but still hold an auto-generated name internally.
