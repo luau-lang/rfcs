@@ -1,5 +1,7 @@
 # Require by String with Aliases
 
+**Status**: Implemented
+
 ## Summary
 
 We need to add intuitive alias and paths functionality to facilitate the grouping together of related Luau files into libraries and allow for future package managers to be developed and integrated easily.
