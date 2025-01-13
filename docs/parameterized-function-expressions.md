@@ -146,7 +146,7 @@ local moneyBinding = React.createBinding.<number>()
 local moneyBinding = React.createBinding:<number>()
 ```
 
-The downside of these is that they blur the lines between runtime and static, in the sense that `React.createBinding.` starts out as a runtime concept, followed by the purely static `<number>`. As for `:`, it carries the baggage of `x:y()` which will perform a runtime mutation of the function.
+The downside of these is that they blur the lines between runtime and static, in the sense that `React.createBinding.` starts out as a runtime concept, followed by the purely static `<number>`. As for `:`, it carries the baggage of `x:y()` which will perform a runtime mutation of the function call in the form of adding on `self`.
 
 There is also not necessarily a reason that we have to provide symmetrical operators, so something like `f!T, U()` is reasonably parseable, but is not obviously better.
 
