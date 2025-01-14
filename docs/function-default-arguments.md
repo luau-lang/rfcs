@@ -141,6 +141,28 @@ function demo_3(a = "demo")
 end
 ```
 
+### Type Semantics: Arguments with a default value are implicitly optional
+The type signature of a function that has default values does not note the presence of defaults, and instead marks arguments that have a default value as optional (union with `nil`).
+
+That is to say, if we consider the following function:
+
+```lua
+function foo(bar = 1) end
+```
+
+the type of `foo` will be `(number?) -> ()`, not `(number) -> ()`. This semantic ensures the type system allows callers to omit arguments as appropriate, while ensuring the callee doesn't bind an optional local type.
+
+This raises the question of what happens if the following function is defined:
+
+```lua
+function foo(bar: number? = 1) end
+```
+
+In this instance, the type of `foo` will still be `(number?) -> ()`. The bound local within the function body will however now have a type of `number?` rather than `number`. This is a non sequitur as there is no way `bar` can ever be `nil`--if `foo(nil)` is called, the default value of `1` will be used instead. The only case in which this would follow is if the tautological default of `foo(bar: number? = nil)` was used.
+
+This RFC does not seek to address this non sequitur case beyond suggesting that this be warned against as part of linting.
+
+
 ### Type Semantics: Inferred types from default values are not sealed
 When a table type is inferred from a default value, it is not sealed. If the function body makes modifications, these are unified with the inferred type.
 
