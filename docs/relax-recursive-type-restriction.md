@@ -52,9 +52,29 @@ gained for users of the type system.
 
 ## Alternatives
 
-The only serious alternative besides doing nothing at all would be to implement equirecursive types.
+
+### Equirecursive Types
+
+The main alternative besides doing nothing at all would be to implement equirecursive types.
 Equirecursive types have considerably greater complexity, both for humans and for computers. They
 pose considerable algorithmic challenges for both type checking and type inference, and require
 an implementation of a canonicalization of recursive types that is O(n log n). Isorecursive types
 are simpler, map closely to what is already implemented in Luau today, and match the intuitions
 users likely have from interacting with recursive types in nominal object-oriented languages.
+
+### Strict type aliases with Caching
+
+[A previous RFC](https://github.com/asajeffrey/rfcs/blob/recursive-type-unrestriction/docs/recursive-type-unrestriction.md)
+proposed loosening the recursive type restriction, but still leaving it partially in tact, by implementing a strategy of
+mapping distinct recursive uses of a type alias to a free type during the definition portion of constructing the type alias
+and then tying the knot using that mapping as a cache. This feels in the spirit of Landin's Knot, and was a meaningful
+proposal to improve the status quo without us implementing a new type inference engine, but as mentioned in the drawbacks
+section, this work is already well underway for other reasons and so the appeal of taking this route today is lessened.
+
+### Lazy recursive type instantiations with Caching
+
+The previous RFC also mentioned briefly both the approach proposed by this RFC and an approach that uses a cache as well
+to limit the size of the graph. This may be useful, and may in fact be what we implement, but the author of this RFC does
+not feel that it is necessary to make a commitment one way or the other to the implementation using caching. We will do
+whatever gets us the correct semantics for recursive types, and if there is any caching, it should not be visible to the
+user.
