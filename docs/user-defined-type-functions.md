@@ -113,7 +113,7 @@ This section details the initial programming interface we propose for `type`s wh
 | `negationof(arg: type)` | `type` | returns an immutable instance of the parameter as a negated type; the parameter cannot be a table or function type |
 | `unionof(...: type)` | `type` | returns an immutable instance of an union type of the arguments; requires at least 2 parameters to be provided |
 | `intersectionof(...: type)` | `type` | returns an immutable instance of an intersection type of the arguments; requires at least 2 parameters to be provided |
-| `newtable(props: {[type]: type \| { read: type, write: type } }?, indexer: { key: type, value: type }?, metatable: type?)` | `type` | returns a mutable instance of a table type; the keys of the table's property must be a singleton type; sets the table's metatable if one is provided |
+| `newtable(props: {[type]: type \| { read: type, write: type } }?, indexer: { index: type, readresult: type, writeresult: type }?, metatable: type?)` | `type` | returns a mutable instance of a table type; the keys of the table's property must be a singleton type; sets the table's metatable if one is provided |
 | `newfunction(parameters: { head: {type}?, tail: type? }, returns: { head: {type}?, tail: type? })` | `type` | returns a mutable instance of a `function` type |
 | `copy(arg: type)` | `type` | returns a deep copy of the given `type` |
 
