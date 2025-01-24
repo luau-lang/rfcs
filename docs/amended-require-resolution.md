@@ -1,5 +1,7 @@
 # Amended Require Syntax and Resolution Semantics
 
+**Status**: Implemented
+
 ## Summary
 
 We need to finalize a syntax for aliases in require expressions and determine intuitive resolution semantics as we prepare to build a package management system.
