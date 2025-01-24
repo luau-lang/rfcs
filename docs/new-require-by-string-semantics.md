@@ -36,8 +36,7 @@ This would cause the following:
 
 This behavior is [problematic](https://github.com/Roblox/luau/issues/959), and puts an unnecessary emphasis on the directory from which the Luau CLI is running. A better solution is to evaluate relative paths in relation to the file that is requiring them.
 
-## Design 
-
+## Design
 
 ### Package management
 
@@ -58,6 +57,10 @@ For compatibility across platforms, we will automatically map `/` onto `\`.
 
 ### Path resolution
 
+**This section is now obsoleted by [this RFC](https://github.com/luau-lang/rfcs/pull/56):**
+The implicit resolution order described below is no longer supported.
+If multiple files exist that could match a given `require` path, an error is thrown.
+
 If we find files with the same name but different extensions, then we will attempt to require a file with the following extensions (in this order):
 1. `.luau`
 2. `.lua`
@@ -67,8 +70,10 @@ If the string resolves to a directory instead of a file, then we will attempt to
 1. `init.luau`
 2. `init.lua`
 
-
 ### Relative paths
+
+**This section is now partially obsoleted by [this RFC](https://github.com/luau-lang/rfcs/pull/56):**
+Relative paths *must* begin with either `./` or `../`, and the `paths` variable is no longer supported.
 
 Modules can be required relative to the requiring file's location in the filesystem (note, this is different from the current implementation, which evaluates all relative paths in relation to the current working directory).
 
