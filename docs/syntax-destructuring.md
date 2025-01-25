@@ -8,32 +8,8 @@ Introduce a set of destructuring utilities that:
 - don't require parser backtrack
 - are consistent with Luau style
 
-Specifically:
-
-1) A `...` unpacking expression:
-
 ```Lua
-local array: {string}
-local dict: {daisy: string, emerald: string, florence: string}
-
-local amy, becca, chloe = array...
-amy, becca, chloe = array...
-
-local daisy, emerald, florence = dict...
-daisy, emerald, florence = dict...
-```
-
-2) A `...=` unpacking assignment:
-
-```Lua
-local array: {string}
-local dict: {daisy: string, emerald: string, florence: string}
-
-local amy, becca, chloe ...= array
-amy, becca, chloe ...= array
-
-local daisy, emerald, florence ...= dict
-daisy, emerald, florence ...= dict
+-- TODO
 ```
 
 ## Motivation
@@ -90,20 +66,44 @@ get("/users", ({
 
 ## Design
 
-### Destructuring expression
+### Multiple indexing
 
-Today, Luau implements positional unpacking via `table.unpack`, but does not implement keyed unpacking. Additionally, the previous RFC made it clear that many Luau users seek a more concise syntax for this common task.
+The RFC is built around the idea of being able to index multiple keys in a table simultaneously. The simplest form of this idea is introduced.
 
-This proposal suggests the introduction of a new destructuring operator to replace `table.pack` for positional unpacking, and extend it to keyed unpacking.
-
-The `...` variadic token is selected, as it is not currently valid following an expression - it is only valid on its own. It also ties this operator to the concept of variadics and multiple returhs, which is appropriate.
-
-Positional unpacking is simple:
+The `[]` indexing operator is extended to support comma-separated arguments, to simultaneously read from multiple keys at once:
 
 ```
 local numbers = {3, 5, 11}
 
-local three, five, eleven = numbers...
+local three, five, eleven = numbers[1, 2, 3]
+```
+
+### Range indexing
+
+Multiple indexing can replace manual unpacking of tables with `table.unpack`.
+
+Instead of providing a list of keys, an inclusive range of keys can be specified with `[x : y]`, where `x` and `y` evaluate to a number.
+
+```
+local numbers = {3, 5, 11}
+
+local three, five, eleven = numbers[1 : 3]
+```
+
+Negative numbers are allowed, with symmetric behaviour to other Luau functions that accept negative indices (subtracting from the length of the table).
+
+```
+local numbers = {3, 5, 11}
+
+local three, five, eleven = numbers[1 : -1]
+```
+
+This can be extended to other types such as strings and buffers, to replace the relevant operations in their libraries.
+
+```
+local text = "Hello, world"
+
+local where = text[8 : -1]
 ```
 
 
