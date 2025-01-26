@@ -79,12 +79,12 @@ local numbers = {3, 5, 11}
 local three, five, eleven = numbers[1], numbers[2], numbers[3]
 ```
 
-Arrays can read out an inclusive range of values from consecutively numbered keys. This is specified with `[x : y]`, where `x` and `y` evaluate to a number.
+Arrays can read out an inclusive range of values from consecutively numbered keys. This is specified with `[x | y]`, where `x` and `y` evaluate to a number.
 
 ```Lua
 local numbers = {3, 5, 11}
 
-local three, five, eleven = numbers[1 : #numbers]
+local three, five, eleven = numbers[1 | #numbers]
 ```
 
 Negative numbers are allowed, with symmetric behaviour to Luau standard library functions that accept negative indices (offset from the end of the table).
@@ -92,7 +92,7 @@ Negative numbers are allowed, with symmetric behaviour to Luau standard library 
 ```Lua
 local numbers = {3, 5, 11}
 
-local three, five, eleven = numbers[1 : -1]
+local three, five, eleven = numbers[1 | -1]
 ```
 
 Multiple index expressions run the risk of duplicating information already specified by the names of identifiers in declarations or re-assignments.
@@ -185,16 +185,16 @@ A syntax for indexing open ranges was considered, where the start and/or end of 
 
 ```Lua
 -- closed range
-local three, five, eleven = numbers[1 : -1]
+local three, five, eleven = numbers[1 -> -1]
 
 -- range with open end index
-local three, five, eleven = numbers[1 :]
+local three, five, eleven = numbers[1 ->]
 
 -- range with open start index
-local three, five, eleven = numbers[: -1]
+local three, five, eleven = numbers[-> -1]
 
 -- range wih open start & end indexes
-local three, five, eleven = numbers[:]
+local three, five, eleven = numbers[->]
 ```
 
 This is plausible to do, and is supported by ranges in other modern programming languages:
@@ -217,7 +217,13 @@ This proposal does not push for open ranges so as to limit the scope of the prop
 
 ### Alternate range delimiters
 
-This proposal selected `:` as the token to act as the range delimiter.
+This proposal selected `->` as the token to act as the range delimiter.
+
+The `:` token was considered. However, this was discarded because it would be ambiguous with method call syntax.
+
+```Lua
+local foo = bar[baz : garb()] -- ambiguous
+```
 
 The `..` token was considered. However, this was discarded because it would be ambiguous with string concatenation.
 
@@ -328,18 +334,18 @@ amelia, bethany, caroline = nicknames[.]
 three, five, eleven = numbers[#]
 ```
 
-However, all syntax choices led to suboptimal outcomes, where an open range would be equally concise, equal in functionality, and more consistent with the rest of the proposal. Not to mention, all syntax that is added is syntax that could block future RFCs.
+However, all syntax choices led to suboptimal outcomes, where an open range would be similarly concise, equal in functionality, and more consistent with the rest of the proposal. Not to mention, all syntax that is added is syntax that could block future RFCs.
 
 As such, the proposal is fine leaving implicit keys with only one mode for simplicity, as it is wildly counterproductive to have two equally valid ways of doing the same thing.
 
 ```Lua
 -- As proposed (w/ open ranges)
 amelia, bethany, caroline = nicknames[]
-three, five, eleven = numbers[:]
+three, five, eleven = numbers[->]
 
 -- As proposed (closed ranges only)
 amelia, bethany, caroline = nicknames[]
-three, five, eleven = numbers[1 : -1]
+three, five, eleven = numbers[1 -> -1]
 ```
 
 ### Don't do anything
@@ -363,11 +369,11 @@ This proposal attempts to solve this functionally by introducing two syntaxes, o
 ```Lua
 -- As proposed (w/ open ranges)
 amelia, bethany, caroline = nicknames[]
-three, five, eleven = numbers[:]
+three, five, eleven = numbers[->]
 
 -- As proposed (closed ranges only)
 amelia, bethany, caroline = nicknames[]
-three, five, eleven = numbers[1 : -1]
+three, five, eleven = numbers[1 -> -1]
 ```
 
 While not strictly as intuitive as the design of previous RFCs, it solves every hard design problem nicely. That said, the proposal is still open to evolving this syntax based on feedback if the distinction is deemed unclear.
