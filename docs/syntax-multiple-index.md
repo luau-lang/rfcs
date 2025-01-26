@@ -1,4 +1,4 @@
-# Destructuring
+# Multiple indexing
 
 ## Summary
 
