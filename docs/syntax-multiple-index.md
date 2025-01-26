@@ -292,6 +292,16 @@ local useState = require("@react")[local]
 
 There is nothing functionally wrong with this, so the proposal doesn't discard this possibility, but it was deemed to have a slightly odd shape compared to other Luau constructs. It could also have an adverse effect on line length.
 
+A `local...in` syntax was considered to make the relationship between identifiers and the indexing operation clearer.
+
+```Lua
+local amelia, bethany, carol in nicknames
+amelia, bethany, carol in nicknames
+```
+
+This was tacitly discarded for now over concerns that the reassignment doesn't seem obvious, and may not make intuitive sense when considered together with `for..in` syntax.
+
+
 ### Implicit key renaming
 
 Renaming identifiers was considered with implicit keys, and should be possible with full backwards compatibility, and support for arbitrary expressions.
