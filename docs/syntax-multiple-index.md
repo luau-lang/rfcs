@@ -235,6 +235,10 @@ However, `until` could plausibly be implemented as its own operator since it is 
 
 ```Lua
 local one, two, three = 1 until 3
+
+for numbers in {1 until 3} do
+	-- ...
+end
 ```
 
 The `..` token was considered. However, this was discarded because it would be ambiguous with string concatenation.
