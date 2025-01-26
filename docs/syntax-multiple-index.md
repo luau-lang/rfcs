@@ -146,6 +146,15 @@ It also does not provision for destructuring in the middle of an expression, whi
 
 As such, this proposal does not pursue these design directions further, as the patterns it proposes struggle to be extrapolated and repeated elsewhere in Luau.
 
+There is a hypothetical way forward for this idea if the braces have a prefix.
+
+```Lua
+-- One possible prefix
+local rootUtils = require("../rootUtils")
+local in { .homeDir, .workingDir } = rootUtils.rootFolders
+in { .homeDir, .workingDir } = rootUtils.rootFolders
+```
+
 ### Indexing assignment
 
 To address the problems around assignment support, a large amount of effort was poured into finding a way of moving the destructuring syntax into the middle of the assignment.
