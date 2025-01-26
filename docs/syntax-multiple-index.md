@@ -79,12 +79,12 @@ local numbers = {3, 5, 11}
 local three, five, eleven = numbers[1], numbers[2], numbers[3]
 ```
 
-Arrays can read out an inclusive range of values from consecutively numbered keys. This is specified with `[x | y]`, where `x` and `y` evaluate to a number.
+Arrays can read out an inclusive range of values from consecutively numbered keys. This is specified with `[x -> y]`, where `x` and `y` evaluate to a number.
 
 ```Lua
 local numbers = {3, 5, 11}
 
-local three, five, eleven = numbers[1 | #numbers]
+local three, five, eleven = numbers[1 -> #numbers]
 ```
 
 Negative numbers are allowed, with symmetric behaviour to Luau standard library functions that accept negative indices (offset from the end of the table).
@@ -92,7 +92,7 @@ Negative numbers are allowed, with symmetric behaviour to Luau standard library 
 ```Lua
 local numbers = {3, 5, 11}
 
-local three, five, eleven = numbers[1 | -1]
+local three, five, eleven = numbers[1 -> -1]
 ```
 
 Multiple index expressions run the risk of duplicating information already specified by the names of identifiers in declarations or re-assignments.
