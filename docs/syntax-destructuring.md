@@ -84,10 +84,10 @@ Arrays can read out an inclusive range of values from consecutively numbered key
 ```Lua
 local numbers = {3, 5, 11}
 
-local three, five, eleven = numbers[1 : 3]
+local three, five, eleven = numbers[1 : #numbers]
 ```
 
-Negative numbers are allowed, with symmetric behaviour to other Luau functions that accept negative indices (subtracting from the length of the table).
+Negative numbers are allowed, with symmetric behaviour to Luau standard library functions that accept negative indices (offset from the end of the table).
 
 ```Lua
 local numbers = {3, 5, 11}
@@ -336,6 +336,10 @@ As such, the proposal is fine leaving implicit keys with only one mode for simpl
 -- As proposed (w/ open ranges)
 amelia, bethany, caroline = nicknames[]
 three, five, eleven = numbers[:]
+
+-- As proposed (closed ranges only)
+amelia, bethany, caroline = nicknames[]
+three, five, eleven = numbers[1 : -1]
 ```
 
 ### Don't do anything
@@ -360,7 +364,6 @@ This proposal attempts to solve this functionally by introducing two syntaxes, o
 -- As proposed (w/ open ranges)
 amelia, bethany, caroline = nicknames[]
 three, five, eleven = numbers[:]
-
 
 -- As proposed (closed ranges only)
 amelia, bethany, caroline = nicknames[]
