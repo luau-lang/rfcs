@@ -285,7 +285,7 @@ There is nothing functionally wrong with this, so the proposal doesn't discard t
 Renaming identifiers was considered with implicit keys, and should be possible with full backwards compatibility, and support for arbitrary expressions.
 
 ```Lua
-amelia in "amy", beth in "bethany", carol in "caroline" = nicknames[]
+amy in "amelia", beth in "bethany", carol in "caroline" = nicknames[]
 ```
 
 Notably, this would allow the use of implicit keys with only some keys renamed, useful for avoiding namespace collisions:
