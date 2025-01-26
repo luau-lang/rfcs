@@ -376,7 +376,7 @@ While not strictly as intuitive as the design of previous RFCs, it solves every 
 Today in Roblox, every index doubly works with camel case, such as `part.position` being equivalent to `part.Position`. This use is considered deprecated and frowned upon. However, even with variable renaming, this becomes significantly more appealing. For example, it is common you will only want a few pieces of information from a `RaycastResult`, so you might be tempted to write:
 
 ```lua
-local { .position } = Workspace:Raycast(etc)
+local position = Workspace:Raycast(etc)[]
 ```
 
 ...which would work as you expect, but rely on this deprecated style.
