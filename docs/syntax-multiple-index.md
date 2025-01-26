@@ -231,6 +231,12 @@ The `until` token was considered. This is not ambiguous, but was discarded for n
 local foo = bar[1 until 3]
 ```
 
+However, `until` could plausibly be implemented as its own operator since it is used by almost nothing else. The utility of this is questionable but it is interesting.
+
+```Lua
+local one, two, three = 1 until 3
+```
+
 The `..` token was considered. However, this was discarded because it would be ambiguous with string concatenation.
 
 ```Lua
