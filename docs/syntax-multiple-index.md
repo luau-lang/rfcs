@@ -225,6 +225,12 @@ The `:` token was considered. However, this was discarded because it would be am
 local foo = bar[baz : garb()] -- ambiguous
 ```
 
+The `until` token was considered. This is not ambiguous, but was discarded for now over concerns about verbosity.
+
+```Lua
+local foo = bar[1 until 3]
+```
+
 The `..` token was considered. However, this was discarded because it would be ambiguous with string concatenation.
 
 ```Lua
