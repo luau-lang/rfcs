@@ -1,4 +1,4 @@
-# Parameterized function expressions
+# Explicit type parameter instantiation
 
 ## Summary
 
@@ -80,19 +80,19 @@ Signals.playerTookDamageSignal = createSignal()
 We propose allowing the following:
 
 ```lua
+-- Saving `f<<T>>` as a variable to called later
+local a = f<<T>>
+
 -- Parameterized function call as statement
 f<<T, U>>()
 
 -- Parameterized function call as expression
-local a = f<<T, U>>()
+local b = f<<T, U>>()
 
 -- Calling through index
-local b = t.f<<T>>()
-local c = t:f<<T>>()
-local d = t["f"]<<T>>()
-
--- Saving `f<<T>>` as a variable to called later
-local e = f<<T>>
+local c = t.f<<T>>()
+local d = t:f<<T>>()
+local e = t["f"]<<T>>()
 ```
 
 For parsing, we will do this by extending `var` to allow `prefixexp '<<' TypeList '>>'`. This will bind the prefixexp equivalent to the substitution of the type parameters. That is to say...
@@ -146,9 +146,9 @@ local moneyBinding = React.createBinding.<number>()
 local moneyBinding = React.createBinding:<number>()
 ```
 
-The downside of these is that they blur the lines between runtime and static, in the sense that `React.createBinding.` starts out as a runtime concept, followed by the purely static `<number>`. As for `:`, it carries the baggage of `x:y()` which will perform a runtime mutation of the function call in the form of adding on `self`.
+The downside of these is that they blur the lines between runtime and static, in the sense that `React.createBinding.` starts out as a runtime concept, followed by the purely static `<number>`. As for `:`, it carries the baggage of `x:y()` carrying the interesting behavior of adding `self` to the call, which it does not do here.
 
-There is also not necessarily a reason that we have to provide symmetrical operators, so something like `f!T, U()` is reasonably parseable, but is not obviously better.
+There is also not necessarily a reason that we have to provide symmetrical operators, so something like `f!T, U()` is reasonably parseable, but is not obviously better and is even more unlike any other language's syntax.
 
 Ultimately, this RFC chooses `<<T>>` as a least worst option that is fluid to type, easy to read, and easy to remember.
 
