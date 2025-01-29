@@ -87,7 +87,7 @@ end
 ```
 has inferred type:
 ```
-f: (t: { write p: number, get q: number }) -> ()
+f: (t: { write p: number, read q: number }) -> ()
 ```
 indicating that `p` is used write-only but `q` is used read-only.
 
@@ -160,7 +160,7 @@ Once we have read-only properties and write-only properties, type intersection
 gives read-write properties with different types.
 
 ```luau
-  { get p: T } & { write p : U }
+  { read p: T } & { write p : U }
 ```
 
 If we infer such types, we may wish to present them differently, for
