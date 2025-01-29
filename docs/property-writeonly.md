@@ -46,18 +46,18 @@ The reason for these failures is that neither of these is the most
 specific type. It is one which includes that `t.p` is written to, and
 not read from.
 ```luau
-  f : ({ set p: Dog }) -> ()
+  f : ({ write p: Dog }) -> ()
 ```
 
 This allows both example uses of `f` to typecheck. To see that it is more specific than `({ p: Animal }) -> ()`:
 
 * `Dog` is a subtype of `Animal`
-* so (since write-only properties are contravariant) `{ set p: Dog }` is a supertype of `{ set p: Animal }`
-* and (since read-write properties are a subtype of write-only properties)  `{ set p: Animal }` is a supertype of `{ p: Animal }`
-* so (by transitivity)  `{ set p: Dog }` is a supertype of `{ set p: Animal }` is a supertype of `{ p: Animal }`
-* so (since function arguments are contravariant `({ set p: Dog }) -> ()` is a subtype of `({ p: Animal }) -> ()`
+* so (since write-only properties are contravariant) `{ write p: Dog }` is a supertype of `{ write p: Animal }`
+* and (since read-write properties are a subtype of write-only properties)  `{ write p: Animal }` is a supertype of `{ p: Animal }`
+* so (by transitivity)  `{ write p: Dog }` is a supertype of `{ write p: Animal }` is a supertype of `{ p: Animal }`
+* so (since function arguments are contravariant `({ write p: Dog }) -> ()` is a subtype of `({ p: Animal }) -> ()`
 
-and similarly `({ set p: Dog }) -> ()` is a subtype of `({ p: Dog }) -> ()`.
+and similarly `({ write p: Dog }) -> ()` is a subtype of `({ p: Dog }) -> ()`.
 
 Local type inference depends on the existence of most specific (and most general) types,
 so if we want to use it "off the shelf" we will need write-only properties.
@@ -77,7 +77,7 @@ Add a modifier to table properties indicating that they are write-only.
 
 This proposal is not about syntax, but it will be useful for examples to have some. Write:
 
-* `set p: T` for a write-only property of type `T`.
+* `write p: T` for a write-only property of type `T`.
 
 For example:
 ```luau
@@ -87,7 +87,7 @@ end
 ```
 has inferred type:
 ```
-f: (t: { set p: number, get q: number }) -> ()
+f: (t: { write p: number, get q: number }) -> ()
 ```
 indicating that `p` is used write-only but `q` is used read-only.
 
@@ -112,16 +112,16 @@ When declaring a method in a table or class, we should add a read-only property 
 
 Write-only properties are contravariant:
 
-* If `T` is a subtype of `U` then `{ set p: U }` is a subtype of `{ set p: T }`.
+* If `T` is a subtype of `U` then `{ write p: U }` is a subtype of `{ write p: T }`.
 
 Read-write properties are a subtype of write-only properties:
 
-* If `T` is a subtype of `U` then `{ p: U }` is a subtype of `{ set p: T }`.
+* If `T` is a subtype of `U` then `{ p: U }` is a subtype of `{ write p: T }`.
 
 ### Indexers
 
 Indexers can be marked write-only just like properties. In
-particular, this means there are write-only arrays `{set T}`, that are
+particular, this means there are write-only arrays `{write T}`, that are
 contravariant. These are sometimes useful, for example:
 
 ```luau
@@ -135,7 +135,7 @@ end
 
 we can give this function the type
 ```
-  move: <a>({a},{set a}) -> ()
+  move: <a>({a},{write a}) -> ()
 ```
 
 and since write-only arrays are contravariant, we can call this with differently-typed
@@ -160,7 +160,7 @@ Once we have read-only properties and write-only properties, type intersection
 gives read-write properties with different types.
 
 ```luau
-  { get p: T } & { set p : U }
+  { get p: T } & { write p : U }
 ```
 
 If we infer such types, we may wish to present them differently, for
