@@ -1,20 +1,14 @@
-# Multiple indexing
+# Structure matching
 
 ## Summary
 
-Introduce multiple indexing, an extension of table indexing that allows for multiple values to be read at the same time, with dedicated array and map shorthands for ergonomics.
+Agree on the generic syntax for *structure matching* - a prerequisite to implementing destructuring in any part of Luau.
 
-This allows for destructuring that:
-- works with array & map style tables
-- shortens both declaration and assignment
-- doesn't require parser backtrack
-- is consistent with Luau style
+This is intended as a spiritual successor to the older ["Key destructuring" RFC by Kampfkarren](https://github.com/luau-lang/rfcs/pull/24), which was very popular but requires more rigour and wider consensus to have confidence implementing the feature.
+
+**This is not an implementation RFC.**
 
 ## Motivation
-
-This is intended as a spiritual successor to the older ["Key destructuring" RFC by Kampfkarren](https://github.com/luau-lang/rfcs/pull/24), which was very popular but was unfortunately not able to survive implementation concerns.
-
-----
 
 Simple indexes on tables are very common both in and outside of Luau. A common use case is large libraries. It is common in the web world to see something like:
 
@@ -64,78 +58,156 @@ get("/users", ({
 
 ## Design
 
-## Structure matcher
+This proposal does not specify any specific locations where this syntax should appear. Instead, the aim is to get consensus on the syntax we would be most comfortable with for all instances of destructuring we may choose to implement at a later date.
 
-This proposal will use the term *structure matcher* to refer to syntax for retrieving values from table structures. 
+In particular, this proposal punts on implementation at sites of usage:
 
-Structure matchers can appear:
-- In place of the identifiers in a `local ... = ...` declaration statement
-- In place of the identifiers in a `... = ...` assignment statement
+- Destructuring re-assignment (as opposed to destructuring `local` declarations)
+- Defaults for destructured fields (unclear how this interacts with function default arguments)
+- Unnamed function parameters (destructuring a parameter doesn't name the parameter)
 
-A structure matcher starts with the `in` keyword, followed by braces. The keyword is necessary to avoid ambiguity on the LHS of assignments.
+The purpose of this proposal is to instead find consensus on specific syntax for the matching itself.
+
+This proposal puts forward a superset of syntax, able to match any table shape, with logical and simple desugaring, giving a rigorous foundation to the previously agreed-upon concise syntaxes.
+
+### Structure matching
+
+This proposal will use the term *structure matcher* to refer to syntax for retrieving values from table structures.
+
+The most basic structure matcher is a set of empty braces. All matching syntax occurs between these braces.
 
 ```Lua
-local in { } = data
-in { } = data
+{ }
 ```
 
-### Matching using dot indexing
+Empty structure matchers like these are not invalid (they still fit the pattern), but aren't very useful - linting for these makes sense.
 
-Luau inherits the "dot indexing" shorthand, allowing string keys to be easily indexed:
+#### Basic matching
+
+This is the most verbose, but compatible way of matching values.
+
+Keys are specified in square brackets, and are allowed to evaluate to any currently valid key (i.e. not `nil`, plus any other constraints in the current context).
+
+An identifier is specified on the right hand side, showing where the value will be saved to.
+
+*Open question: are we OK with having no delimiter between key and name? Discuss in comments.*
 
 ```Lua
-local foo, bar = data.foo, data.bar
-```
-
-In structure matchers, identifiers can be specified with a dot prefix in a similar fashion.
-
-The identifier acts both as the bound variable name, and as the index to use.
-
-```Lua
-local in { .foo, .bar } = data
-in { .foo, .bar } = data
+{ [1] foo, [#data] bar }
 ```
 
 This desugars to:
 
 ```Lua
-local foo, bar = data.foo, data.bar
-foo, bar = data.foo, data.bar
+foo, bar = data["foo"], data[bar()]
+```
+
+#### Dot keys with names
+
+Keys that are valid Luau identifiers can be expressed as `.key` instead of `["key"]`.
+
+```Lua
+{ .foo myFoo, .bar myBar }
+```
+
+This desugars once to:
+
+```Lua
+{ ["foo"] myFoo, ["bar"] myBar }
+```
+
+Then desugars again to:
+
+```
+myFoo, myBar = data["foo"], data["bar"]
+```
+
+#### Dot keys without names
+
+When using dot keys, the second identifier can be skipped if the destination uses the same identifier as the key.
+
+```Lua
+{ .foo, .bar }
+```
+
+This desugars once to:
+
+```Lua
+{ .foo foo, .bar bar }
+```
+
+Then desugars twice to:
+
+```Lua
+{ ["foo"] foo, ["bar"] bar }
+```
+
+Then desugars again to:
+
+```
+foo, bar = data["foo"], data["bar"]
+```
+
+#### Consecutive keys
+
+Consecutive keys can be implicitly expressed by dropping the key.
+
+*Open question: are we OK with this in the context of dot keys without names? Discuss in comments.*
+
+```Lua
+{ foo, bar }
+```
+
+This desugars once to:
+
+```Lua
+{ [1] foo, [2] bar }
+```
+
+Then desugars again to:
+
+```
+foo, bar = data[1], data[2]
+```
+
+#### Nested structure
+
+A structure matcher can be specified on the right hand side of a key, to match nested structure inside of that key.
+
+An identifier and a structure matcher cannot be used at the same time. Exclusively one or the other may be on the right hand side.
+
+*Open question: if we add a delimiter between key and identifier, do we need a delimiter here too? Discuss in comments.*
+
+Illustrated with the most verbose syntax:
+
+```Lua
+{ [1] { ["foo"] { ["bar"] myBar } } }
+```
+
+This desugars to:
+
+```Lua
+local myBar = data[1]["foo"]["bar"]
+```
+
+Dot keys and consecutive keys are compatible, and expected to be used for conciseness.
+
+```Lua
+{{ .foo { .bar myBar } }}
+```
+
+This desugars to the same:
+
+```Lua
+local myBar = data[1]["foo"]["bar"]
 ```
 
 
 ## Alternatives
 
-### Braces around identifier list without prefix
-
-The previously popular RFC used braces around the list of identifiers to signal destructuring, and dot prefixes to disambiguate array and dictionary destructuring:
-
-```Lua
-local rootUtils = require("../rootUtils")
-local { .homeDir, .workingDir } = rootUtils.rootFolders
-```
-
-One reservation cited would be that this is difficult to implement for assignments without significant backtracking:
-
-```Lua
-local rootUtils = require("../rootUtils")
-{ .homeDir, .workingDir } = rootUtils.rootFolders
-```
-
-Removing the braces and relying on dot prefixes is not a solution, as this still requires significant backtracking to resolve:
-
-```Lua
-local rootUtils = require("../rootUtils")
-.homeDir, .workingDir = rootUtils.rootFolders
-```
-
-It also does not provision for destructuring in the middle of an expression, which would be required for fully superseding library functions such as `table.unpack`. This would leave Luau in limbo with two ways of performing an unpack operation, where only one is valid most of the time.
-
-As such, this proposal does not pursue these design directions further, as the patterns it proposes struggle to be extrapolated and repeated elsewhere in Luau.
-
 ### Indexing assignment
 
-To address the problems around assignment support, a large amount of effort was poured into finding a way of moving the destructuring syntax into the middle of the assignment.
+A large amount of effort was poured into finding a way of moving the destructuring syntax into the middle of the assignment.
 
 A `.=` and/or `[]=` assignment was considered for this, for maps and arrays respectively:
 
@@ -182,19 +254,105 @@ This is always an option, given how much faff there has been trying to get a fea
 
 However, it's clear there is widespread and loud demand for something like this, given the response to the previous RFC, and the disappointment after it was discarded at the last minute over design concerns.
 
-The main argument for doing nothing is the concern over how to integrate it in a forwards-compatible and backwards-compatible way. This proposal thus looks to resolve those ambiguities in the Luau grammar so as to avoid this pitfall.
+This proposal aims to tackle such design concerns in stages, agreeing on each step with open communication and space for appraising details.
 
 ## Drawbacks
 
-### Use of `in` keyword as infix operator
+### Structure matchers at line starts
 
-By allowing `in` at the start of a statement, we preclude the use of `in` as an infix operator at any point in the future. There have been some discussions about a similar operator in the past, but they have not seen any clear support, so this proposal decided to use this keyword.
+This design precludes the use of a structure matcher at the start of a new line, among other places, because of ambiguity with function call syntax:
 
-### Roblox - Property casing
-Today in Roblox, every index doubly works with camel case, such as `part.position` being equivalent to `part.Position`. This use is considered deprecated and frowned upon. However, even with variable renaming, this becomes significantly more appealing. For example, it is common you will only want a few pieces of information from a `RaycastResult`, so you might be tempted to write:
+```Lua
+local foo = bar
 
-```lua
-local position = Workspace:Raycast(etc)[]
+{ } -- bar { }?
 ```
 
-...which would work as you expect, but rely on this deprecated style.
+Such call sites will need a starting token (perhaps a reserved or contextual keyword) to dispel the ambiguity.
+
+We could mandate a reserved or contextual keyword before all structure matchers:
+
+```Lua
+match { .foo myFoo }
+in { .foo myFoo }
+```
+
+But this proposal punts on the issue, as this is most relevant for only certain implementations of matching, and so is considered external to the main syntax. We are free to decide on this later, once we know what the syntax looks like inside of the braces, should we agree that braces are desirable in any case.
+
+### Matching nested structure with identifiers
+
+In *Nested structure*:
+
+> An identifier and a structure matcher cannot be used at the same time. Exclusively one or the other may be on the right hand side.
+
+This is because allowing this would introduce ambiguity with dot keys without names:
+
+To illustrate: suppose we allow the following combination of nested structure and dot keys with names:
+
+```Lua
+{ .foo myFoo { .bar } }
+```
+
+Which would desugar to:
+
+```Lua
+local myFoo, bar = data.foo, data.foo.bar
+```
+
+If we switch to dot keys without names:
+
+```Lua
+{ .foo { .bar } }
+```
+
+How would this desugar?
+
+```Lua
+local foo, bar = data.foo, data.foo.bar
+-- or
+local bar = data.foo.bar
+```
+
+This is why it is explicitly disallowed.
+
+### Consecutive key misreading
+
+Consider this syntax.
+
+```Lua
+{ foo, bar, baz }
+```
+
+This desugars to:
+
+```Lua
+{ [1] foo, [2] bar, [3] baz }
+```
+
+But an untrained observer may interpret it as:
+
+```Lua
+{ .foo foo, .bar bar, .baz baz }
+```
+
+Of course, we have rigorously defined dot keys without names to allow for this use case:
+
+```Lua
+{ .foo, .bar, .baz }
+```
+
+But, while it fits into the desugaring logic, it is an open question whether we feel this is sufficient distinction.
+
+One case in favour of this proposal is that Luau already uses similar syntax for array literals:
+
+```Lua
+local myArray = { foo, bar, baz }
+```
+
+But one case against is that JavaScript uses brackets/braces to dinstinguish arrays and maps, and a Luau array looks like a JS map:
+
+```JS
+let { foo, bar, baz } = data;
+```
+
+Whether this downside is actually significant enough should be discussed in comments though.
