@@ -183,6 +183,12 @@ For unpacking arrays, this proposal suggests:
 { [1] = foo, [2] = bar }
 ```
 
+Or alternatively, using `table.unpack`:
+
+```Lua
+foo, bar = table.unpack(data)
+```
+
 For disambiguity with other languages, we would still not allow:
 
 ```Lua
