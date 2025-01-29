@@ -88,12 +88,10 @@ This is the most verbose, but compatible way of matching values.
 
 Keys are specified in square brackets, and are allowed to evaluate to any currently valid key (i.e. not `nil`, plus any other constraints in the current context).
 
-An identifier is specified on the right hand side, showing where the value will be saved to.
-
-*Open question: are we OK with having no delimiter between key and name? Discuss in comments.*
+To save the value at that key, an `=` is used, and an identifier is specified on the right hand side, showing where the value will be saved to.
 
 ```Lua
-{ [1] foo, [#data] bar }
+{ [1] = foo, [#data] = bar }
 ```
 
 This desugars to:
@@ -107,13 +105,13 @@ foo, bar = data["foo"], data[#data]
 Keys that are valid Luau identifiers can be expressed as `.key` instead of `["key"]`.
 
 ```Lua
-{ .foo myFoo, .bar myBar }
+{ .foo = myFoo, .bar = myBar }
 ```
 
 This desugars once to:
 
 ```Lua
-{ ["foo"] myFoo, ["bar"] myBar }
+{ ["foo"] = myFoo, ["bar"] = myBar }
 ```
 
 Then desugars again to:
@@ -133,13 +131,13 @@ When using dot keys, the second identifier can be skipped if the destination use
 This desugars once to:
 
 ```Lua
-{ .foo foo, .bar bar }
+{ .foo = foo, .bar = bar }
 ```
 
 Then desugars twice to:
 
 ```Lua
-{ ["foo"] foo, ["bar"] bar }
+{ ["foo"] = foo, ["bar"] = bar }
 ```
 
 Then desugars again to:
@@ -161,7 +159,7 @@ Consecutive keys can be implicitly expressed by dropping the key.
 This desugars once to:
 
 ```Lua
-{ [1] foo, [2] bar }
+{ [1] = foo, [2] = bar }
 ```
 
 Then desugars again to:
@@ -181,7 +179,7 @@ An identifier and a structure matcher cannot be used at the same time. Exclusive
 Illustrated with the most verbose syntax:
 
 ```Lua
-{ [1] { ["foo"] { ["bar"] myBar } } }
+{ [1] { ["foo"] { ["bar"] = myBar } } }
 ```
 
 This desugars to:
@@ -193,7 +191,7 @@ local myBar = data[1]["foo"]["bar"]
 Dot keys and consecutive keys are compatible, and expected to be used for conciseness.
 
 ```Lua
-{{ .foo { .bar myBar } }}
+{{ .foo { .bar = myBar } }}
 ```
 
 This desugars to the same:
@@ -273,8 +271,8 @@ Such call sites will need a starting token (perhaps a reserved or contextual key
 We could mandate a reserved or contextual keyword before all structure matchers:
 
 ```Lua
-match { .foo myFoo }
-in { .foo myFoo }
+match { .foo = myFoo }
+in { .foo = myFoo }
 ```
 
 But this proposal punts on the issue, as this is most relevant for only certain implementations of matching, and so is considered external to the main syntax. We are free to decide on this later, once we know what the syntax looks like inside of the braces, should we agree that braces are desirable in any case.
@@ -290,7 +288,7 @@ This is because allowing this would introduce ambiguity with dot keys without na
 To illustrate: suppose we allow the following combination of nested structure and dot keys with names:
 
 ```Lua
-{ .foo myFoo { .bar } }
+{ .foo = myFoo { .bar } }
 ```
 
 Which would desugar to:
@@ -326,13 +324,13 @@ Consider this syntax.
 This desugars to:
 
 ```Lua
-{ [1] foo, [2] bar, [3] baz }
+{ [1] = foo, [2] = bar, [3] = baz }
 ```
 
 But an untrained observer may interpret it as:
 
 ```Lua
-{ .foo foo, .bar bar, .baz baz }
+{ .foo = foo, .bar = bar, .baz = baz }
 ```
 
 Of course, we have rigorously defined dot keys without names to allow for this use case:
