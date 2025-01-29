@@ -166,22 +166,22 @@ Then desugars again to:
 foo, bar = data[1], data[2]
 ```
 
-`unpack` skips dot keys and explicitly written keys:
+`unpack` skips dot keys and explicitly written keys. If an explicit key collides with an implicit key, this is a type error.
 
 ```Lua
-{ unpack foo, [10] = bar, baz, .garb }
+{ unpack foo, [true] = bar, baz, .garb }
 ```
 
 This desugars once to:
 
 ```Lua
-{ [1] = foo, [10] = bar, [2] = baz, ["garb"] = garb }
+{ [1] = foo, [true] = bar, [2] = baz, ["garb"] = garb }
 ```
 
 Then desugars again to:
 
 ```Lua
-foo, bar, baz, garb = data[1], data[10], data[2], data["garb"]
+foo, bar, baz, garb = data[1], data[true], data[2], data["garb"]
 ```
 
 It is invalid to specify an identifer without a key if `unpack` is not specified, for disambiguity with other languages.
