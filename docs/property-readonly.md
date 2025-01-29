@@ -27,7 +27,7 @@ Add a modifier to table properties indicating that they are read-only.
 
 This proposal is not about syntax, but it will be useful for examples to have some. Write:
 
-* `get p: T` for a read-only property of type `T`.
+* `read p: T` for a read-only property of type `T`.
 
 For example:
 ```luau
@@ -37,7 +37,7 @@ end
 ```
 has inferred type:
 ```
-f: (t: { p: number, get q: number }) -> ()
+f: (t: { p: number, read q: number }) -> ()
 ```
 indicating that `p` is used read-write but `q` is used read-only.
 
@@ -45,27 +45,27 @@ indicating that `p` is used read-write but `q` is used read-only.
 
 Read-only properties are covariant:
 
-* If `T` is a subtype of `U` then `{ get p: T }` is a subtype of `{ get p: U }`.
+* If `T` is a subtype of `U` then `{ read p: T }` is a subtype of `{ read p: U }`.
 
 Read-write properties are a subtype of read-only properties:
 
-* If `T` is a subtype of `U` then `{ p: T }` is a subtype of `{ get p: U }`.
+* If `T` is a subtype of `U` then `{ p: T }` is a subtype of `{ read p: U }`.
 
 ### Indexers
 
 Indexers can be marked read-only just like properties. In
-particular, this means there are read-only arrays `{get T}`, that are
+particular, this means there are read-only arrays `{read T}`, that are
 covariant, so we have a solution to the "covariant array problem":
 
 ```luau
 local dogs: {Dog}
-function f(a: {get Animal}) ... end
+function f(a: {read Animal}) ... end
 f(dogs)
 ```
 
 It is sound to allow this program, since `f` only needs read access to
-the array, and `{Dog}` is a subtype of `{get Dog}`, which is a subtype
-of `{get Animal}`.  This would not be sound if `f` had write access,
+the array, and `{Dog}` is a subtype of `{read Dog}`, which is a subtype
+of `{read Animal}`.  This would not be sound if `f` had write access,
 for example `function f(a: {Animal}) a[1] = Cat.new() end`.
 
 ### Functions
@@ -80,8 +80,8 @@ function t:m() ... end
 should have type
 ```
 t : {
-  get f : () -> (),
-  get m : (self) -> ()
+  read f : () -> (),
+  read m : (self) -> ()
 }
 ```
 
@@ -107,7 +107,7 @@ since the build method is read-write, so users can update it:
 
 but if we define:
 ```luau
-  type ROFactory<A> = { get build : () -> A }
+  type ROFactory<A> = { read build : () -> A }
 ```
 
 then we do have that `ROFactory<Dog>` is a subtype of `ROFactory<Animal>`
