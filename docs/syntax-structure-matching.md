@@ -147,46 +147,6 @@ Then desugars again to:
 foo, bar = data["foo"], data["bar"]
 ```
 
-#### Unpacking
-
-Instead of listing out consecutive numeric keys, `unpack` can be used at the start of a matcher to implicitly key all subsequent items. This is useful for arrays and tuple-style tables.
-
-```Lua
-{ unpack foo, bar }
-```
-
-This desugars once to:
-
-```Lua
-{ [1] = foo, [2] = bar }
-```
-
-Then desugars again to:
-
-```Lua
-foo, bar = data[1], data[2]
-```
-
-`unpack` skips dot keys and explicitly written keys. If an explicit key collides with an implicit key, this is a type error.
-
-```Lua
-{ unpack foo, [true] = bar, baz, .garb }
-```
-
-This desugars once to:
-
-```Lua
-{ [1] = foo, [true] = bar, [2] = baz, ["garb"] = garb }
-```
-
-Then desugars again to:
-
-```Lua
-foo, bar, baz, garb = data[1], data[true], data[2], data["garb"]
-```
-
-It is invalid to specify an identifer without a key if `unpack` is not specified, for disambiguity with other languages.
-
 #### Nested structure
 
 A structure matcher can be specified instead of an identifier, to match nested structure inside of that key. This is compatible with unpacking and dot keys.
@@ -212,6 +172,60 @@ local bar = data["foo"]["bar"]
 ```
 
 ## Alternatives
+
+### Unpack syntax
+
+Dedicated array/tuple unpacking syntax was considered, but rejected in favour of basic syntax.
+
+For unpacking arrays, this proposal suggests:
+
+```Lua
+{ [1] = foo, [2] = bar }
+```
+
+For disambiguity with other languages, we would still not allow:
+
+```Lua
+{ foo, bar }
+```
+
+The original `unpack` syntax is listed below.
+
+Instead of listing out consecutive numeric keys, `unpack` would be used at the start of a matcher to implicitly key all subsequent items.
+
+```Lua
+{ unpack foo, bar }
+```
+
+This would desugar once to:
+
+```Lua
+{ [1] = foo, [2] = bar }
+```
+
+Then desugars again to:
+
+```Lua
+foo, bar = data[1], data[2]
+```
+
+`unpack` would have skipped dot keys and explicitly written keys. If an explicit key collided with an implicit key, this would be a type error.
+
+```Lua
+{ unpack foo, [true] = bar, baz, .garb }
+```
+
+This would desugar once to:
+
+```Lua
+{ [1] = foo, [true] = bar, [2] = baz, ["garb"] = garb }
+```
+
+Then desugars again to:
+
+```Lua
+foo, bar, baz, garb = data[1], data[true], data[2], data["garb"]
+```
 
 ### Indexing assignment
 
