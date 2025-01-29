@@ -65,6 +65,7 @@ In particular, this proposal punts on implementation at sites of usage:
 - Destructuring re-assignment (as opposed to destructuring `local` declarations)
 - Defaults for destructured fields (unclear how this interacts with function default arguments)
 - Unnamed function parameters (destructuring a parameter doesn't name the parameter)
+- Type declarations on keys (for providing types when destructuring a function argument)
 
 The purpose of this proposal is to instead find consensus on specific syntax for the matching itself.
 
