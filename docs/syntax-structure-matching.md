@@ -195,19 +195,19 @@ No `=` is used, as this is not an assigning operation.
 *Open question: should we? or perhaps a different delimiter for visiting without binding? Discuss in comments.*
 
 ```Lua
-{ unpack { .foo { .bar = myBar } }}
+{ unpack { .foo { .bar } } { .baz } }
 ```
 
 This desugars once to:
 
 ```Lua
-{ [1] { ["foo"] { ["bar"] = myBar } } }
+{ [1] { ["foo"] { ["bar"] = bar } } { ["baz"] = baz } }
 ```
 
 Then desugars again to:
 
 ```Lua
-local myBar = data[1]["foo"]["bar"]
+local bar, baz = data[1]["foo"]["bar"], data[1]["foo"]["baz"]
 ```
 
 ## Alternatives
