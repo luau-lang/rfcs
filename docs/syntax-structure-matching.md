@@ -188,14 +188,14 @@ It is invalid to specify an identifer without a key if `unpack` is not specified
 
 #### Nested structure
 
-A structure matcher can be specified instead of an identifier, to match nested structure inside of that key. This is compatible with consecutive keys and dot keys.
+A structure matcher can be specified instead of an identifier, to match nested structure inside of that key. This is compatible with unpacking and dot keys.
 
 No `=` is used, as this is not an assigning operation.
 
 *Open question: should we? or perhaps a different delimiter for visiting without binding? Discuss in comments.*
 
 ```Lua
-{{ .foo { .bar = myBar } }}
+{ unpack { .foo { .bar = myBar } }}
 ```
 
 This desugars once to:
