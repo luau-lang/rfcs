@@ -170,13 +170,11 @@ foo, bar = data[1], data[2]
 
 #### Nested structure
 
-A structure matcher can be specified on the right hand side of a key, to match nested structure inside of that key.
+A structure matcher can be specified instead of an identifier, to match nested structure inside of that key. This is compatible with consecutive keys and dot keys.
 
 No `=` is used, as this is not an assigning operation.
 
 *Open question: should we? or perhaps a different delimiter for visiting without binding? Discuss in comments.*
-
-An identifier and a structure matcher cannot be used at the same time. Exclusively one or the other may be on the right hand side.
 
 ```Lua
 {{ .foo { .bar = myBar } }}
