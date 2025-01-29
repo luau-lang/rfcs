@@ -178,10 +178,8 @@ No `=` is used, as this is not an assigning operation.
 
 An identifier and a structure matcher cannot be used at the same time. Exclusively one or the other may be on the right hand side.
 
-Illustrated with the most verbose syntax:
-
 ```Lua
-{ [1] { ["foo"] { ["bar"] = myBar } } }
+{{ .foo { .bar = myBar } }}
 ```
 
 This desugars to:
@@ -189,19 +187,6 @@ This desugars to:
 ```Lua
 local myBar = data[1]["foo"]["bar"]
 ```
-
-Dot keys and consecutive keys are compatible, and expected to be used for conciseness.
-
-```Lua
-{{ .foo { .bar = myBar } }}
-```
-
-This desugars to the same:
-
-```Lua
-local myBar = data[1]["foo"]["bar"]
-```
-
 
 ## Alternatives
 
