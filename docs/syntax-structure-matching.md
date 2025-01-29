@@ -180,7 +180,13 @@ No `=` is used, as this is not an assigning operation.
 {{ .foo { .bar = myBar } }}
 ```
 
-This desugars to:
+This desugars once to:
+
+```Lua
+{ [1] { ["foo"] { ["bar"] = myBar } } }
+```
+
+Then desugars again to:
 
 ```Lua
 local myBar = data[1]["foo"]["bar"]
