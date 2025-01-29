@@ -356,3 +356,11 @@ let { foo, bar, baz } = data;
 ```
 
 Whether this downside is actually significant enough should be discussed in comments though.
+
+Consecutive keys are arguably most useful when used with tuple-like types like `{1, "foo", true}`, as they can match each value by position:
+
+```Luau
+{ id, text, isNeat }
+```
+
+However, Luau does not allow these types to be expressed at the moment. It isn't out of the question that we could support this in the future, so the door should likely be left open for tuple-like tables.
