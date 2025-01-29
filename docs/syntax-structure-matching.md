@@ -172,9 +172,11 @@ foo, bar = data[1], data[2]
 
 A structure matcher can be specified on the right hand side of a key, to match nested structure inside of that key.
 
-An identifier and a structure matcher cannot be used at the same time. Exclusively one or the other may be on the right hand side.
+No `=` is used, as this is not an assigning operation.
 
-*Open question: if we add a delimiter between key and identifier, do we need a delimiter here too? Discuss in comments.*
+*Open question: should we? or perhaps a different delimiter for visiting without binding? Discuss in comments.*
+
+An identifier and a structure matcher cannot be used at the same time. Exclusively one or the other may be on the right hand side.
 
 Illustrated with the most verbose syntax:
 
