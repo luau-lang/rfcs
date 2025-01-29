@@ -146,14 +146,12 @@ Then desugars again to:
 foo, bar = data["foo"], data["bar"]
 ```
 
-#### Consecutive keys
+#### Unpacking
 
-Consecutive keys can be implicitly expressed by dropping the key.
-
-*Open question: are we OK with this in the context of dot keys without names? Discuss in comments.*
+Instead of listing out consecutive numeric keys, `unpack` can be used at the start of a matcher to implicitly key all subsequent items. This is useful for arrays and tuple-style tables.
 
 ```Lua
-{ foo, bar }
+{ unpack foo, bar }
 ```
 
 This desugars once to:
@@ -164,9 +162,29 @@ This desugars once to:
 
 Then desugars again to:
 
-```
+```Lua
 foo, bar = data[1], data[2]
 ```
+
+`unpack` skips dot keys and explicitly written keys:
+
+```Lua
+{ unpack foo, [10] = bar, baz, .garb }
+```
+
+This desugars once to:
+
+```Lua
+{ [1] = foo, [10] = bar, [2] = baz, ["garb"] = garb }
+```
+
+Then desugars again to:
+
+```Lua
+foo, bar, baz, garb = data[1], data[10], data[2], data["garb"]
+```
+
+It is invalid to specify an identifer without a key if `unpack` is not specified, for disambiguity with other languages.
 
 #### Nested structure
 
