@@ -99,7 +99,7 @@ An identifier is specified on the right hand side, showing where the value will 
 This desugars to:
 
 ```Lua
-foo, bar = data["foo"], data[bar()]
+foo, bar = data["foo"], data[#data]
 ```
 
 #### Dot keys with names
