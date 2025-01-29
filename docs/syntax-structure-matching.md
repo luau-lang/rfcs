@@ -207,7 +207,7 @@ This desugars once to:
 Then desugars again to:
 
 ```Lua
-local bar, baz = data["foo"]["bar"]
+local bar = data["foo"]["bar"]
 ```
 
 ## Alternatives
