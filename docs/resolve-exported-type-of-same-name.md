@@ -38,7 +38,7 @@ This should be backward-compatible, intuitive, and straightforward to implement.
 
 ## Drawbacks
 
-This requires the user to name their variables consistently, or if using the alternative outlined below, it would require the module to be the same name as the type it exports. However, since this is just syntactic sugar, the user is opting in to use it.
+This requires the user to name their variables consistently, or if using the alternative outlined below, it would require the module to have the same name as the type it exports. However, since this is just syntactic sugar, the user is opting to use it.
 
 ## Alternatives
 
