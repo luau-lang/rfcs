@@ -22,6 +22,8 @@ local clock = {}
 type Identity = setmetatable<{ time: number }, { __index: typeof(clock) }>
 ```
 
+If the second argument of the type function isn't a table, then it should error.
+
 ### `getmetatable` Type Function
 
 [Issue #1435](https://github.com/luau-lang/luau/issues/1435) is caused by a lack of special behavior for `getmetatable` when the type's metatable has a `__metatable` field. This is fixable in a variety of ways, however a type function has multiple benefits and exposes more type-level expression for users. It fits in nicely with the new solver, as type functions are a cleaner alternative to magic functions.
