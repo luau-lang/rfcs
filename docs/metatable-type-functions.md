@@ -32,7 +32,7 @@ type Identity = setmetatable<{ time: number }, { __index: clock }>
 
 In the following code example, `Identity` should evaluate to `{ sound: string, @metatable: { __index: animal } }`:
 
-```lua
+```luau
 local animal = {}
 type Identity = setmetatable<{
 	sound: string
