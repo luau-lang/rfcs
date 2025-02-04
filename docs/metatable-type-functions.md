@@ -60,7 +60,7 @@ type Identity = setmetatable<{
 type ReversedIdentity = getmetatable<Identity>
 ```
 
-Due to `__metamethod`, additional behavior needs to be met. In the following code example, `MetatableType` should evaluate to `"No metatable here!"`:
+Due to `__metatable`, additional behavior needs to be met. In the following code example, `MetatableType` should evaluate to `"No metatable here!"`:
 
 ```luau
 type metatable = {
