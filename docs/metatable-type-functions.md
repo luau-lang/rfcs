@@ -17,7 +17,7 @@ type Identity = typeof(setmetatable({} :: { time: number }, { __index = clock })
 
 could be reduced to:
 
-```lua
+```luau
 local clock = {}
 type Identity = setmetatable<{ time: number }, { __index: clock }>
 ```
