@@ -72,7 +72,7 @@ type MetatableType = getmetatable<setmetatable<{}, metatable>>
 ```
 
 If the type passed into the type function doesn't have a metatable and it *could* have a metatable (so primitives, singletons, classes, and tables), then it will return nil.
-If the type passed in is an intersection/union, then it will return an interesction/union respectively.
+If the type passed in is an intersection or union, then it will return an intersection or union respectively.
 
 ## Drawbacks
 
