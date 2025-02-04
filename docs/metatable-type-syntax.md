@@ -6,7 +6,7 @@ Add unique syntax to allow for specifying the metatable of a type.
 
 ## Motivation
 
-There is currently no expression for metatables within the type system, with the exception of hacks using `keyof`. That isn't great, because metatables are a commonly required feature for things like object-oriented programming. `typeof` is boilerplate which can likely be eliminated by allowing the expression of metatables through special syntax.
+There is currently no expression for metatables within the type system, with the exception of hacks using `typeof`. That isn't great, because metatables are a commonly required feature for things like object-oriented programming. `typeof` is boilerplate which can likely be eliminated by allowing the expression of metatables through special syntax.
 
 ## Design
 
@@ -25,12 +25,12 @@ This could cause confusion with table properties named `metatable`. To combat th
 
 ## Alternatives
 
-`type T = { metatable {} }` could be too similar to field syntax. An argument could be made that `type T = { metatable: {} }` is too similar to metatable syntax. We could change the keyword to be `@metatable`, similar to how it is currently expressed as when converting a type to a string. However, this introduces a sigil, which increases cognitive load and harms readability.
+`type T = { metatable {} }` could be too similar to field syntax. We could change the keyword to be `@metatable`, similar to how it is currently expressed as when converting a type to a string. However, this introduces a sigil, which increases cognitive load and harms readability.
 
-We could instead rely on [metatable type functions](https://github.com/luau-lang/rfcs/pull/69) to achieve what this RFC proposes. However, relying purely on `setmetatable` for metatable type expression isn't ideal, as it involves more verbose syntax than what this RFC proposes.
+We could instead rely on [metatable type functions](https://github.com/luau-lang/rfcs/pull/69) to achieve what this RFC proposes. However, relying purely on `setmetatable` for metatable type expression isn't ideal because it involves more verbose syntax than what this RFC proposes.
 
-The final alternative is also to just do nothing, and live with the boilerpalte code required by the `typeof` solution. This doesn't add any new functionality.
+The final alternative is also to just do nothing, and live with the boilerplate code required by the `typeof` solution. This doesn't add any new functionality.
 
 ## Drawbacks
 
-Unique syntax always has the downside of an additional learning curve to the language. Context-sensitive keywords &sigils increase cognitive load when trying to read Luau, which isn't great.
+Unique syntax always has the downside of an additional learning curve to the language. Context-sensitive keywords and sigils increase cognitive load when trying to read Luau, which isn't great.
