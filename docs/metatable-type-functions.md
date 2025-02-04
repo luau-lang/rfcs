@@ -44,7 +44,7 @@ type Identity = setmetatable<{
 ```
 
 When a non-table type (number, boolean) is passed into the type function, it should result in an error. This includes classes.
-If the type is an intersection/union of tables, then the metatable should be applied to every 
+If the type is an intersection or union of tables, then the metatable should be applied to every component type.
 
 ### `getmetatable` Type Function
 
