@@ -45,7 +45,7 @@ type Identity = setmetatable<{
 
 In the following code example, `ReversedIdentity` should evaluate to `{ __index: animal }`:
 
-```lua
+```luau
 local animal = {}
 type Identity = setmetatable<{
 	sound: string
