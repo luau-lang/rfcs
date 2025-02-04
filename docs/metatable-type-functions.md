@@ -10,7 +10,7 @@ Implement type functions for `getmetatable` and `setmetatable`.
 
 There is currently no way for users to apply metatable type information to a type without the usage of `typeof()`. This isn't ideal, as it adds verbosity and boilerplate to common patterns such as object-oriented programming. For example, the following:
 
-```lua
+```luau
 local clock = {}
 type Identity = typeof(setmetatable({} :: { time: number }, { __index = clock }))
 ```
