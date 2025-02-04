@@ -19,7 +19,7 @@ could be reduced to:
 
 ```luau
 local clock = {}
-type Identity = setmetatable<{ time: number }, { __index: clock }>
+type Identity = setmetatable<{ time: number }, { __index: typeof(clock) }>
 ```
 
 ### `getmetatable` Type Function
@@ -30,27 +30,27 @@ type Identity = setmetatable<{ time: number }, { __index: clock }>
 
 ### `setmetatable` Type Function
 
-In the following code example, `Identity` should evaluate to `{ sound: string, @metatable: { __index: animal } }`:
+In the following code example, `Identity` should evaluate to `{ sound: string, @metatable: { __index: typeof(animal) } }`:
 
 ```luau
 local animal = {}
 type Identity = setmetatable<{
 	sound: string
 }, {
-	__index: animal
+	__index: typeof(animal)
 }>
 ```
 
 ### `getmetatable` Type Function
 
-In the following code example, `ReversedIdentity` should evaluate to `{ __index: animal }`:
+In the following code example, `ReversedIdentity` should evaluate to `{ __index: typeof(animal) }`:
 
 ```luau
 local animal = {}
 type Identity = setmetatable<{
 	sound: string
 }, {
-	__index: animal
+	__index: typeof(animal)
 }>
 
 type ReversedIdentity = getmetatable<Identity>
