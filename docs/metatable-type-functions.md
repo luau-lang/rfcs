@@ -41,6 +41,9 @@ type Identity = setmetatable<{
 }>
 ```
 
+When a non-table type (number, boolean) is passed into the type function, it should result in an error. This includes classes.
+If the type is an intersection/union of tables, then the metatable should be applied to every 
+
 ### `getmetatable` Type Function
 
 In the following code example, `ReversedIdentity` should evaluate to `{ __index: typeof(animal) }`:
@@ -65,6 +68,9 @@ type metatable = {
 
 type MetatableType = getmetatable<setmetatable<{}, metatable>>
 ```
+
+If the type passed into the type function doesn't have a metatable and it *could* have a metatable (so primitives, singletons, classes, and tables), then it will return nil.
+If the type passed in is an intersection/union, then it will return an interesction/union respectively.
 
 ## Drawbacks
 
