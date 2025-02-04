@@ -70,8 +70,9 @@ type metatable = {
 type MetatableType = getmetatable<setmetatable<{}, metatable>>
 ```
 
-If the type passed into the type function doesn't have a metatable and it *could* have a metatable (so primitives, singletons, classes, and tables), then it will return nil.
-If the type passed in is an intersection or union, then it will return an intersection or union respectively.
+If the type passed in does not support metatables in the type system (i.e. at the time of writing, is not any of a primitive, a singleton, a class, a table, or a union or intersection thereof), it should error when passed to `getmetatable`. 
+If the type passed in is an intersection or union of things that support metatables, then it will return an intersection or union of those metatables respectively.
+If no metatable is present, but the type system supports metatables for that type, it should return the `nil` type indicating that there is no metatable present.
 
 ## Drawbacks
 
