@@ -156,7 +156,7 @@ No `=` is used, as this is not an assigning operation.
 *Open question: should we? or perhaps a different delimiter for visiting without binding? Discuss in comments.*
 
 ```Lua
-{ { .bar } in .foo }
+{ .foo { .bar } }
 ```
 
 This desugars once to:
