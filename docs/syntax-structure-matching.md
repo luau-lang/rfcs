@@ -149,26 +149,52 @@ foo, bar = data["foo"], data["bar"]
 
 #### Nested structure
 
-A structure matcher can be specified instead of an identifier, to match nested structure inside of that key. This is compatible with unpacking and dot keys.
-
-No `=` is used, as this is not an assigning operation.
-
-*Open question: should we? or perhaps a different delimiter for visiting without binding? Discuss in comments.*
+Keys can be chained together to match values in nested tables.
 
 ```Lua
-{ .foo { .bar } }
+{ .foo.bar }
 ```
 
 This desugars once to:
 
 ```Lua
-{ ["foo"] { bar = ["bar"] } }
+{ bar = .foo.bar }
+```
+
+Then desugars twice to:
+
+```Lua
+{ bar = ["foo"]["bar"] }
 ```
 
 Then desugars again to:
 
 ```Lua
-local bar = data["foo"]["bar"]
+bar = data["foo"]["bar"]
+```
+
+To avoid fully qualifying multiple paths, parentheses can be used to share a common prefix:
+
+```Lua
+{ .foo(.bar, myBaz = ["baz"]) }
+```
+
+This desugars once to:
+
+```Lua
+{ .foo.bar, myBaz = .foo["baz"] }
+```
+
+Then desugars twice to:
+
+```Lua
+{ foo = ["foo"]["bar"], myBaz = ["foo"]["baz"] }
+```
+
+Then desugars again to:
+
+```Lua
+local bar, myBaz = data["foo"]["bar"], data["foo"]["baz"]
 ```
 
 ## Alternatives
