@@ -89,16 +89,16 @@ This is the most verbose, but compatible way of matching values.
 
 Keys are specified in square brackets, and are allowed to evaluate to any currently valid key (i.e. not `nil`, plus any other constraints in the current context).
 
-To save the value at that key, an `=` is used, and an identifier is specified on the right hand side, showing where the value will be saved to.
+To save the value at that key, an identifier is specified to the left of the key. An `=` is used to indicate assignment.
 
 ```Lua
-{ [1] = foo, [#data] = bar }
+{ foo = [1], bar = [#data] }
 ```
 
 This desugars to:
 
 ```Lua
-foo, bar = data["foo"], data[#data]
+foo, bar = data[1], data[#data]
 ```
 
 #### Dot keys with names
@@ -106,13 +106,13 @@ foo, bar = data["foo"], data[#data]
 Keys that are valid Luau identifiers can be expressed as `.key` instead of `["key"]`.
 
 ```Lua
-{ .foo = myFoo, .bar = myBar }
+{ myFoo = .foo, myBar = .bar }
 ```
 
 This desugars once to:
 
 ```Lua
-{ ["foo"] = myFoo, ["bar"] = myBar }
+{ myFoo = ["foo"], myBar = ["bar"] }
 ```
 
 Then desugars again to:
@@ -132,13 +132,13 @@ When using dot keys, the second identifier can be skipped if the destination use
 This desugars once to:
 
 ```Lua
-{ .foo = foo, .bar = bar }
+{ foo = .foo, bar = .bar }
 ```
 
 Then desugars twice to:
 
 ```Lua
-{ ["foo"] = foo, ["bar"] = bar }
+{ foo = ["foo"], bar = ["bar"] }
 ```
 
 Then desugars again to:
@@ -162,7 +162,7 @@ No `=` is used, as this is not an assigning operation.
 This desugars once to:
 
 ```Lua
-{ ["foo"] { ["bar"] = bar } }
+{ ["foo"] { bar = ["bar"] } }
 ```
 
 Then desugars again to:
@@ -180,7 +180,7 @@ Dedicated array/tuple unpacking syntax was considered, but rejected in favour of
 For unpacking arrays, this proposal suggests:
 
 ```Lua
-{ [1] = foo, [2] = bar }
+{ foo = [1], bar = [2] }
 ```
 
 Or alternatively, using `table.unpack`:
@@ -206,7 +206,7 @@ Instead of listing out consecutive numeric keys, `unpack` would be used at the s
 This would desugar once to:
 
 ```Lua
-{ [1] = foo, [2] = bar }
+{ foo = [1], bar = [2] }
 ```
 
 Then desugars again to:
@@ -218,13 +218,13 @@ foo, bar = data[1], data[2]
 `unpack` would have skipped dot keys and explicitly written keys. If an explicit key collided with an implicit key, this would be a type error.
 
 ```Lua
-{ unpack foo, [true] = bar, baz, .garb }
+{ unpack foo, bar = [true], baz, .garb }
 ```
 
 This would desugar once to:
 
 ```Lua
-{ [1] = foo, [true] = bar, [2] = baz, ["garb"] = garb }
+{ foo = [1], bar = [true], baz = [2], garb = ["garb"] }
 ```
 
 Then desugars again to:
@@ -301,44 +301,8 @@ Such call sites will need a starting token (perhaps a reserved or contextual key
 We could mandate a reserved or contextual keyword before all structure matchers:
 
 ```Lua
-match { .foo = myFoo }
-in { .foo = myFoo }
+match { myFoo = .foo }
+in { myFoo = .foo }
 ```
 
 But this proposal punts on the issue, as this is most relevant for only certain implementations of matching, and so is considered external to the main syntax. We are free to decide on this later, once we know what the syntax looks like inside of the braces, should we agree that braces are desirable in any case.
-
-### Matching nested structure with identifiers
-
-In *Nested structure*:
-
-> An identifier and a structure matcher cannot be used at the same time. Exclusively one or the other may be on the right hand side.
-
-This is because allowing this would introduce ambiguity with dot keys without names:
-
-To illustrate: suppose we allow the following combination of nested structure and dot keys with names:
-
-```Lua
-{ .foo = myFoo { .bar } }
-```
-
-Which would desugar to:
-
-```Lua
-local myFoo, bar = data.foo, data.foo.bar
-```
-
-If we switch to dot keys without names:
-
-```Lua
-{ .foo { .bar } }
-```
-
-How would this desugar?
-
-```Lua
-local foo, bar = data.foo, data.foo.bar
--- or
-local bar = data.foo.bar
-```
-
-This is why it is explicitly disallowed.
