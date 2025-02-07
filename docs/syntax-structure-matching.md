@@ -117,7 +117,7 @@ This desugars once to:
 
 Then desugars again to:
 
-```
+```Lua
 myFoo, myBar = data["foo"], data["bar"]
 ```
 
@@ -143,7 +143,7 @@ Then desugars twice to:
 
 Then desugars again to:
 
-```
+```Lua
 foo, bar = data["foo"], data["bar"]
 ```
 
@@ -156,7 +156,7 @@ No `=` is used, as this is not an assigning operation.
 *Open question: should we? or perhaps a different delimiter for visiting without binding? Discuss in comments.*
 
 ```Lua
-{ .foo { .bar } }
+{ { .bar } in .foo }
 ```
 
 This desugars once to:
