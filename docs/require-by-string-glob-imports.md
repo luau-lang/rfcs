@@ -11,6 +11,7 @@
 - Cross-runtime/platform automated testing is currently impossible
 - Current dynamic requires are not type safe and can have cyclical dependency errors which are not picked up on. This isn't a conceptual limitation, it is totally possible to report.
 - Cross-module compilation may be wanted in the eventual future. But this pattern is common and will not be going away. There should be a way to express "requiring all children of a directory" while still having full cross-module compilation.
+- "Dynamic" requires are unfriendly to tooling & the language. But they're currently _needed_ for ergonomic reasons. We should close the gap, and let static requires (which are friendly to tooling!) be more expressive,
 
 ## Design
 
