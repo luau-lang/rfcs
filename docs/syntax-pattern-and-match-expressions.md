@@ -15,15 +15,15 @@ An extremely good use case for match expressions is a parser, where different no
 
 ```luau
 local function parse_simple_expr(): AstExprNode
- if current_token.kind == "string" then
-  return parse_string_expr()
- elseif current_token.kind == "number" then
-  return parse_number_expr()
- elseif current_token.kind == "true" or current_token.kind == "false" then
-  return parse_boolean_expr()
- else
-  return error(`unexpected token {current_token.kind} "{current_token.text}" {current_token.span.x}:{current_token.span.y}`)
- end
+    if current_token.kind == "string" then
+        return parse_string_expr()
+    elseif current_token.kind == "number" then
+        return parse_number_expr()
+    elseif current_token.kind == "true" or current_token.kind == "false" then
+        return parse_boolean_expr()
+    else
+        return error(`unexpected token {current_token.kind} "{current_token.text}" {current_token.span.x}:{current_token.span.y}`)
+    end
 end
 ```
 
@@ -31,12 +31,12 @@ The important information (such as whether `current_token.kind` is `"string"`, `
 
 ```luau
 local function parse_simple_expr(): AstExprNode
- return for current_token.kind match (
-  "string" -> parse_string_expr(),
-  "number" -> parse_number_expr(),
-  "true" or "false" -> parse_boolean_expr(),
-  * -> error(`unexpected token {current_token.kind} "{current_token.text}" {current_token.span.x}:{current_token.span.y}`),
- )
+    return for current_token.kind match (
+        "string" -> parse_string_expr(),
+        "number" -> parse_number_expr(),
+        "true" or "false" -> parse_boolean_expr(),
+        * -> error(`unexpected token {current_token.kind} "{current_token.text}" {current_token.span.x}:{current_token.span.y}`),
+    )
 end
 ```
 
@@ -157,14 +157,14 @@ An example of a match expression that uses structure patterns would be:
 ```luau
 local result = do_thing_that_results()
 local data = for result match (
- {
-  .ok: true,
-  .value,
- } -> do_something_with_value(value),
- {
-  .ok: false,
-  .message,
- } -> error(`thing resulted in an error with message "{message}"`)
+    {
+        .ok: true,
+        .value,
+    } -> do_something_with_value(value),
+    {
+        .ok: false,
+        .message,
+    } -> error(`thing resulted in an error with message "{message}"`)
 )
 ```
 
@@ -184,8 +184,8 @@ A value can also be bound to the pattern's current scope by adding `=` and a var
 
 ```luau
 local data = for pcall(do_fallible_thing) match (
- (true, * = data) -> data,
- (false, * = message) -> error(`fallible thing failed with message "{message}"`)
+    (true, * = data) -> data,
+    (false, * = message) -> error(`fallible thing failed with message "{message}"`)
 )
 ```
 
@@ -213,11 +213,11 @@ An example of a simple match expression would be:
 
 ```luau
 local sides = for shape match (
- "line" -> 1,
- "triangle" -> 3,
- "square" or "rectangle" -> 4,
- "circle" -> error("circle don't have sides"),
- * -> error(`unknown shape {shape}`),
+    "line" -> 1,
+    "triangle" -> 3,
+    "square" or "rectangle" -> 4,
+    "circle" -> error("circle don't have sides"),
+    * -> error(`unknown shape {shape}`),
 )
 ```
 
