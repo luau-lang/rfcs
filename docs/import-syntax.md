@@ -63,7 +63,7 @@ This gives users a second way to import modules, which could be confusing to new
 
 The primary alternative is to continue using the existing `require` function.
 
-Some smaller alternatives are:
+Some other alternatives are:
 
 * Change the contextual keyword `from` to the existing reserved keyword `in`. This may reduce parsing complexity, but would be less intuitive.
 * Allow programmers to rebind imported values to other names, perhaps something like `import createElement as e from "@React"`. This would be more flexible, but would also be more complex. This pattern could also not be done with autocomplete, as the autocomplete would not know the new name. It is also a fairly uncommon pattern, existing in usage of only a few libraries. Those users could continue to rebind with a `local` statement.
