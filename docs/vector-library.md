@@ -1,5 +1,7 @@
 # Vector library
 
+**Status**: Implemented
+
 ## Summary
 
 Implement a standard library that provides functionality for the vector type.

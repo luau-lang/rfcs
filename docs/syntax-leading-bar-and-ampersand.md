@@ -1,5 +1,7 @@
 # Leading `|` and `&` in types
 
+**Status**: Implemented
+
 ## Summary
 
 Allow the use of `|` and `&` without any types preceding them.

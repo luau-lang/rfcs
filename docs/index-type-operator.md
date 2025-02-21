@@ -1,5 +1,7 @@
 # `index` type function
 
+**Status**: Implemented
+
 ## Summary
 
 This RFC proposes the addition of one type function, `index`, which can be used to look up a specific property of another type (like TypeScript's Indexed Access Type).

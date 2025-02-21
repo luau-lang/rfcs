@@ -1,5 +1,7 @@
 # 2-component vector constructor
 
+**Status**: Implemented
+
 ## Summary
 
 Add a constructor for initializing vectors from two components.

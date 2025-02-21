@@ -1,5 +1,7 @@
 # `keyof` and `rawkeyof` type functions
 
+**Status**: Implemented
+
 ## Summary
 
 This RFC proposes the addition of two type functions, `keyof` and `rawkeyof`,
