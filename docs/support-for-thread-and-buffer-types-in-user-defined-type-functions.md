@@ -1,5 +1,7 @@
 # Support for thread and buffer Types in User-Defined Type Functions
 
+**Status**: Implemented
+
 ## Summary
 
 Add support for 'thread' and 'buffer' primitive types, omitted from original user-defined type function RFC.

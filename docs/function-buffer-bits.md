@@ -1,5 +1,7 @@
 # buffer.readbits/writebits
 
+**Status**: Implemented
+
 ## Summary
 
 Add `buffer.readbits` and `buffer.writebits` to give developers an easy way to work with bit buffers.
