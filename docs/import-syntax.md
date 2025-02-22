@@ -43,6 +43,7 @@ Would be equivalent to:
 ```luau
 local React = require("@React")
 local createElement, useState, useEffect, useContext, useRef = React.createElement, React.useState, React.useEffect, React.useContext, React.useRef
+React = nil
 ```
 
 Types could also be imported, which was previously impossible:
