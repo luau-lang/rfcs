@@ -40,7 +40,7 @@ local function parse_simple_expr(): AstExprNode
 end
 ```
 
-The match expression distils the most important parts of the first example but removes all repetition and verbosity.
+The match expression distils the most important parts of the first example but removes almost all repetition and verbosity.
 
 ## Design
 
@@ -48,19 +48,20 @@ There are two main components proposed in this RFC:
 
 - patterns, which check if a value *matches* some definition; and
 - match expressions, which match one value to a collection of arms and return a consequence of the arm if it's pattern matches.
-The syntax is inspired heavily by [Rust's match expression](https://doc.rust-lang.org/reference/expressions/match-expr.html) and [pattern syntax](https://doc.rust-lang.org/reference/patterns.html) .
 
 The proposed grammar changes are below:
 
 ```ebnf
-namepattern = NAME | NAME '[' exp ']' | namepattern '.' NAME
-pattern = NUMBER | STRING | 'nil' | 'true' | 'false' | stringinterp | namepattern | '*' | pattern 'or' pattern | '(' pattern ')' | NUMBER 'until' NUMBER | 'not' pattern
+patternname = NAME | NAME '[' exp ']' | patternname '.' NAME
+pattern = NUMBER | STRING | 'nil' | 'true' | 'false' | stringinterp | patternname | '*' | pattern 'or' pattern | '(' pattern ')' | NUMBER 'until' NUMBER | 'not' pattern
 matcharm = pattern ['if' exp] '->' exp
 matcharmlist = matcharm {',' matcharm} [',']
 matchexp = 'for' exp 'match' '(' matcharmlist ')'
 
 simpleexp = NUMBER | STRING | 'nil' | 'true' | 'false' | '...' | tableconstructor | attributes 'function' funcbody | prefixexp | ifelseexp | stringinterp | matchexp
 ```
+
+This syntax is heavily inspired by [Rust's match expression](https://doc.rust-lang.org/reference/expressions/match-expr.html) and [pattern syntax](https://doc.rust-lang.org/reference/patterns.html).
 
 ### Patterns
 
@@ -216,7 +217,7 @@ local sides = for shape match (
     "line" -> 1,
     "triangle" -> 3,
     "square" or "rectangle" -> 4,
-    "circle" -> error("circle don't have sides"),
+    "circle" -> error("circles don't have sides"),
     * -> error(`unknown shape {shape}`),
 )
 ```
