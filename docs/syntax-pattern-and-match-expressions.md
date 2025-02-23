@@ -52,8 +52,7 @@ There are two main components proposed in this RFC:
 The proposed grammar changes are below:
 
 ```ebnf
-patternname = NAME | NAME '[' exp ']' | patternname '.' NAME
-pattern = NUMBER | STRING | 'nil' | 'true' | 'false' | stringinterp | patternname | '*' | pattern 'or' pattern | '(' pattern ')' | NUMBER 'until' NUMBER | 'not' pattern
+pattern = NUMBER | STRING | 'nil' | 'true' | 'false' | stringinterp | '*' | pattern 'or' pattern | '(' pattern ')' | NUMBER 'until' NUMBER | 'not' pattern
 matcharm = pattern ['if' exp] '->' exp
 matcharmlist = matcharm {',' matcharm} [',']
 matchexp = 'for' exp 'match' '(' matcharmlist ')'
@@ -74,22 +73,16 @@ The main purpose of a pattern is to check if a value *matches* some definition.
 The *exact* pattern matches exactly what value is given to it. A pattern is an exact if given the following:
 
 - Strings and interpolated strings;
-- Numbers;
-- Booleans; and finally
-- Identifiers and index expressions.
+- Numbers; and finally
+- Booleans.
 Anything else produces a syntax error.
 
-> Call expressions were considered as an addition to this list, however, they close the door to future syntax and introduce complexity with regards to multi-returns - all with little to no actual gain.
->
-> A simple solution to this problem for the user is to move the call into a variable above and use an exact pattern with the new variable.
-
-> *Discuss in comments*: Disallowing expression-based indexing was considered with the benefit of keeping the door opening to future syntax. However, it was decided that it could be confusing that only one form of indexing is allowed and it would also prevent users from accessing specific keys which use reserved keywords.
+> Identifiers and index expressions were included in an older version of this RFC, however, they were removed as there were few valid use cases for dynamic patterns and all they do is increase complexity.
 
 Some examples of exact patterns would be:
 
 - `4`
 - `"hello"`
-- `foo.bar`
 - `true`
 
 Exact patterns are equivalent to a binary expression checking that value `==` the exact value. This means that `4` is equivalent to `value == 4`.
