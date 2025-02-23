@@ -61,9 +61,9 @@ The *two* advantages of this operation are as follows:
    The optimization will reduce to `4` math instructions:
      ```asm
      MULSD       xmm3, xmm7       ; aw * bw
-     VFMADD231SD xmm2, xmm6, xmm3 ; az * bz + (aw * bw)
-     VFMADD231SD xmm1, xmm5, xmm2 ; ay * by + (az * bz + aw * bw)
-     VFMADD231SD xmm0, xmm4, xmm1 ; ax * bx + (ay * by + az * bz + aw * bw)
+     VFMADD213SD xmm2, xmm6, xmm3 ; az * bz + (aw * bw)
+     VFMADD213SD xmm1, xmm5, xmm2 ; ay * by + (az * bz + aw * bw)
+     VFMADD213SD xmm0, xmm4, xmm1 ; ax * bx + (ay * by + az * bz + aw * bw)
      ```  
 
 There is also the potential of updating libraries such as `vector` to make use of `math.fma` internally, and other cases such as Roblox's `CFrame` could also benefit from this change.
@@ -91,7 +91,7 @@ When generating `native` code with `--!native` or `@native`, the operation shoul
   The compiler would attempt to optimize the interior of `sqrt(x * x - y * y)` into `(x * x) - (y * y)` and eventually `fma(x, x, -(y * y))`, which should compile to the following arithmetic instructions:
     ```asm
     MULSD       xmm1, xmm1       ; y * y
-    VFMSUB231SD xmm0, xmm0, xmm1 ; x * x - (y * y)
+    VFMSUB213SD xmm0, xmm0, xmm1 ; x * x - (y * y)
     ```
 
   This is problematic, as there is a gap between the precision of the operations. `a * b` might produce a rounding error which is different from `a * b - c`, and a negative value could unintentionally be introduced to the square root, even if `x == y`, resulting in an error which previously would not have existed.
