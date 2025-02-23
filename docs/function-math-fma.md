@@ -116,5 +116,5 @@ When generating `native` code with `--!native` or `@native`, the operation shoul
 
 ## Alternatives
 
-- Not implementing `math.fma`, remaining with the lesser optimized method of manually computing `(a * b) + c`
+- Not implementing `math.fma`, remaining with the lesser optimized method of manually computing `(a * b)` followed by `a + b`.
 - Implementing sister functions, such as `math.fms` and/or `math.fma231`, to make full use of the [FMA instruction set](https://en.wikipedia.org/wiki/FMA_instruction_set), allowing for more delicate optimization of operations, and finer control over the order and structure of operations.
