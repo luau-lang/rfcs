@@ -89,7 +89,7 @@ When generating `native` code with `--!native` or `@native`, the operation shoul
 
   Overall, it is better to allow the developer to manually decide which operations they choose to optimize, as the compiler will not understand the context, importance, or order of the operations and the rationale behind their arrangements.
 
-  As a consequence, `math.fma` must manually be invoked, and existing code would not benefit from any performance improvements.
+  As a consequence, `math.fma` must manually be invoked, and existing code would not benefit from any performance improvements, however, the integrity and continuity of the code will remain.
 
 - The use of `math.fma` may result in confusing code if it is not cleanly implemented by the developer.
 - Additional function added to the `math` library, which may only see use from more experienced developers that understand the micro-optimization of mathematical operations.
