@@ -16,18 +16,10 @@ The *two* advantages of this operation are as follows:
 
    The example below is a dot product between two 4-dimensional vectors:
 
-   ```cpp
-   double dot(
-     double ax, double ay, double az, double aw,
-     double bx, double by, double bz, double bw
-   )
-   {
-     return
-         (ax * bx)
-       + (ay * by)
-       + (az * bz)
-       + (aw * bw);
-   }
+   ```luau
+   function Vector4.Dot( Vector4 a, Vector4 b ): number
+       return a.X * b.X + a.Y * b.Y + a.Z * b.Z + a.W * b.W;
+   end
    ```
 
    This computation results in a total of `7` math instructions
@@ -42,21 +34,10 @@ The *two* advantages of this operation are as follows:
      ADDSD xmm0, xmm3             ; + (aw * bw)
      ```
    Algorithm simplified with `fma`:
-     ```cpp
-     double dot(
-       double ax, double ay, double az, double aw,
-       double bx, double by, double bz, double bw
-     )
-     {
-       return fma(
-         ax,  bx, fma(
-         ay,  by, fma(
-         az,  bz,
-         aw * bw
-         )
-         )
-       );
-     }
+     ```luau
+      function Vector4.Dot( Vector4 a, Vector4 b ): number
+          return math.fma( a.X, b.X, math.fma( a.Y, b.Y, math.fma( a.Z, b.Z, a.W * b.W ) ) );
+      end
      ```
    The optimization will reduce to `4` math instructions:
      ```asm
