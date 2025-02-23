@@ -113,6 +113,7 @@ When generating `native` code with `--!native` or `@native`, the operation shoul
 - The use of `math.fma` may result in confusing code if it is not cleanly implemented by the developer.
 - Additional function added to the `math` library, which may only see use from more experienced developers that understand the micro-optimization of mathematical operations.
 - Documentation for `math.fma`, particularly its benefits, pitfalls, and behavior are required to well explain when, why, and how to use `math.fma`.
+- Complexity added to the compiler for native code generation.
 
 ## Alternatives
 
