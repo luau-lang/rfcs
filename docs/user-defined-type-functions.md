@@ -189,8 +189,7 @@ Depending on the particular `tag`, a `type` instance can have additional propert
 | Instance Methods | Return Type | Description |
 | ------------- | ------------- | ------------- |
 | `properties()` | `{[type]: { read: type, write: type } }` | returns a table mapping class' property keys to a table with their respective read and write types  |
-| `readparent()` | `type?` | returns the read type of class' parent class; if the parent class does not exist, returns nil |
-| `writeparent()` | `type?` | returns the write type class' parent class; if the parent class does not exist, returns nil |
+| `parent()` | `type?` | returns the type of class' parent class; if the parent class does not exist, returns nil |
 | `metatable()` | `type?` | returns the class' metatable; if the metatable does not exists, returns nil |
 | `indexer()` | `{ index: type, readresult: type, writeresult: type }?` | returns the class' indexer as a table; if the indexer does not exist, returns nil |
 | `readindexer()` | `{ index: type, result: type }?` | returns the class' indexer as a table using the read type of the result; if the indexer does not exist, returns nil |
