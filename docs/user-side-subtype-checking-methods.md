@@ -107,21 +107,21 @@ This RFC proposes adding 4 new methods to the [`type`](./user-defined-type-funct
 | ------------- | ------------- | ------------- |
 | `hassubtype(arg: string)` | `boolean` | returns true if self has a subtype of the same tag as the argument. List of available tags: "nil", "unknown", "never", "any", "boolean", "number", "string", "singleton", "negation", "union", "intersection", "table", "function", "class" |
 | `hassubtypeof(arg: type)` | `boolean` | returns true if self has a subtype of the argument. |
-| `hasonlysubtype(arg: string)` | `boolean` | returns true if self has only a subtype of the same tag as the argument. List of available tags: "nil", "unknown", "never", "any", "boolean", "number", "string", "singleton", "negation", "union", "intersection", "table", "function", "class" |
-| `hasonlysubtypeof(arg: type)` | `boolean` | returns true if self has a subtype of the argument. |
+| `musthavesubtype(arg: string)` | `boolean` | returns true if self has only a subtype of the same tag as the argument. List of available tags: "nil", "unknown", "never", "any", "boolean", "number", "string", "singleton", "negation", "union", "intersection", "table", "function", "class" |
+| `musthavesubtypeof(arg: type)` | `boolean` | returns true if self has a subtype of the argument. |
 
-The `only` methods are diffrent with how they validate, as shown below.
+The `musthave` methods are diffrent with how they validate, as shown below.
 
 ### String Enum Examples
 ```luau
 type meow = number | "mrrp" | string
 
-print(meow:hasonlysubtypeof(types.string)) -- false, because theres a number in the union.
+print(meow:musthavesubtypeof(types.string)) -- false, because theres a number in the union.
 print(meow:hassubtypeof(types.string)) -- true, because even though theres a number, theres also types with a subtype of string, and also string itself.
 
 type mrow = "purr" | "meow"
 
-print(meow:hasonlysubtypeof(types.string)) -- true, because despite the union being made up of singletons. Those singletons have the subtype of string, so it returns true.
+print(meow:musthavesubtypeof(types.string)) -- true, because despite the union being made up of singletons. Those singletons have the subtype of string, so it returns true.
 print(meow:hassubtypeof(types.string)) -- true
 ```
 
@@ -138,19 +138,19 @@ type TwentyPercentPurityCatnip = {
     name: "Average Catnip"
 }
 
-print(TwentyPercentPurityCatnip:hasonlysubtypeof(BaseCatnipInfo)) -- false, because "20%" is not an option in the string enum 'CatnipPurity'.
+print(TwentyPercentPurityCatnip:musthavesubtypeof(BaseCatnipInfo)) -- false, because "20%" is not an option in the string enum 'CatnipPurity'.
 print(TwentyPercentPurityCatnip:hassubtypeof(BaseCatnipInfo)) -- also false for the same reason
 
 type WeakCatnip = BaseCatnipInfo<"10%"> & {
     name: "Weak Catnip"
 }
 
-print(WeakCatnip:hasonlysubtypeof(BaseCatnipInfo)) -- true, because unlike the previous example "10%" is an option in the string enum 'CatnipPurity'.
+print(WeakCatnip:musthavesubtypeof(BaseCatnipInfo)) -- true, because unlike the previous example "10%" is an option in the string enum 'CatnipPurity'.
 print(TwentyPercentPurityCatnip:hassubtypeof(BaseCatnipInfo)) -- also true
 
 type FishyCatnipUnion = WeakCatnip | TwentyPercentPurityCatnip
 
-print(FishyCatnipUnion:hasonlysubtypeof(BaseCatnipInfo)) -- false, because "20%" is not an option in the string enum 'CatnipPurity'.
+print(FishyCatnipUnion:musthavesubtypeof(BaseCatnipInfo)) -- false, because "20%" is not an option in the string enum 'CatnipPurity'.
 print(TwentyPercentPurityCatnip:hassubtypeof(BaseCatnipInfo)) -- true, because atleast one of the components has the subtype of BaseCatnipInfo (WeakCatnip).
 ```
 
