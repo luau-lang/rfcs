@@ -173,30 +173,6 @@ Then desugars again to:
 bar = data["foo"]["bar"]
 ```
 
-To avoid fully qualifying multiple paths, parentheses can be used to share a common prefix:
-
-```Lua
-{ .foo(.bar, myBaz = ["baz"]) }
-```
-
-This desugars once to:
-
-```Lua
-{ .foo.bar, myBaz = .foo["baz"] }
-```
-
-Then desugars twice to:
-
-```Lua
-{ foo = ["foo"]["bar"], myBaz = ["foo"]["baz"] }
-```
-
-Then desugars again to:
-
-```Lua
-local bar, myBaz = data["foo"]["bar"], data["foo"]["baz"]
-```
-
 ## Alternatives
 
 ### Unpack syntax
