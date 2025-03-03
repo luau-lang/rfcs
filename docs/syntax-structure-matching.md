@@ -109,15 +109,11 @@ Keys that are valid Luau identifiers can be expressed as `.key` instead of `["ke
 { myFoo = .foo, myBar = .bar }
 ```
 
-This desugars once to:
+This desugars to:
 
 ```Lua
 { myFoo = ["foo"], myBar = ["bar"] }
-```
 
-Then desugars again to:
-
-```Lua
 myFoo, myBar = data["foo"], data["bar"]
 ```
 
@@ -129,21 +125,13 @@ When using dot keys, the second identifier can be skipped if the destination use
 { .foo, .bar }
 ```
 
-This desugars once to:
+This desugars to:
 
 ```Lua
 { foo = .foo, bar = .bar }
-```
 
-Then desugars twice to:
-
-```Lua
 { foo = ["foo"], bar = ["bar"] }
-```
 
-Then desugars again to:
-
-```Lua
 foo, bar = data["foo"], data["bar"]
 ```
 
@@ -155,21 +143,13 @@ Keys can be chained together to match values in nested tables.
 { .foo.bar }
 ```
 
-This desugars once to:
+This desugars to:
 
 ```Lua
 { bar = .foo.bar }
-```
 
-Then desugars twice to:
-
-```Lua
 { bar = ["foo"]["bar"] }
-```
 
-Then desugars again to:
-
-```Lua
 bar = data["foo"]["bar"]
 ```
 
@@ -177,9 +157,13 @@ bar = data["foo"]["bar"]
 
 ### Unpack syntax
 
-Dedicated array/tuple unpacking syntax was considered, but rejected in favour of basic syntax.
+A dedicated array/tuple unpacking syntax was considered, but rejected in favour of basic syntax.
 
-For unpacking arrays, this proposal suggests:
+```Lua
+{ unpack foo, bar }
+```
+
+Instead, for unpacking arrays, this proposal suggests:
 
 ```Lua
 { foo = [1], bar = [2] }
@@ -195,44 +179,6 @@ For disambiguity with other languages, we would still not allow:
 
 ```Lua
 { foo, bar }
-```
-
-The original `unpack` syntax is listed below.
-
-Instead of listing out consecutive numeric keys, `unpack` would be used at the start of a matcher to implicitly key all subsequent items.
-
-```Lua
-{ unpack foo, bar }
-```
-
-This would desugar once to:
-
-```Lua
-{ foo = [1], bar = [2] }
-```
-
-Then desugars again to:
-
-```Lua
-foo, bar = data[1], data[2]
-```
-
-`unpack` would have skipped dot keys and explicitly written keys. If an explicit key collided with an implicit key, this would be a type error.
-
-```Lua
-{ unpack foo, bar = [true], baz, .garb }
-```
-
-This would desugar once to:
-
-```Lua
-{ foo = [1], bar = [true], baz = [2], garb = ["garb"] }
-```
-
-Then desugars again to:
-
-```Lua
-foo, bar, baz, garb = data[1], data[true], data[2], data["garb"]
 ```
 
 ### Indexing assignment
@@ -298,13 +244,10 @@ local foo = bar
 { } -- bar { }?
 ```
 
-Such call sites will need a starting token (perhaps a reserved or contextual keyword) to dispel the ambiguity.
-
-We could mandate a reserved or contextual keyword before all structure matchers:
+Such call sites will need a reserved keyword prior to the matcher to dispel the ambiguity.
 
 ```Lua
-match { myFoo = .foo }
 in { myFoo = .foo }
 ```
 
-But this proposal punts on the issue, as this is most relevant for only certain implementations of matching, and so is considered external to the main syntax. We are free to decide on this later, once we know what the syntax looks like inside of the braces, should we agree that braces are desirable in any case.
+That said, this would only manifest if attempting to add destructuring to re-assignment operations, which isn't done in other languages and has limited utility (only really being useful for late initialisation of variables).
