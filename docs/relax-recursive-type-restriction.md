@@ -20,9 +20,9 @@ but the [recursive type restriction](recursive-type-restriction.md) limits us to
 direct recursion as above, where the type aliases' parameters remain unchanged.
 
 At the time the restriction was implemented, Luau featured a greedy type inference engine that would
-eagerly expand every occurrence of a type alias, and, as such, would infinitely expand until
-ultimately crashing from overflowing the stack, or would hit a recursion limiter and produce a
-strange, very deep type.
+forward declare type aliases using a free type. Recursive uses of that type alias in the definition
+would attempt to instantiate them before the alias is resolved (effectively a noop). The result was
+often nonsensical, incomplete types with unresolved free types present in them.
 
 This limitation means that Luau's type system is unable to express common recursive type patterns
 for data structures, such as `andThen` for a monadic data type like `Promise`. For instance, the
