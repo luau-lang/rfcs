@@ -53,4 +53,4 @@ The `T!` syntax would indicate a that the type binding for `T` is monomorphic.
 
 - **Type Function Constraint**: Provide a `types.monomorphic<T>` function in user-defined type functions to enforce monomorphism dynamically. But this would probably require some way to propagate an `*error-type*` to the user
 - **Keywords**: Something like `<greedy T>` or `<strict T>` should also be considered if we want to reduce symbols
-- **Field-specific bindings**: Flip the relationship from being declared per-type-parameter to be set per-function-parameter such as `function test<T>(a: T, b: T!)` which would imply allow both inference behaviours of generics in an uniform syntax
+- **Function-parameter-bindings**: Flip the relationship from being declared per-type-parameter to be set per-function-parameter such as `function test<T>(a: T, b: T!)` which would imply allow both inference behaviours of generics in an uniform syntax
