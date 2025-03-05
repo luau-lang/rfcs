@@ -2,7 +2,7 @@
 
 ## Summary  
 
-Introduce a way to opt into monomorphic (greedy) type inference for generics, preventing them from widening into unions when instantiated with different types.
+Introduce a way to annotate a polymorphic function signature to express that it will only allow one argument type to interact with automatic instantiation.
 
 ## Motivation  
 
@@ -27,7 +27,7 @@ test(1, "string") -- Type error: Expected `number`, got `string`
 
 ## Design  
 
-This RFC proposes adding some symbol next to each type variable which is a clear opt-in.
+This RFC proposes adding some symbol as a suffix (or prefix) that annotates the inference behaviour for the generic.
 
 ### New Syntax  
 
