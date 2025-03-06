@@ -30,7 +30,7 @@ end
 The important information (such as whether `current_token.kind` is `"string"`, `"number"`, `"true"`, or `"false"`) isn't unreadable, but is hidden under a layer of extremely repetitive and verbose `if` statements. With the syntax proposed, this code can be simplified significantly:
 
 ```luau
-local function parse_simple_exr(): AstExprNode
+local function parse_simple_expr(): AstExprNode
     return in current_token.kind match
         "string" -> parse_string_expr(),
         "number" -> parse_number_expr(),
