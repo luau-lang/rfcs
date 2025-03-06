@@ -52,7 +52,7 @@ There are two main components proposed in this RFC:
 The proposed grammar changes are below:
 
 ```ebnf
-pattern = NUMBER | STRING | 'nil' | 'true' | 'false' | stringinterp | '*' | pattern 'or' pattern | '(' pattern ')' | NUMBER 'until' NUMBER | 'not' pattern
+pattern = NUMBER | STRING | 'nil' | 'true' | 'false' | '*' | pattern 'or' pattern | '(' pattern ')' | NUMBER 'until' NUMBER | 'not' pattern
 matcharm = pattern ['if' exp] '->' exp
 matcharmlist = matcharm {',' matcharm} [',']
 matchexp = 'for' exp 'match' '(' matcharmlist ')'
@@ -70,11 +70,12 @@ The main purpose of a pattern is to check if a value *matches* some definition.
 
 #### Exact
 
-The *exact* pattern matches exactly what value is given to it. A pattern is an exact if given the following:
+The *exact* pattern matches exactly what value is given to it. The following data types are valid exact patterns:
 
-- Strings and interpolated strings;
-- Numbers; and finally
-- Booleans.
+- Strings
+- Numbers
+- Booleans
+
 Anything else produces a syntax error.
 
 > Identifiers and index expressions were included in an older version of this RFC, however, they were removed as there were few valid use cases for dynamic patterns and all they do is increase complexity.
