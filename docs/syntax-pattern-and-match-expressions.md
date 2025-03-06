@@ -9,7 +9,7 @@ This RFC proposes the introduction of pattern and match expression syntax to Lua
 The purpose of this RFC is twofold:
 
 - Improve code readability and reduce verbosity; and
-- Increase developers efficiency and move closer to being on-par with other programming languages.
+- Increase developer efficiency and move closer to being on-par with other programming languages.
 
 An extremely good use case for match expressions is a parser, where different nodes need to be parsed depending on the current token kind. Take the following code snippet for example:
 
@@ -30,13 +30,12 @@ end
 The important information (such as whether `current_token.kind` is `"string"`, `"number"`, `"true"`, or `"false"`) isn't unreadable, but is hidden under a layer of extremely repetitive and verbose `if` statements. With the syntax proposed, this code can be simplified significantly:
 
 ```luau
-local function parse_simple_expr(): AstExprNode
-    return for current_token.kind match (
+local function parse_simple_exr(): AstExprNode
+    return in current_token.kind match
         "string" -> parse_string_expr(),
         "number" -> parse_number_expr(),
         "true" or "false" -> parse_boolean_expr(),
-        * -> error(`unexpected token {current_token.kind} "{current_token.text}" {current_token.span.x}:{current_token.span.y}`),
-    )
+    else error(`unexpected token {current_token.kind} "{current_token.text}" {current_token.span.x}:{current_token.span.y}`)
 end
 ```
 
@@ -54,8 +53,8 @@ The proposed grammar changes are below:
 ```ebnf
 pattern = NUMBER | STRING | 'nil' | 'true' | 'false' | '*' | pattern 'or' pattern | '(' pattern ')' | NUMBER 'until' NUMBER | 'not' pattern
 matcharm = pattern ['if' exp] '->' exp
-matcharmlist = matcharm {',' matcharm} [',']
-matchexp = 'for' exp 'match' '(' matcharmlist ')'
+matcharmlist = matcharm {',' matcharm}
+matchexp = 'in' exp 'match' matcharmlist ',' 'else' exp
 
 simpleexp = NUMBER | STRING | 'nil' | 'true' | 'false' | '...' | tableconstructor | attributes 'function' funcbody | prefixexp | ifelseexp | stringinterp | matchexp
 ```
@@ -70,7 +69,7 @@ The main purpose of a pattern is to check if a value *matches* some definition.
 
 #### Exact
 
-The *exact* pattern matches exactly what value is given to it. The following data types are valid exact patterns:
+The *exact* pattern matches exactly what value is given to it. The following literals are valid exact patterns:
 
 - Strings
 - Numbers
@@ -93,8 +92,10 @@ Exact patterns are equivalent to a binary expression checking that value `==` th
 The *wildcard* pattern always matches, whatever the value. It is denoted with the asterisk (`*`).
 > *Discuss in comments*: `_` and `else` were considered as alternatives to the `*` when denoting wildcard patterns.
 >
-> `_` was discarded as it is a valid identifier and so is ambiguous with exact patterns.
-> `else` was discarded simply because it is more verbose than the other two. However, the benefit of explicitness (by using `else`) may overrule brevity.
+> `_` was discarded simply because it is a valid identifier and could cause problems for future syntax additions.
+> `else` was discarded because it is more verbose and might not read as well in all contexts. However, the benefit of explicitness (by using `else`) may overrule brevity.
+>
+> Although wildcards don't have many uses with regards to match expressions (due to them requiring a trailing catch-all anyway), they will be very useful in other contexts, especially if the multi-value and/or structure pattern is introduced.
 
 Wildcard patterns are always equivalent to `true`.
 
@@ -115,11 +116,11 @@ An example of an or pattern would be:
 2 or "hello"
 ```
 
-Or patterns are equivalent to every sub-pattern's binary expression, each wrapped in parentheses, with an `or` in between them. This means that `2 or 4` is equivalent to `(value == 2) or (value == 4)`.
+Or patterns are equivalent to every sub-pattern's binary expression wrapped in parentheses with an `or` in between them. This means that `2 or 4` is equivalent to `(value == 2) or (value == 4)`.
 
 #### Not
 
-The not pattern matches if the pattern to the right of it doesn't match. It is denoted with the `not` keyword followed by a pattern.
+The *not* pattern matches if the pattern to the right of it doesn't match. It is denoted with the `not` keyword followed by a pattern.
 > *Discuss in comments*: The `~` symbol was considered as an alternative to the `not` keyword when denoting not patterns but was discarded due to the fact that `not` is already used to mean logical NOT. However, the benefit of brevity (by using `~`) may overrule the concerns of a new symbol being added.
 >
 > In addition, it could be confusing that the not pattern acts sightly differently to the `not` unary operator. This is because the not pattern means "anything but the given pattern matches" and the `not` unary expression means "anything that is falsy is true (or matches)".
@@ -129,7 +130,7 @@ Not patterns are equivalent to `not` with the pattern on the right binary expres
 #### Range
 
 The *range* pattern matches if the value is a number and is inclusively within the bounds of min and max. A range pattern is denoted with an `until` keyword in the infix position, which takes a number on it's left and right, those being the min and max.
-> *Discuss in comments*: `..` was considered as an alternative to the `until` keyword when denoting range pattern but was discarded as they already perform a completely different operation (concatenation) which could be confusing. However, the benefit of brevity (by using `..`) might overrule the concerns of confusion.
+> *Discuss in comments*: `..` was considered as an alternative to the `until` keyword when denoting the range pattern but was discarded as it already performs a completely different operation (concatenation) which could be confusing. However, the benefit of brevity (by using `..`) might overrule the concerns of confusion.
 
 An example of a range pattern would be:
 
@@ -143,7 +144,7 @@ Range patterns are equivalent to a type check that asserts the value is a number
 >
 > *This RFC does not formally propose this syntax as it requires acceptance of a currently pending proposal. The following syntax is purely hypothetical and would need to be finalized in a separate RFC. It is only included here for completeness.*
 
-The structure pattern is a superset of the proposed [Structure matching syntax](https://github.com/luau-lang/rfcs/pull/95). The pattern matches if the value is a table and fits the defined structure. In the context of match expressions, the defined keys are also bound to the scope of both the guard and the consequence.
+The *structure* pattern is a superset of the proposed [Structure matching syntax](https://github.com/luau-lang/rfcs/pull/95). The pattern matches if the value is a table and fits the defined structure. In the context of match expressions, the defined keys are also bound to the scope of both the guard and the consequence.
 
 The ability to add a pattern match for a specific key can be done by adding a `:` to the end of any key. `not nil` is the default pattern for a key when one is not specified.
 
@@ -151,7 +152,7 @@ An example of a match expression that uses structure patterns would be:
 
 ```luau
 local result = do_thing_that_results()
-local data = for result match (
+local data = in result match
     {
         .ok: true,
         .value,
@@ -159,15 +160,15 @@ local data = for result match (
     {
         .ok: false,
         .message,
-    } -> error(`thing resulted in an error with message "{message}"`)
-)
+    } -> error(`thing resulted in an error with message "{message}"`),
+else nil
 ```
 
 #### Future: Multi-value
->
+
 > *This RFC does not formally propose the following syntax as it is seen to be out of scope and would add additional complexity to match expressions and the proposal as a whole.*
 
-A multi-value pattern matches a set of values with a set of patterns. It is denoted like the group pattern by being wrapped in parentheses, only this time more than one pattern is allowed, each being separated by a comma.
+A *multi-value* pattern matches a set of values with a set of patterns. It is denoted like the group pattern by being wrapped in parentheses, only this time more than one pattern is allowed, each being separated by a comma.
 
 An example of a multi-value pattern would be:
 
@@ -178,10 +179,10 @@ An example of a multi-value pattern would be:
 A value can also be bound to the pattern's current scope by adding `=` and a variable name after the pattern, like so:
 
 ```luau
-local data = for pcall(do_fallible_thing) match (
+local data = in pcall(do_fallible_thing) match
     (true, * = data) -> data,
-    (false, * = message) -> error(`fallible thing failed with message "{message}"`)
-)
+    (false, * = message) -> error(`fallible thing failed with message "{message}"`),
+else nil
 ```
 
 In the context of match expressions, they would be bound to the scope of both the guard and the consequence.
@@ -190,30 +191,41 @@ Multi-value patterns are equivalent to each pattern wrapped in parentheses and s
 
 ### Match expression
 
-A *match* is a valid expression and consists of two parts:
+A *match* is a valid expression and consists of three parts:
 
 - A *value* to compare each match arm against.
 - One or more *match arm*s to check.
-They are denoted with the `for` keyword, followed by an expression, the contextual keyword `match`, and finally the match arms wrapped in parentheses.
+- A catch-all if no arms matched.
 
-> *Discuss in comments:* `in` was considered as an alternative to `for` when denoting the start of a match expression but was discarded as it reads like you're looking *into* (e.g. via table access) a value, not at it. However, it could be argued that `for` causes more confusion as it is usually the start of a for loop.
+They are denoted with the `in` keyword, followed by an expression, the contextual keyword `match`, the match arms, and finally the `else` keyword and catch-all expression.
+
+> *Discuss in comments*: Both `for` and `match` (with `in` after the given value) were considered as alternatives when denoting the start of a match expression.
 >
-> The `end` keyword was also considered as an alternative to the parentheses but was discarded as it reads worse when a match expression is inline.
+> `for` was rejected because it implies a for loop and would cause confusion for users.
+>
+> `match` was rejected as it causes ambiguities with call statements meaning that, in order to implement this approach, we would have to disallow strings, tables, and expressions that are wrapped in parentheses.
+> While disallowing the first two isn't much of a problem, there are valid use cases for matching expressions wrapped in parentheses. Additionally, this could cause confusion due to the fact that certain expressions which are allowed everywhere else in the language simply would not work with match expressions. However, the benefit of matching the style of `if`-`else` expressions by having the keyword first might overrule these concerns.
+>
+> Dropping the `match` contextual keyword and just using `in` in the infix position was also considered. This idea was discarded simply because having a `match` keyword is more explicit to the user.
+>
+> Both the `end` keyword and parentheses were considered to explicitly denote the block of match arms which removes certain ambiguities when nesting match expressions if they didn't have the trailing `else` catch-all.
+>
+> `end` was discarded as it reads worse when a match expression is inline.
+> Parentheses were discarded as punctuation isn't used anywhere else in the language to denote the start or end of a block.
 >
 > Finally, it was considered whether `match` should have the ability to take more than one value and introduce [multi-value patterns](#future-multi-value). This idea was purposely left out of the current proposal as it adds complications due to Luau not having tuples as first-class citizens. However, this does not mean it can't be added in a future RFC.
 
-The first pattern matching, guard passing arm is evaluated and returned as the value of the match expression; otherwise, if no arms matched, the returned value is `nil`.
+The first pattern matching, guard passing arm is evaluated and returned as the value of the match expression; otherwise, if no arms matched, the catch-all is evaluated and returned.
 
 An example of a simple match expression would be:
 
 ```luau
-local sides = for shape match (
+local sides = in shape match
     "line" -> 1,
     "triangle" -> 3,
     "square" or "rectangle" -> 4,
     "circle" -> error("circles don't have sides"),
-    * -> error(`unknown shape {shape}`),
-)
+else error(`unknown shape {shape}`)
 ```
 
 #### Match arms
@@ -223,9 +235,14 @@ A match arm (or arm for short) consists of three parts:
 - A *pattern* to match the value against.
 - An optional *guard*.
 - A *consequence* expression.
+
 They are denoted with a pattern, an optional `if` keyword and expression, followed by the `->` symbol, and closed with the consequence expression.
 
-> *Discuss in comments*: A suggested alternative for the `->` symbol was the `then` keyword, however, this idea was discarded over verbosity concerns and the fact that it didn't read correctly.
+> *Discuss in comments*: Both `=>` and `then` were suggested as alternatives.
+>
+> `then` was discarded over verbosity concerns and the fact that it doesn't read correctly.
+> `=>` was rejected simply because it adds another symbol to Luau, however, it could be argued that the familiarity it brings for Rust users overrules this concern.
+> It could also be argued that `->`, due to it only being used in the type syntax, could cause confusion between type and runtime syntax for users.
 
 An example of a simple match arm would be:
 
