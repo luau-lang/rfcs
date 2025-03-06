@@ -1,8 +1,8 @@
-# Subtype Checking methods for User-Defined Type Functions
+# type:hassubtypeof
 
 ## Summary
 
-New methods on the `type` userdata in type functions for performing subtype checks.
+New method on the [`type`](./user-defined-type-functions.md#type-instance) userdata in type functions for performing subtype checks.
 
 ## Motivation
 
@@ -99,64 +99,15 @@ end
 
 ## Design
 
-This RFC proposes adding 4 new methods to the [`type`](./user-defined-type-functions.md#type-instance) userdata in type functions.
+The [`type`](./user-defined-type-functions.md#type-instance) will gain a new method: `hassubtypeof`:
 
-### New Methods
-
-| Name | Return Type | Description |
-| ------------- | ------------- | ------------- |
-| `hassubtype(arg: string)` | `boolean` | returns true if self has a subtype of the same tag as the argument. List of available tags: "nil", "unknown", "never", "any", "boolean", "number", "string", "singleton", "negation", "union", "intersection", "table", "function", "class" |
-| `hassubtypeof(arg: type)` | `boolean` | returns true if self has a subtype of the argument. |
-| `musthavesubtype(arg: string)` | `boolean` | returns true if self has only a subtype of the same tag as the argument. List of available tags: "nil", "unknown", "never", "any", "boolean", "number", "string", "singleton", "negation", "union", "intersection", "table", "function", "class" |
-| `musthavesubtypeof(arg: type)` | `boolean` | returns true if self has a subtype of the argument. |
-
-The `musthave` methods are diffrent with how they validate, as shown below.
-
-### String Enum Examples
 ```luau
-type meow = number | "mrrp" | string
-
-print(meow:musthavesubtypeof(types.string)) -- false, because theres a number in the union.
-print(meow:hassubtypeof(types.string)) -- true, because even though theres a number, theres also types with a subtype of string, and also string itself.
-
-type mrow = "purr" | "meow"
-
-print(meow:musthavesubtypeof(types.string)) -- true, because despite the union being made up of singletons. Those singletons have the subtype of string, so it returns true.
-print(meow:hassubtypeof(types.string)) -- true
-```
-
-### Tagged Enum Examples
-```luau
-type CatnipPurity = "90%" | "10%" | "11%"
-
-type BaseCatnipInfo<P = CatnipPurity> = {
-    purity: P
-}
-
-type TwentyPercentPurityCatnip = {
-    purity: "20%"
-    name: "Average Catnip"
-}
-
-print(TwentyPercentPurityCatnip:musthavesubtypeof(BaseCatnipInfo)) -- false, because "20%" is not an option in the string enum 'CatnipPurity'.
-print(TwentyPercentPurityCatnip:hassubtypeof(BaseCatnipInfo)) -- also false for the same reason
-
-type WeakCatnip = BaseCatnipInfo<"10%"> & {
-    name: "Weak Catnip"
-}
-
-print(WeakCatnip:musthavesubtypeof(BaseCatnipInfo)) -- true, because unlike the previous example "10%" is an option in the string enum 'CatnipPurity'.
-print(TwentyPercentPurityCatnip:hassubtypeof(BaseCatnipInfo)) -- also true
-
-type FishyCatnipUnion = WeakCatnip | TwentyPercentPurityCatnip
-
-print(FishyCatnipUnion:musthavesubtypeof(BaseCatnipInfo)) -- false, because "20%" is not an option in the string enum 'CatnipPurity'.
-print(TwentyPercentPurityCatnip:hassubtypeof(BaseCatnipInfo)) -- true, because atleast one of the components has the subtype of BaseCatnipInfo (WeakCatnip).
+type:hassubtypeof(arg: type): boolean
 ```
 
 ## Drawbacks
 
-Adds extra methods to the type userdata in User-Defined type functions.
+Adds another method to the type userdata in User-Defined type functions.
 
 ## Alternatives
 
