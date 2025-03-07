@@ -6,7 +6,7 @@ The RFC introduces a feature to annotate a polymorphic function signature to exp
 
 ## Motivation  
 
-The purpose of this feature is to prevent polymorphic types from widening into a union (e.g., number | string) when the function is called with different arguments, like in the case of `test(1, "a")`. Without the `!` annotation, the solver would infer `T` to be `number | string`, which is undesirable when the intention is to enforce strict type consistency across the function. 
+The purpose of this feature is to prevent polymorphic types from widening into (e.g., number | string) when the function is called with different arguments, like in the case of `test(1, "a")`. Without the `!` annotation, the solver would infer `T` to be `number | string`, which is undesirable when the intention is to enforce strict type consistency across the function. 
 
 ```luau
 function test<T>(a: T, b: T): T
