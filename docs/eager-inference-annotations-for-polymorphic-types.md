@@ -2,7 +2,7 @@
 
 ## Summary  
 
-The RFC introduces a feature to annotate polymorphic function types to express that the first instantiation of a polymorphic type T is the one that sticks. 
+The RFC introduces a feature to annotate polymorphic function types to express that the first instantiation of a polymorphic type `T` is the one that sticks. 
 
 ## Motivation  
 
