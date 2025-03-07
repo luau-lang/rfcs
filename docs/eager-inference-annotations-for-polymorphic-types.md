@@ -41,10 +41,10 @@ test(1, "string") -- TypeError: Expected `number`, got `string`
 - Introduces a simple change to luau's parser, marginally increasing parsing complexity.
 
 ## Alternatives  
-### Function-argument-bindings
-Flip the relationship being declarared per-type-parameter to per-function-argument which provides more control in expressing the inference, and could allow both instantiation behaviours of polymorphic types under a uniform syntax.
+### Per-usage-bindings
+Flip the relationship being declarared per-type-parameter to per-usage which provides more control in expressing the inference, and could allow both instantiation behaviours of polymorphic types under a uniform syntax.
 
-A polymorphic function's arguments marked with type `T!` will not contribute to the instantiation of type `T` in the function. Instead, `T` should be inferred on the arguments without the annotation:
+A polymorphic typed marked with type `T!` will not contribute to the instantiation of type `T` in the function. Instead, `T` should be inferred on the arguments without the annotation:
 
 ```luau
 function test<T>(first: T, second: T, third: T!): T
@@ -54,7 +54,7 @@ end
 test(1, "string", true) -- TypeError: Type `boolean` could not be converted into `number | string`
 ```
 
-This has the added drawback that the `!` syntax modifier would need to be barred from return types, as the return type holds no relevance to implicit instantiation.
+Notably, this behavior would be identical to other languages, such as typescript's `noinfer<T>`. This has the added drawback that the `!` syntax modifier would need to be barred from return types, as the return type holds no relevance to implicit instantiation.
 
 
 ### Keywords
