@@ -6,7 +6,7 @@ The RFC introduces a feature to annotate polymorphic function types to express t
 
 ## Motivation  
 
-The purpose of this feature is to dvelop syntax to prevent polymorphic types from widening into (e.g., number | string) when a function is implicitly instantiated with different argument types. E.g., `test(1, "a")`. In the following code, Luau's current solver infers `T` to be of a union type:
+The purpose of this feature is to develop syntax to prevent polymorphic types from widening into (e.g., number | string) when a function is implicitly instantiated with different argument types. E.g., `test(1, "a")`. In the following code, Luau's current solver infers `T` to be of a union type:
 
 ```luau
 function test<T>(a: T, b: T): T
