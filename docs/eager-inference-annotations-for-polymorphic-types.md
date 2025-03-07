@@ -6,7 +6,7 @@ The RFC introduces a feature to annotate polymorphic function types to express t
 
 ## Motivation  
 
-The purpose of this feature is to develop syntax to prevent polymorphic types from widening into (e.g., number | string) when a function is implicitly instantiated with different argument types. E.g., `test(1, "a")`. In the following code, Luau's current solver infers `T` to be of a union type:
+The purpose of this feature is to develop syntax to prevent polymorphic types from widening into (e.g., number | string) when a function is implicitly instantiated with different argument types. E.g., `test(1, "a")`. In the following code, Luau's Type Inference Engine V2 infers `T` to be of a union type:
 
 ```luau
 function test<T>(a: T, b: T): T
@@ -16,12 +16,12 @@ end
 local result = test(1, "string") -- inferred type `T`: number | string"
 ```
 
-This behaviour can be useful in some cases but is undesirable when a polymorphic function is intended to constrain the input types to be consistent.
+This behaviour can be useful in some cases but is undesirable when a polymorphic type is intended to constrain the subsequent input types to be identical to the first usage.
 
 ## Design  
 
 We propose adding some symbol as a suffix (or prefix) that annotates the "eager" inference behaviour for a polymorphic type.
-Subsequent usages of type `T` where `T` is "eager" would be ignored during instantiation.
+Subsequent uses of a polymorphic type `T` where `T` is "eager" will be inferred as the precise type of the first occurrence.
 
 ### New Syntax
 
@@ -55,9 +55,10 @@ test(1, "string", true) -- TypeError: Type `boolean` could not be converted into
 ```
 
 This has the added drawback that the `!` syntax modifier would need to be barred from return types, as the return type holds no relevance to implicit instantiation.
+Also has the major drawback of symbol complexity. E.g., type aliases with `T!?` are entirely possible under this model.
 
 ### noinfer\<T\>
-Same as above, except we introduce no new syntax into the language. Create a binding similar or equivalent to typescript's noinfer<T>:
+Same as above, except we introduce no new syntax, symbol usage, etc. into the language. Create a binding similar or equivalent to typescript's noinfer<T>:
 
 ```luau
 function test<T>(first: T, second: T, third: noinfer<T>): T
@@ -68,4 +69,4 @@ test(1, "string", true) -- TypeError: Type `boolean` could not be converted into
 ```
 
 ### Keywords
-Something like `<greedy T>` or `<strict T>` should also be considered if we want to reduce symbols. This idea has merit when considering the potential complexity of type aliases combined with `T!?`
+Something like `<greedy T>` or `<strict T>` should also be considered if we want to reduce symbols.
