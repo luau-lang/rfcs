@@ -36,14 +36,14 @@ The `T!` syntax would indicate a that the type binding for `T` is monomorphic.
 ### Type Checking Rules  
 
 1. When a polymorphic type is marked as `T!`:
-   - The first instantiation of `T` determines its type
-   - Any subsequent use of `T` in the same context must match this type exactly
-   - If a different type is encountered, a **type error** is raised
-   - `T` will not expand into a union
+   - The first instantiation of `T` determines its type.
+   - Any subsequent use of `T` in the same context must match this type exactly.
+   - If a different type is encountered, a **type error** is raised.
+   - `T` will not expand into a union.
 
 2. **Behavior in Unions**  
-   - A function or type with `T!` cannot instantiate `T` with a union
-   - If `T` is already a union, it must remain a union as new types cannot be added to it
+   - A function or type with `T!` cannot instantiate `T` with a union.
+   - If `T` is already a union, it must remain a union as new types cannot be added to it.
 
 ## Drawbacks  
 
@@ -51,6 +51,6 @@ The `T!` syntax would indicate a that the type binding for `T` is monomorphic.
 
 ## Alternatives  
 
-- **Type Function Constraint**: Provide a `types.monomorphic<T>` function in user-defined type functions to enforce monomorphism dynamically. But this would probably require some way to propagate an `*error-type*` to the user
-- **Keywords**: Something like `<greedy T>` or `<strict T>` should also be considered if we want to reduce symbols
+- **Type Function Constraint**: Provide a `types.monomorphic<T>` function in user-defined type functions to enforce monomorphism dynamically. But this would probably require some way to propagate an `*error-type*` to the user.
+- **Keywords**: Something like `<greedy T>` or `<strict T>` should also be considered if we want to reduce symbols.
 - **Function-argument-bindings**: Flip the relationship from being declared per-type-parameter to be set per-argument: `function test<T>(a: T, b: T, c: T!)` which could allow both inference behaviours of polymorphic types under a uniform syntax.
