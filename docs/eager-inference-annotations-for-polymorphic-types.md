@@ -48,6 +48,7 @@ A polymorphic function's arguments marked with type `T!` will not contribute to 
 
 ```luau
 function test<T>(first: T, second: T, third: T!): T
+    return first
 end
 
 test(1, "string", true) -- TypeError: Type `boolean` could not be converted into `number | string`
