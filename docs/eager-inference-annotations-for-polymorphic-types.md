@@ -39,18 +39,22 @@ test(1, "string") -- Type error: Expected `number`, got `string`
 
 ## Alternatives  
 ### Function-argument-bindings
-Flip the relationship being declarared per-type-parameter to be per-argument which provides more control in expressing the inference and could allow both instantiation  behaviours of polymorphic types under an uniform syntax.
+Flip the relationship being declarared per-type-parameter to be per-argument which provides more control in expressing the inference, and could allow both instantiation behaviours of polymorphic types under a uniform syntax.
 
-A polymorphic function has arguments marked with T! will not contribute to the inference of `T`. Instead `T` should be inferred on the arguments without the annotation.
+A polymorphic function's arguments marked with type `T!` will not contribute to the instantiation of type `T` in the function. Instead, `T` should be inferred on the arguments without the annotation.
 ```luau
-function test<T>(first: T!, second: T!, third: T): T
+function test<T>(first: T, second: T, third: T!): T
 end
 
-test(1, "string", true) -- Type error: Expected `boolean`, got `number`
+test(1, "string", true) -- TypeError: Type `boolean` could not be converted into `number | string`
 ```
+
+
 ### Type Function Constraint
 Provide a `types.monomorphic<T>` function in user-defined type functions to enforce monomorphism dynamically. But this would probably require some way to propagate an `*error-type*` to the user.
+
+
 ### Keywords
-Something like `<greedy T>` or `<strict T>` should also be considered if we want to reduce symbols.
+Something like `<greedy T>` or `<strict T>` should also be considered if we want to reduce symbols. This idea has merit when considering the potential complexity of type aliases combined with `T!?`
 
 
