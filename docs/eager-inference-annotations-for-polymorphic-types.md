@@ -42,10 +42,6 @@ test(1, "string") -- Type error: Expected `number`, got `string`
    - If a different type is encountered, a **type error** is raised.
    - `T` will not expand into a union.
 
-2. **Behaviour in Unions**  
-   - A function or type with `T!` cannot instantiate `T` with a union.
-   - If `T` is already a union, it must remain a union as new types cannot be added to it.
-
 ## Drawbacks  
 
 - Introduces a new syntax modifier (`T!`), which may lead to a symbol soup, but it doesn't seem too shabby next to `T?`.
