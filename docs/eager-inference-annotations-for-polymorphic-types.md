@@ -58,6 +58,3 @@ This has the added drawback that the `!` syntax modifier would need to be barred
 
 ### Keywords
 Something like `<greedy T>` or `<strict T>` should also be considered if we want to reduce symbols. This idea has merit when considering the potential complexity of type aliases combined with `T!?`
-
-### Type Function Constraint
-Provide a `types.monomorphic<T>` function accessible in luau's type runtime to enforce monomorphism dynamically. This could be implemented separately at a later date.
