@@ -6,7 +6,7 @@ Introduce a way to annotate a polymorphic function signature to express that it 
 
 ## Motivation  
 
-Currently, Luau's type solver allows generic parameters to widen into unions when they are instantiated with multiple types. For example:  
+Currently, Luau's type solver allows polymorphic types to widen into unions when they are instantiated with multiple types. For example:  
 
 ```luau
 function test<T>(a: T, b: T): T
@@ -27,7 +27,7 @@ test(1, "string") -- Type error: Expected `number`, got `string`
 
 ## Design  
 
-This RFC proposes adding some symbol as a suffix (or prefix) that annotates the inference behaviour for the generic.
+This RFC proposes adding some symbol as a suffix (or prefix) that annotates the inference behaviour for the polymorphic type.
 
 ### New Syntax  
 
@@ -35,7 +35,7 @@ The `T!` syntax would indicate a that the type binding for `T` is monomorphic.
 
 ### Type Checking Rules  
 
-1. When a generic parameter is marked as `T!`:
+1. When a polymorphic type is marked as `T!`:
    - The first instantiation of `T` determines its type
    - Any subsequent use of `T` in the same context must match this type exactly
    - If a different type is encountered, a **type error** is raised
