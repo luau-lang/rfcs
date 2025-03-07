@@ -2,7 +2,7 @@
 
 ## Summary  
 
-Introduce a way to annotate a polymorphic function signature to express that it will only allow one argument type to interact with automatic instantiation.
+Introduce a way to annotate a polymorphic function signature to express that it will only allow the first usage of a polymorphic type to interact with implicit instantiation.
 
 ## Motivation  
 
