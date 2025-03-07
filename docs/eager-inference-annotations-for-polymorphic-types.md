@@ -33,15 +33,6 @@ end
 test(1, "string") -- Type error: Expected `number`, got `string`
 ```
 
-
-### Type Checking Rules  
-
-1. When a polymorphic type is marked as `T!`:
-   - The first instantiation of `T` determines its type.
-   - Any subsequent use of `T` in the same context must match this type exactly.
-   - If a different type is encountered, a **type error** is raised.
-   - `T` will not expand into a union.
-
 ## Drawbacks  
 
 - Introduces a new syntax modifier (`T!`), which may lead to a symbol soup, but it doesn't seem too shabby next to `T?`.
