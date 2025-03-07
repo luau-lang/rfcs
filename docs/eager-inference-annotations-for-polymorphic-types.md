@@ -54,8 +54,18 @@ end
 test(1, "string", true) -- TypeError: Type `boolean` could not be converted into `number | string`
 ```
 
-Notably, this behavior would be identical to other languages, such as typescript's `noinfer<T>`. This has the added drawback that the `!` syntax modifier would need to be barred from return types, as the return type holds no relevance to implicit instantiation.
+This has the added drawback that the `!` syntax modifier would need to be barred from return types, as the return type holds no relevance to implicit instantiation.
 
+### noinfer\<T\>
+Same as above, except we introduce no new syntax into the language. Create a binding similar or equivalent to typescript's noinfer<T>:
+
+```luau
+function test<T>(first: T, second: T, third: noinfer<T>): T
+    return first
+end
+
+test(1, "string", true) -- TypeError: Type `boolean` could not be converted into `number | string`
+```
 
 ### Keywords
 Something like `<greedy T>` or `<strict T>` should also be considered if we want to reduce symbols. This idea has merit when considering the potential complexity of type aliases combined with `T!?`
