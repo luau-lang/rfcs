@@ -37,7 +37,7 @@ test(1, "string") -- TypeError: Expected `number`, got `string`
 
 ## Drawbacks  
 
-- Introduces a new syntax modifier (`T!`), which may lead to a symbol soup, but it doesn't seem too shabby next to `T?`.
+- Introduces a new syntax modifier `!`, which may lead to a symbol soup. However, `T!` doesn't seem too shabby next to `T?`.
 - Introduces a simple change to luau's parser, marginally increasing parsing complexity.
 
 ## Alternatives  
