@@ -47,7 +47,7 @@ The `T!` syntax would indicate a that the type binding for `T` is monomorphic.
 
 ## Drawbacks  
 
-- Introduces a new syntax modifier (`T!`), which may lead to a symbol soup but it doesn't seem too shabby next to `T?`.
+- Introduces a new syntax modifier (`T!`), which may lead to a symbol soup, but it doesn't seem too shabby next to `T?`.
 
 ## Alternatives  
 
