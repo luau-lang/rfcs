@@ -46,4 +46,4 @@ print( math.todec(3.1415, 2) ) -- Output: 3.14
 ```
 The problem with this approach is that it's a rather unnecessary cluttering of the `math` library, especially in comparison to the proposed, much simpler solution. While they both achieve the same thing, this approach feels like it 'takes up too much space'.
 
-Another alternative could be to continue doing nothing. My only argument against not changing is that I think there's nothing to lose by making the change, however, I recognize that that's largely my personal bias, and that it may also be, in some ways and to some extent, an uneducated take.
+Another alternative could be to continue doing nothing. My only rebuttal is that I think there's nothing to lose by making this change, however, I recognize that that's largely my personal bias, and that it may also be, in some ways and to some extent, an uneducated take.
