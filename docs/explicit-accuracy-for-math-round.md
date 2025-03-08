@@ -1,7 +1,7 @@
 # Explicit degree of accuracy input for math.round
 
 ## Summary
-This RFC proposes introducing a second parameter to `math.round` to allow users to declare a degree of accuracy to round numbers to.
+This RFC proposes introducing a second parameter to `math.round` to allow users to specify a degree of accuracy to round numbers to.
 ```luau
 print( math.round(3.1415, 2) ) -- Output: 3.14
 ```
