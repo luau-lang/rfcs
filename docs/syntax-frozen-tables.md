@@ -79,8 +79,9 @@ TableUtils.join(
 )
 ```
 
-This leaves the feature in an awkward place, where it provides great theoretical benefits, but is impractical to express without using undesirable language features.
-Ideally, frozen tables should have only marginal cost to adopt, to reduce friction and encourage wider usage. This inexpressibility is a serious cost.
+This leaves the feature in an awkward place, where it provides great theoretical benefits, but is much more verbose to express.
+
+Ideally, frozen tables should have only marginal cost to adopt, to reduce friction and encourage wider usage.
 
 ## Design
 
