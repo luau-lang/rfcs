@@ -15,7 +15,7 @@ The change, as proposed below, feels like a very simple and appropriate expansio
 
 ## Design
 As of writing this, a well-rounded implementation of rounding to a decimal place is something like so:
-```lua
+```luau
 local function round_to( n: number, decimal_places: number? )
     assert(type(n) == 'number', 'first arg must be a number')
     assert((decimal_places == nil) or (type(decimal_places) == 'number'), 'second arg must be a number')
@@ -26,7 +26,7 @@ end
 print( round_to(3.1415, 2) ) -- Output: 3.14
 ```
 The proposed change is simple: introduce a second parameter to `math.round` which accepts a `number?`. This second parameter, which might be called something like `decimal_places`, determines to what number of decimal places (degree of accuracy) to round a number (the `n` parameter) to. This change would provide the same level of convenience as the above `round_to` function without impacting the, for lack of a better term, 'visual' size of projects (like carrying around a `round_to`-esque function does).
-```lua
+```luau
 print( math.round(3.1415, 2) ) -- Output: 3.14
 ```
 `math.round`'s new type signature would be `( n: number, decimal_places: number? ) -> number`.
@@ -40,7 +40,7 @@ It may also be worth considering that because `math.round` has gone unchanged fo
 
 ## Alternatives
 One alternative could be to introduce a new function in the `math` library specifically for rounding to decimal places.
-```lua
+```luau
 -- imagine 'todec' means 'to decimal [precision...?]'
 print( math.todec(3.1415, 2) ) -- Output: 3.14
 ```
