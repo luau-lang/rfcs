@@ -11,7 +11,7 @@ The motivation for this proposal lies solely in improving user convenience. Albe
 1. It's a 'one-more-than-necessary' utility users have to carry around
 2. Though the difference is negligible in most scenarios, it's computationally slower, even in `native`
 
-Allowing users to specify to what degree of accuracy `math.round` should round to feels like a very simple and appropriate expansion of the standard library. The change is also inherently a performance microoptimization [thanks to the fastcall op].
+The change, as proposed below, feels like a very simple and appropriate expansion of the standard library, and is inherently a performance microoptimization [thanks to the fastcall op].
 
 ## Design
 As of writing this, a well-rounded implementation of rounding to a decimal place is something like so:
