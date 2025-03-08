@@ -79,7 +79,7 @@ TableUtils.join(
 )
 ```
 
-This leaves the feature in an awkward place, where it provides great theoretical benefits, but is much more verbose to express.
+This leaves the feature in an awkward place, where it provides great theoretical benefits, especially as a "sensible default", but is much more verbose to express and so can't properly serve that purpose.
 
 Ideally, frozen tables should have only marginal cost to adopt, to reduce friction and encourage wider usage.
 
