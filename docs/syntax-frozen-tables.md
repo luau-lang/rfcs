@@ -2,7 +2,11 @@
 
 ## Summary
 
-Add a syntax to table literals to allow them to be frozen from construction.
+Add syntax for freezing a table upon construction to:
+- Improve ergonomics of immutable code
+- Reduce friction incurred by fully qualified `table.freeze`
+- Trivially detect optimisation opportunities for deeply frozen tables at construction time
+- Leverage the technical benefits of immutability in more places via easy adoption
 
 ```Lua
 local struct = {:
