@@ -1,4 +1,4 @@
-# Explicit accuracy for math.round
+# Explicit degree of accuracy input for math.round
 
 ## Summary
 This RFC proposes introducing a second parameter to `math.round` to allow users to declare a degree of accuracy to round numbers to.
