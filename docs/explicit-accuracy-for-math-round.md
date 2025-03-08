@@ -25,9 +25,8 @@ local function round_to( n: number, decimal_places: number? )
 end
 print( round_to(3.1415, 2) ) -- Output: 3.14
 ```
-The proposed change provides the same level of convenience as the above `round_to` function without impacting the--for lack of a better term--'visual' size of projects. The change is simple: introduce a second parameter to `math.round` which accepts a `number?`.
+The proposed change is simple: introduce a second parameter to `math.round` which accepts a `number?`. This second parameter, which might be called something like `decimal_places`, determines to what number of decimal places (degree of accuracy) to round a number (the `n` parameter) to. This change would provide the same level of convenience as the above `round_to` function without impacting the, for lack of a better term, 'visual' size of projects (like carrying around a `round_to`-esque function does).
 ```lua
--- proposed change
 print( math.round(3.1415, 2) ) -- Output: 3.14
 ```
 `math.round`'s new type signature would be `( n: number, decimal_places: number? ) -> number`.
