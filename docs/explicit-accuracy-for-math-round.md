@@ -5,9 +5,12 @@ This RFC proposes introducing a second parameter to `math.round` to allow users 
 ```luau
 print( math.round(3.1415, 2) ) -- Output: 3.14
 ```
+In doing so, we:
+- Improve user convenience by providing an implementation of the behavior for them
+- Provide a marginally more performant alternative to existing implementations
 
 ## Motivation
-The motivation for this proposal lies solely in improving user convenience. Albeit very simple, the concept's current implementation (demonstrated in **Design**) has two major flaws:
+The motivation for this proposal lies mostly in improving user convenience. Albeit very simple, the concept's current implementation (demonstrated in **Design**) has two major flaws:
 1. It's a 'one-more-than-necessary' utility users have to carry around
 2. Though the difference is negligible in most scenarios, it's computationally slower, even in `native`
 
