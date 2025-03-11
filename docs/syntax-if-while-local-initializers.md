@@ -10,6 +10,8 @@ This RFC is an update and continuation to [if statement initializers](https://gi
 
 ## Motivation
 
+Declaring locally-scoped variables at the point of use in `if` statements simplifies code, better conveys the programmer's intent, and leads to more readable and better understandable program logic. By combining `if` condition initializers with nilchecks, users can easily handle success/empty conditions and expressively declare control flow.
+
 In Luau, an extremely common idiom is for fallible functions to return an optional value: an intended result if the operation succeeds or `nil` if it fails. Users are expected to *nilcheck* this result to handle success and failure/empty cases, and this constitutes a major aspect of control flow. An extremely common example of such is Roblox's `Instance:FindFirstChild`, which returns an `Instance` if one was found or nil otherwise:
 
 ```luau
@@ -20,7 +22,7 @@ end
 -- model is still bound here
 ```
 
-With `if local` statements, this code may be rewritten as:
+With `if local` statements, this code may be rewritten:
 
 ```luau
 if local model = workspace:FindFirstChild("MyModel") then
@@ -29,7 +31,9 @@ end
 -- model is not bound here
 ```
 
-In many cases, developers use an expression in an if statement's condition and then immediately use it again in its body:
+In such cases, `if local` statements better express the programmer's intent and more clearly state the intended control flow.
+
+In many cases, developers use an expression in an if statement's condition and then immediately use it again in its body. Not only does this result in dense, duplicated code, but it also evaluates the expression twice:
 
 ```luau
 if folders[folder][file_name].last_updated < now - TWO_DAYS then
@@ -46,7 +50,107 @@ in update_time < now - TWO_DAYS then
 end
 ```
 
-The primary motivation for `if local` statements isn't in small examples like those above, however, it's how it fits into whole codebases. `if local`s drastically improve code shape, readability, and the general conciseness and expressiveness of the Luau language.
+A simple indexing operation may not be expensive, but if the user wants to call a function instead, they often must call it twice to achieve the intended behavior. In this common example, the user calls `table.find` twice to avoid the `table.remove(t, table.find(t, element))` footgun:
+
+```luau
+if table.find(array, element) then
+    table.remove(array, table.find(array, element))
+end
+```
+
+In this case, the user chooses to iterate over the array twice instead of assigning index to a local variable, saving a line of code and a `local` binding. With an `if local` statement, the user can write the code they desire even more succinctly, without having to iterate over the array twice, nor keep `index` bound unnecessarily in the outer scope:
+
+```luau
+if local index = table.find(array, element) then
+    table.remove(array, index)
+end
+```
+
+The primary motivation for `if local` statements isn't even in small examples like those above, however, it's how it fits into whole codebases. `if local`s drastically improve code shape, readability, and the general conciseness and expressiveness of the Luau language.
+
+Take this non-trivial example for instance. Assume `fs.find` returns a table with methods like `:exists()` and fields `file` or `dir` which contain optional tables. Assume `path.parent` and `path.child` both return `string?`.
+
+```luau
+-- find and read data csv files
+type CsvData = {
+    [string]: {
+        { string },
+    },
+}
+
+local function get_input_csvs(): CsvData
+    local data_dir = input.get("input data dir: ")
+    if #string.gsub(data_dir, "\n", "") == 0 then
+        return get_input_csvs()
+    end
+    
+    local input_dir = fs.find(cleaned_data_dir).dir
+    if not input_dir then
+        print("invalid input dir, please try again")
+        return get_input_csvs()
+    end
+
+    local data: CsvData = {}
+    for _, entry in input_dir:entries() do
+        if entry.file and string.match(entry.name, "[%.]csv$") then
+            local lines: { string } = {}
+            for line_number, line in entry.file:readlines() do
+                if line_number == 1 then continue end -- skip headers
+                local line_split = string.split(line)
+                -- last is usually empty
+                if string.gsub(line_split[#line_split], " ", "") == 0 then
+                    table.remove(line_split, #line_split)
+                end
+                table.insert(lines, line_split)
+            end
+            data[entry.name] = lines
+        end
+    end
+    return data
+end
+```
+
+With `if local`s, we can rewrite it to:
+
+```luau
+type CsvData = {
+    [string]: {
+        { string }
+    }
+}
+
+local function get_input_files(): CsvData
+    local data_dir = input.get("input data dir: ")
+    if #string.gsub(data_dir, "\n", "") == 0 then
+        return get_input_files()
+    end
+
+    if local input_dir = fs.find(data_dir).dir then
+        local data: CsvData = {}
+        for _, file in input_dir:entries() do
+            if local file = entry.file in string.match(file.name, "[%.]csv$") then
+                local lines: { string } = {}
+                for line_number, line in file:readlines() do
+                    if line_number == 1 then continue end -- skip headers
+                    local line_split = string.split(line)
+                    -- last split is usually empty
+                    if string.gsub(line_split[#line_split], " ", "") == 0 then
+                        table.remove(line_split, #line_split)
+                    end
+                    table.insert(lines, line_split)
+                end
+                data[file.name] = lines
+            end
+        end
+        return data
+    end
+
+    print("invalid input dir, please try again")
+    return get_input_csvs()
+end
+```
+
+This example shows how `if local` statements can be used to simplify control flow and clarify the main purpose of the function. It also shows the correct way to use `if local`s, to simplify control flow without simply replacing every `if` statement with an `if local`.
 
 <!-- TODO: add evidence -->
 
