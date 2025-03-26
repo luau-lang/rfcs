@@ -115,7 +115,9 @@ This proposal does not preclude supporting arrays, nested matching or non-string
 
 Using a symbol like `=` or `:` for renaming was considered, but was rejected because it was ambiguous whether the left hand side was the key, or the right hand side. By contrast, a keyword like `as` naturally implies an order.
 
-
+```Lua
+local { foo = red, bar = blue } = data
+```
 
 #### Dot keys 
 
