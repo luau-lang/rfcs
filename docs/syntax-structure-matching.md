@@ -78,82 +78,65 @@ This proposal will use the term *structure matcher* to refer to syntax for retri
 The most basic structure matcher is a set of empty braces. All matching syntax occurs between these braces.
 
 ```Lua
-{ }
+local { } = data
 ```
 
 Empty structure matchers like these are not invalid (they still fit the pattern), but aren't very useful - linting for these makes sense.
 
-#### Basic matching
-
-This is the most verbose, but compatible way of matching values.
-
-Keys are specified in square brackets, and are allowed to evaluate to any currently valid key (i.e. not `nil`, plus any other constraints in the current context).
-
-To save the value at that key, an identifier is specified to the left of the key. An `=` is used to indicate assignment.
+String keys can be specified between the braces to introduce them as members of the namespace.
 
 ```Lua
-{ foo = [1], bar = [#data] }
+local { foo, bar } = data
 ```
 
 This desugars to:
 
 ```Lua
-foo, bar = data[1], data[#data]
+local foo, bar = data.foo, data.bar
 ```
 
-#### Dot keys with names
-
-Keys that are valid Luau identifiers can be expressed as `.key` instead of `["key"]`.
+If the member should be renamed, a new contextual `as` keyword can be used, with the key on the left and the member name on the right.
 
 ```Lua
-{ myFoo = .foo, myBar = .bar }
+local { foo as red, bar as blue } = data
 ```
 
 This desugars to:
 
 ```Lua
-{ myFoo = ["foo"], myBar = ["bar"] }
-
-myFoo, myBar = data["foo"], data["bar"]
+local red, blue = data.foo, data.bar
 ```
 
-#### Dot keys without names
+This proposal does not preclude supporting arrays, nested matching or non-string keys down the line (see Alternatives for proposed syntaxes), but it takes the opinion that these considerations do not outweigh the need for an internally consistent and ergonomic base variant for the most common case of matching string keys in maps.
 
-When using dot keys, the second identifier can be skipped if the destination uses the same identifier as the key.
+## Alternatives
+
+#### Symbol for renaming
+
+Using a symbol like `=` or `:` for renaming was considered, but was rejected because it was ambiguous whether the left hand side was the key, or the right hand side. By contrast, a keyword like `as` naturally implies an order.
+
+
+
+#### Dot keys 
+
+A previous version of this proposal considered using dots at the start of identifiers. The original motive was to disambiguate 
+visually between arrays and maps (especially for people familiar with other languages). 
+
+This was ultimately rejected after much deliberation as Luau already has a different pattern for working with arrays, and so would be unlikely to extend this syntax to work with them.
+
+Additionally, it didn't seem valuable enough to contort our syntax to follow the conventions of other languages; it was instead preferred to prioritise internal consistency of Luau and ergonomics.
 
 ```Lua
 { .foo, .bar }
 ```
 
-This desugars to:
-
-```Lua
-{ foo = .foo, bar = .bar }
-
-{ foo = ["foo"], bar = ["bar"] }
-
-foo, bar = data["foo"], data["bar"]
-```
-
 #### Nested structure
 
-Keys can be chained together to match values in nested tables.
+A previous version of this proposal considered matching nested structure, but this was rejected as it wasn't clear what the use case would be.
 
 ```Lua
 { .foo.bar }
 ```
-
-This desugars to:
-
-```Lua
-{ bar = .foo.bar }
-
-{ bar = ["foo"]["bar"] }
-
-bar = data["foo"]["bar"]
-```
-
-## Alternatives
 
 ### Unpack syntax
 
@@ -166,19 +149,7 @@ A dedicated array/tuple unpacking syntax was considered, but rejected in favour 
 Instead, for unpacking arrays, this proposal suggests:
 
 ```Lua
-{ foo = [1], bar = [2] }
-```
-
-Or alternatively, using `table.unpack`:
-
-```Lua
 foo, bar = table.unpack(data)
-```
-
-For disambiguity with other languages, we would still not allow:
-
-```Lua
-{ foo, bar }
 ```
 
 ### Indexing assignment
