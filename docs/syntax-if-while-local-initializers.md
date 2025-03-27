@@ -281,7 +281,7 @@ By expecting the leftmost binding to always exist, we can better support the pri
 
 ```luau
 if local character = player.Character 
-    character:FindFirstChildOfClass("Humanoid").Health > 20 
+    in character:FindFirstChildOfClass("Humanoid").Health > 20 
     -- since character is the leftmost binding, it's guaranteed to exist 
     -- and a `character and` or `character ~= nil` check isn't needed
 then
