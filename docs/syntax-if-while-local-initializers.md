@@ -1,6 +1,6 @@
 # `if local` and `while local` statements
 
-This RFC is an update and continuation to [if statement initializers](https://github.com/luau-lang/rfcs/pull/23), featuring improved semantics.
+This RFC is an update and continuation to [if statement initializers](https://github.com/luau-lang/rfcs/pull/23), featuring improved semantics, especially in relation to fallthrough.
 
 ## Summary
 
@@ -79,9 +79,10 @@ With `if local` stacks (`multi-local`s), such nested checks may be rewritten lik
 local function initializeUi()
     if
         local container: ScreenGui = PlayerGui:FindFirstChild("MainContainer")
-        local currentRoundIndicator: TextLabel = container:FindFirstChild("CurrentRoundTextLabel")
         local teamsFrame: Frame = container:FindFirstChild("TeamsFrame")
-        local teamsContainers = teamsFrame:GetChildren() :: { Frame }
+        local roundHeaderFrame: Frame = container:FindFirstChild("RoundHeaders")
+        local currentRoundIndicator: TextLabel = roundHeaderFrame:FindFirstChild("CurrentRoundLabel")
+        local lastWinnerLabel: TextLabel = roundHeaderFrame:FindFirstChild("LastRoundWinnerLabel")
     then
         -- every one of the bindings above is guaranteed to exist and the user doesn't have to explicitly nilcheck them in here
     else
@@ -130,7 +131,7 @@ local function get_input_csvs(): CsvData
             for line_number, line in entry:readlines() do
                 local line_split = string.split(line)
                 -- last column is usually empty
-                if string.gsub(line_split[#line_split], " ", "") == 0 then
+                if string.gsub(line_split[#line_split], "%s", "") == "" then
                     table.remove(line_split, #line_split)
                 end
                 table.insert(lines, line_split)
@@ -166,12 +167,12 @@ local function get_input_files(): CsvData
             if
                 local file = entry in entry.type == "File"
                 local filename = file.name in string.find(filename, "%.csv$")
-            then
                 local lines: { string } = {}
+            then
                 for line_number, line in file:readlines() do
                     local line_split = string.split(line) -- default splits by commas
-                    -- last column is (almost always) empty
-                    if local last_column = line_split[#line_split] 
+                    if -- last_column is (almost always) empty
+                        local last_column = line_split[#line_split]
                         in string.gsub(last_column, "%s", "") == ""
                     then
                         table.remove(line_split, #split_lines)
@@ -190,7 +191,7 @@ local function get_input_files(): CsvData
 end
 ```
 
-This example shows how `if local` statements can be used to simplify control flow, enhance readability, and clarify the main purpose of the function.
+This example shows how `if local` statements can be used to simplify control flow, enhance readability by defining variables in an `if local` stack header (alongside their checks), and clarify the main purpose of the function.
 
 `while local` statements allow you to set a value that can be checked in the conditional expression of the loop and also be used within the loop body.
 
@@ -212,8 +213,8 @@ while local parent_path = path.parent(current_path) do
         local luaurc_path = path.join(parent_path, ".luaurc")
         local luaurc = fs.find(luaurc_path).file
     then
-        table.insert(luaurcs_found, luaurc_path)
         local data = json.decode(luaurc:read())
+        -- note that luaurcs might not necessarily contain aliases, so .aliases should be nilchecked
         if local found_aliases = data.aliases then
             for alias, to_path in found_aliases do
                 if not aliases[alias] then
@@ -221,6 +222,7 @@ while local parent_path = path.parent(current_path) do
                 end
             end
         end
+        table.insert(luaurcs_found, luaurc_path)
     end
     current_path = parent_path
 end
@@ -228,11 +230,15 @@ end
 
 ## Design
 
-This proposal introduces `if local` and `while local` statements, or more precisely, allows `local` bindings to be initialized within `if` and `while` statement declarations respectively. This RFC consistently refers these two features as `if local` and `while local` statements to distinguish their mental models from those of regular `if` and `while` statements--and because that's what they'd be most commonly referred to by general users.
+This proposal introduces `if local` and `while local` statements, or more precisely, allows `local` bindings to be initialized within `if` and `while` statement declarations respectively. This RFC refers these two features as `if local` and `while local` statements to distinguish their mental models from those of regular `if` and `while` statements—and because that's how users refer to them anyway.
 
 ### `if local` statements
 
-An `if local` statement is any `if` statement with one or more `local` bindings. A `local`-`in` clause contains one or more `local` bindings declared after the `if` or `elseif` keywords in an `if` statement, may be followed by one `in` clause expression, may be followed by another `local`-`in` clause, and must be eventually terminated by the `then` keyword.
+An `if local` statement is any `if` statement with one or more `local`-`in` clauses.
+
+A `local`-`in` clause may be defined following the `if` or `elseif` keywords in an `if` statement, and consists of one or more `local` bindings and one optional `in` clause expression to affect the execution condition of the branch.
+
+A `local`-`in` clause may be followed by another `local`-`in` clause and must be eventually terminated by the `then` keyword.
 
 Examples:
 
@@ -257,20 +263,27 @@ end
 -- etc.
 ```
 
-If `local` bindings are provided, then one optional `in` clause may be provided per branch to partially determine the evaluation condition of the `if/elseif` branch.
+#### Evaluation semantics
 
-- If an `in` clause is not provided, then the evaluation condition of the branch is that the leftmost binding must evaluate not-`nil`. This is roughly similar to the current behavior of calling a multiret function in `if` statement condition (except with a `nil` check instead of a truthiness check) in which the conditional branch will evaluate if the first return of the multiret is truthy.
+If `local` bindings are provided, then one optional `in` clause may be provided per `local`-`in` clause to partially determine the evaluation condition of the `if/elseif` branch.
 
-- If an `in` clause is provided, then the clause must be satisfied ***and*** the leftmost binding must evaluate not-`nil`. The `in` clause will not be evaluated if the leftmost binding is `nil`.
+- If an `in` clause is not provided, then the evaluation condition of the branch is that the leftmost binding must evaluate not-`nil`.
+  - This is roughly similar to the current behavior of calling a multiret function in `if` statement condition (except with a `nil` check instead of a truthiness check) in which the conditional branch will evaluate if the first return of the multiret is truthy.
 
-Although this behavior somewhat differs from the previous RFC, this is because the purpose of an `if local` initializer is to check if values exist, and if they do, to bind them. This makes the behavior of `if local`s with `in` clauses more consistent with `if local`s without `in` clauses. Since fallthrough is not allowed by this RFC, there isn't a major usecase for allowing for the main `local` binding to be `nil`.
+- If an `in` clause is provided, then the clause must be satisfied ***and*** the leftmost binding must evaluate not-`nil`.
+- The `in` clause will not be evaluated if the leftmost binding is `nil`.
 
-By expecting the leftmost binding to always exist, we can better support the primary usecase (only one binding) by allowing users to omit the `character and` check in the `in` clause of the following Roblox example, for example:
+Although this behavior somewhat differs from the previous RFC, this is because the purpose of an `if local` initializer is to check if values exist, and if they do, to bind them. Since fallthrough is not allowed by this RFC, there isn't a major usecase for allowing for the main `local` binding to be `nil`.
+
+This makes the behavior of `if local`s with `in` clauses *more consistent* with `if local`s without `in` clauses.
+
+By expecting the leftmost binding to always exist, we can better support the primary usecase (only one binding) by allowing users to omit the `character ~= nil` or `character and` `nil` checks in the following example:
 
 ```luau
 if local character = player.Character 
-    in character:FindFirstChildOfClass("Humanoid").Health > 20 
-    -- since character is the leftmost binding, it's guaranteed to exist
+    character:FindFirstChildOfClass("Humanoid").Health > 20 
+    -- since character is the leftmost binding, it's guaranteed to exist 
+    -- and a `character and` or `character ~= nil` check isn't needed
 then
     -- do something with character
 end
@@ -278,7 +291,7 @@ end
 
 #### Multiple binding and `multi-local` semantics
 
-Multiple bindings are allowed for in the same `local`-`in` clause and must be separated by commas. Like regular `local a, b = foo, bar` assignments, `bar` is not allowed to refer to `a` as `a` isn't initialized yet.
+Multiple bindings are allowed in the same `local`-`in` clause and must be separated by commas. Like regular `local a, b = foo, bar` assignments, `bar` is not allowed to refer to the new `a` because it isn't initialized yet.
 
 ```luau
 if local success, result = pcall(foo) then
@@ -295,9 +308,9 @@ if local nevernil, maybenil = foo() in maybenil ~= nil then
 end
 ```
 
-To cleanly handle nested conditional pyramids, multiple `local`-`in` clauses may be stacked in same `if local` statement; these can be referred to as `multi-local`s, `if local` stacks, or more colloquially, `local` pancakes, and must be separated from one another by whitespace or semicolon. Unlike when initializing multiple bindings in the same `local`-`in` clause, `if local` pancakes are allowed to refer to previous bindings in the stack, and this is their unique selling point, and a major motivation for this RFC in general.
+To cleanly handle nested conditional pyramids, multiple `local`-`in` clauses may be stacked in same `if local` statement; these can be referred to as `multi-local`s, `if local` stacks, or more colloquially, `if local` pancakes.
 
-Like single `if local`s, each `local`-`in` clause in an `if local` stack must have at least one `local` binding and may have one `in` clause that evaluates in the same way as `in` clauses in single-`local`-`in` `if local` statements do. In the same way as single `if local`s, the leftmost binding following each `local` in a `multi-local` must evaluate non-`nil`, otherwise, its `in` clause will not evaluate (and thereby the entire conditional branch will not execute).
+`local`-`in` clauses in an `if local` stack must be separated from one another by whitespace or semicolon. Unlike when initializing multiple bindings in the same `local`-`in` clause, `if local` pancakes are allowed to refer to previous bindings in the stack, and this is their unique selling point and a major motivation for this RFC in general.
 
 To demonstrate the utility of this, here's a simple Roblox example:
 
@@ -313,7 +326,7 @@ end
 
 Each `local`-`in` clause in the above `multi-local` evaluates once-at-a-time and can be thought of syntactic sugar for multiple nested `if local`s; this allows subsequent `local` bindings to refer to former ones without nesting and unnecessarily increasing cognitive complexity.
 
-In fact, the above code is almost equal to (and in an implementation, can be expanded to) the nested:
+In fact, the above code is practically equivalent to (and in an implementation, can be expanded to) the nested:
 
 ```luau
 if local model = hit.Parent then
@@ -325,7 +338,11 @@ if local model = hit.Parent then
 end
 ```
 
-This makes `multi-local` `if local`s an extremely useful feature for reducing ['pyramids of doom'](https://en.wikipedia.org/wiki/Pyramid_of_doom_(programming)) in `nil`check-heavy codebases.
+This makes `if local` stacks an extremely useful feature for mitigating ['pyramids of doom'](https://en.wikipedia.org/wiki/Pyramid_of_doom_(programming)) in `nil`check-heavy codebases.
+
+#### `if local` stack evaluation semantics
+
+If any leftmost `local` binding in an `if local` stack evaluates `nil`, then the entire conditional branch won't execute. This allows for multiple checks on possibly-`nil` values in an intuitive manner without having to `nil`check each individually.
 
 #### Binding semantics
 
@@ -344,9 +361,11 @@ end
 -- neither cats nor dogs is bound here
 ```
 
-Fallthrough was included in and was a major motivator for the previous `if statement` initializers RFC. It was decided against due to limited utility, complicating the story of the `if local` feature, and since in other languages, it often leads to unexpected behavior, possible footguns, and is mostly useful for error catching. Additionally, as proposed in the previous RFC, `if local` fallthrough could easily result in hard-to-understand control flow which could increase the cognitive complexity of Luau code for little benefit.
+#### Fallthrough
 
-As an alternative, this RFC's `multi-local` pancakes provide a better way to handle stacked and dependent `if local` conditions without greatly increasing Luau's cognitive complexity.
+`if local` fallthrough (bindings in a prior branch's condition are visible in subsequent branches and their conditions) was included in and was a major motivator for the previous `if statement` initializers RFC. It was decided against due to limited utility, complicating the story of the `if local` feature, and since in other languages, it often leads to unexpected behavior, possible footguns, and is mostly only useful for error catching. Additionally, as proposed in the previous RFC, `if local` fallthrough could easily result in hard-to-understand control flow which could increase the cognitive complexity of Luau code for little benefit.
+
+As an alternative, this RFC's `if local` pancakes provide a better way to handle stacked and dependent conditions without greatly increasing Luau's cognitive complexity.
 
 #### Edge cases
 
@@ -375,6 +394,10 @@ As an edge case, locals may be reassigned within the `in` condition. In this cas
 if local x = 3 in (function() x = nil; return true end)() then
     print(x) -- nil
 end
+-- or
+if local x: number = foo(); local y: number = (function() local y = x + 1; x = nil; return y end)() then
+    print(typeof(x), typeof(y)) --> nil, number
+end
 ```
 
 ### `while local loops`
@@ -393,7 +416,7 @@ while
     local b = if typeof(x) == "number" then bar() else baz() in isvalid(b)
 do
 end
--- etc
+-- etc.
 ```
 
 `while local` identifiers are initialized and assigned once before for every iteration of the while loop, and are visible in their `in` conditions. Similarly to `if local`s, stacked `local`s in `while local`s are allowed, and iteration stops if any `in` clause evaluates falsey.
