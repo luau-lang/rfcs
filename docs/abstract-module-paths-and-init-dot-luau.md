@@ -1,4 +1,4 @@
-# Adjust the meaning of `init.luau`
+# Abstract module paths and `init.luau`
 
 ## Summary
 
@@ -65,9 +65,27 @@ project, we would like to rectify this.
 
 ## Design
 
-Luau will no longer consider relative requires from a package `init.luau` file
-to resolve relative to the script itself.  It will instead resolve relative to the
-script's parent, i.e. the folder containing the module.
+First, we introduce a new abstraction: a _module path_.  Module paths refer
+either to _modules_ or _directories_.
+
+For the purposes of navigation, both modules and directories are functionally
+identical: modules and directories can both have children, which could
+themselves be modules or directories, and both types can have at most one
+parent, which could also be either a module or a directory.
+
+The thing that separates a module from a directory is precisely that modules
+represent source code that can be imported via the `require()` function.
+Directories, by contrast, are merely organizational units.
+
+The central feature of this RFC is about how module paths correspond to
+filesystem paths: A module path refers to a module if it corresponds either to a
+`.luau` file or to a directory that contains a file named `init.luau`.  A module
+path refers to a directory if it refers to a filesystem directory that lacks an
+`init.luau` file.
+
+More concretely, Luau will no longer consider relative requires from a package
+`init.luau` file to resolve relative to the script itself.  It will instead
+resolve relative to the script's parent, i.e. the folder containing the module.
 
 Secondly, we recognize an unfortunate side effect of this change: code within
 `package/init.luau` is forced to write `require('./package/dependency')` when it
@@ -75,7 +93,7 @@ specifically wants to carry out the ordinary task of importing a subordinate
 module.
 
 We propose to alleviate this with a special import alias `@self` that resolves
-to the current module.
+to the path to the current module.
 
 ```lua
 -- package/init.luau
