@@ -1,4 +1,4 @@
-# type:hassubtypeof
+# type:issubtypeof
 
 ## Summary
 
@@ -37,7 +37,7 @@ end
 Additionally it would be a pain for users to write a type function to be able to do subtype checks for any type. As the following example type function is already very long, despite not covering everything.
 
 ```luau
-type function hassubtypeof(a, b)
+type function issubtypeof(a, b)
     local false_type = types.singleton(false)
     local true_type = types.singleton(true)
     local is_subtype = false
@@ -55,7 +55,7 @@ type function hassubtypeof(a, b)
         local conmponents_that_are_subtype = 0
 
         for _, component in components do
-            if hassubtypeof(component):value() then
+            if issubtypeof(component):value() then
                 conmponents_that_are_subtype += 1
             end
         end
