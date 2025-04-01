@@ -99,7 +99,7 @@ end
 
 ## Design
 
-The [`type`](./user-defined-type-functions.md#type-instance) will gain a new method: `hassubtypeof`:
+The [`type`](./user-defined-type-functions.md#type-instance) will gain a new method: `issubtypeof`:
 
 ```luau
 type:issubtypeof(arg: type): boolean
