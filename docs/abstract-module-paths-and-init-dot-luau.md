@@ -85,7 +85,8 @@ path refers to a directory if it refers to a filesystem directory that lacks an
 
 More concretely, Luau will no longer consider relative requires from a package
 `init.luau` file to resolve relative to the script itself.  It will instead
-resolve relative to the script's parent, i.e. the folder containing the module.
+resolve relative to the location of the abstract module it represents, i.e. the
+location of its parent folder in a filesystem context.
 
 Secondly, we recognize an unfortunate side effect of this change: code within
 `package/init.luau` is forced to write `require('./package/dependency')` when it
