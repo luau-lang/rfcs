@@ -102,7 +102,7 @@ end
 The [`type`](./user-defined-type-functions.md#type-instance) will gain a new method: `hassubtypeof`:
 
 ```luau
-type:hassubtypeof(arg: type): boolean
+type:issubtypeof(arg: type): boolean
 ```
 
 ## Drawbacks
