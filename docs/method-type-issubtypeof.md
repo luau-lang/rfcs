@@ -105,7 +105,7 @@ The [`type`](./user-defined-type-functions.md#type-instance) will gain a new met
 type:issubtypeof(arg: type): boolean
 ```
 
-This method will return a boolean indicating if the type is a subtype of `arg`. 
+This method will return a boolean indicating if the type is a subtype of `arg`, using luau's existing subtyping algorithm. 
 
 ## Drawbacks
 
