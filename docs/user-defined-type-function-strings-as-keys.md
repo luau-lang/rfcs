@@ -6,9 +6,7 @@ This RFC proposes allowing strings as keys for methods on the `table` type userd
 
 ## Motivation
 
-Currently having to always wrap string literal keys in `types.singleton` is annoying, and becomes especially annoying when using `types.newtable` due to having to write `[types.singleton("key")]` for every single key in the props table.
-
-This leads to developers having to write the following:
+Currently having to always wrap string literal keys in `types.singleton` is annoying, and becomes especially annoying when using `types.newtable` due to having to write something like the following:
 
 ```luau
 types.newtable({
@@ -17,7 +15,7 @@ types.newtable({
 })
 ```
 
-When the following could be written instead, if it were allowed:
+Instead of:
 
 ```luau
 types.newtable({
