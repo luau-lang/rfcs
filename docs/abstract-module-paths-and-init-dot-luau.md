@@ -110,7 +110,7 @@ name of the current source file in order to know what `require('./foo')` will
 do, and if a developer renames a file to or from `init.luau`, they will be
 forced to rewrite every `require()`.
 
-We can mitigate this with a new lint: If a module is the parent of other
+We could someday mitigate this with a new lint: If a module is the parent of other
 modules, it is poor style for it to directly import sibling or parent modules.
 Files named `init.luau` should never issue a require that resolves to a sibling
 module.  In our example, we would warn if `package/init.luau` were to
