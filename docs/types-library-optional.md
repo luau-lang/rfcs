@@ -2,7 +2,7 @@
 
 ## Summary
 
-This RFC proposes adding a new method to the `types` library in type functions, that provides a shorthand for `types.unionof(type, types.singleton(nil))`
+This RFC proposes adding a new method to the `types` library in type functions, that provides a shorthand for `types.unionof(type, types.singleton(nil))`.
 
 ## Motivation
 
