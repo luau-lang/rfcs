@@ -97,7 +97,7 @@ type a = f<(string, number), ...number>
 
 | New/Update | Library Functions | Return Type | Description |
 | ------------- | ------------- | ------------- | ------------- |
-| New |  `pack(types: {type} isvariadic: boolean?)` | `type` | returns an immutable instance of a type pack; when `isvariadic` is true, `packs` table can only have one type. |
+| New |  `pack(types: {type} isvariadic: boolean?)` | `type` | returns an immutable instance of a type pack; when `isvariadic` is true, `types` table can only have one type. |
 | Update | `newfunction(parameters: { head: {type}?, tail: type? }, returns: { head: {type}?, tail: type? }, generics: {type}?)` | `type` | `tail` arguments can now accept variadic packs.
 
 ### `type` Instance
