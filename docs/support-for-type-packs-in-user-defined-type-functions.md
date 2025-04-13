@@ -36,23 +36,23 @@ type function f(arg: pack)
     if typeof(arg) ~= "pack" then error("The given argument is not a type pack!") end
     local unpacked = arg:unpack() -- {string, number}
 end
-type a = f<(string, number)>
+type A = f<(string, number)>
 ```
 
-Creating a type function that returns a function with a type pack:
+Type-packs can now be placed at the `tail` argument of function types:
 
 ```luau
 type function f() 
-    local newPack = types.pack({types.string, types.number}) -- (string, number)
-    local newVariadicPack = types.pack({types.any}, true) -- ...any
-
+    local newPack = types.pack({types.string, types.number, types.pack({any}, true)}) -- (string, number, ...any)
     local newfunc = types.newfunction()
-    newfunc:setparameters({newPack}, newVariadicPack)
-    newfunc:setreturns({newPack}, newVariadicPack)
+    newfunc:setparameters({}, newPack)
+    newfunc:setreturns({}, newPack)
     return newfunc
 end
 type A = f<> -- (string, number, ...any) -> (string, number, ...any)
 ```
+
+*To maintain backwards-compatibility, `tail` argument will still be able to take `type`s.*
 
 The pack type will also enable generic type packs to be provided to type functions from aliases in the type runtime.
 Generic type pack arguments will pass the given type pack to the type function.
@@ -61,13 +61,22 @@ Generic type pack arguments will pass the given type pack to the type function.
 type function createCallback(args: pack, returns: pack) -- args will be a literal pack, returns will be a variadic pack.
     local newTable = types.newtable()
     local newfunc = types.newfunction()
-    newfunc:setparameters({args})
-    newfunc:setreturns({returns})
+    newfunc:setparameters({}, args)
+    newfunc:setreturns({}, returns)
     newTable:setproperty(types.singleton("f"), newfunc)
     return newTable
 end
 type Callback<Args..., Rets...> = createCallback<Args..., Rets...>
-type A = Callback<(number, string), ...number>
+type A = Callback<(number, string), ...number> -- { f: (number, string) -> ...number }
+```
+
+Evaluating `typeof(...)` on a `pack` userdata will give the string `"pack"`.
+
+```luau
+type function f(arg: pack)
+    print(typeof(arg)) -- "pack"
+end
+type a = f<(string, number)>
 ```
 
 If variadic type functions were to be implemented, type packs could be retrieved like this:
@@ -79,15 +88,6 @@ type function f(...)
     local secondPack = packed[2] -- pack.kind: variadic
 end
 type a = f<(string, number), ...number>
-```
-
-Evaluating `typeof(...)` on a `pack` userdata will give the string `"pack"`.
-
-```luau
-type function f(arg: pack)
-    print(typeof(arg)) -- "pack"
-end
-type a = f<(string, number)>
 ```
 
 ## New pack userdata
@@ -106,18 +106,21 @@ type a = f<(string, number)>
 | New/Update | Library Functions | Return Type | Description |
 | ------------- | ------------- | ------------- | ------------- |
 | New |  `pack(args: {pack \| type}, isvariadic: boolean?)` | `pack` | returns an immutable instance of a type pack; when `isvariadic` is true, `args` table can only have one `type`. |
-| Update | `newfunction(parameters: { head: {type}?, tail: type? }, returns: { head: {type}?, tail: type? }, generics: {type}?)` | `type` | `tail` arguments can now accept variadic packs.
+| Update | `newfunction(parameters: { head: {type}?, tail: type \| pack? }, returns: { head: {type}?, tail: type \| pack? }, generics: {type}?)` | `type` | `tail` arguments can now accept packs.
 
 #### Function `type` instance
 
 | New/Update | Instance Methods | Return Type | Description |
 | ------------- | ------------- | ------------- | ------------- |
-| Update | `setparameters(head: {type}?, tail: type?)` | `()` | `tail` argument can now accept variadic packs. |
-| Update | `setreturns(head: {type}?, tail: type?)` | `()` | `tail` argument can now accept variadic packs. |
+| Update | `setparameters(head: {type}?, tail: type \| pack?)` | `()` | `tail` argument can now accept packs. |
+| Update | `setreturns(head: {type}?, tail: type \| pack?)` | `()` | `tail` argument can now accept packs. |
 
 ## Drawbacks
 
-This may bring additional complexity to type functions, and now variadic types will no longer have special meanings only in a tail spot.
+This may bring additional complexity to type functions, and since we're bringing a new userdata to the runtime, type functions now get two types of parameters, `type` or `pack`.
+This doesn't pose a problem when the arguments are annotated (`arg: type`), but in unannotated arguments (`arg`), this may pose a problem.
+
+To solve this problem, inference can treat all provided arguments as `type`, until it encounters a `pack` related function.
 
 ## Alternatives
 
