@@ -79,4 +79,4 @@ A drawback would be that this is an unstable implementation detail, which allows
 
 ## Alternatives
 
-THe alternative to this is to leave this as an implementation detail. However this makes it inconvenient for embedders of luau to use the declaration syntax.
+The alternative to this is to leave this as an implementation detail. However this makes it inconvenient for embedders of luau to use the declaration syntax.
