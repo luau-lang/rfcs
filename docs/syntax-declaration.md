@@ -2,17 +2,17 @@
 
 ## Summary
 
-Formalizing the luau declaration syntax used in the luau parser.
+Formalizing the Luau declaration syntax used in the Luau parser.
 
 ## Motivation
 
-RIght now the declaration syntax used by the luau parser is undocumented and an unstable implementation detail. By defining the syntax, it allows for embedders of luau to have typechecking for their apis without having to resort to empty modules. This should allow tools like luau-lsp to be able to provide easier ways to use these declarations.
+RIght now the declaration syntax used by the Luau parser is undocumented and an unstable implementation detail. By defining the syntax, it allows for embedders of Luau to have typechecking for their apis without having to resort to empty modules. This should allow tools like luau-lsp to be able to provide easier ways to use these declarations.
 
 ## Design
 
 Declaration syntax should only be usable in definition files. Definition files have the extension of `.d.luau` and are used to provide type information for modules. They should not be allowed to do anything beyond declaring type aliases and declarations.
 
-The declaration syntax mirrors the current syntax used by the luau parser. All declarations are prefixed with `declare`, and global variables, global functions, and classes are able to be declared.
+The declaration syntax mirrors the current syntax used by the Luau parser. All declarations are prefixed with `declare`, and global variables, global functions, and classes are able to be declared.
 
 ## Global variables
 After `declare`, an identifier representing the name of the global variable is expected, followed by a colon and a type.
@@ -40,7 +40,7 @@ declare function delay<T...>(delayTime: number?, callback: (T...) -> ())
 ```
 
 ## Classes
-Classes are nominally typed, meaning that the class name is used to identify the class. Even with the same shape, two classes with different names are not interchangeable. This is different from the structural typing used in luau, where two objects with the same shape are interchangeable.
+Classes are nominally typed, meaning that the class name is used to identify the class. Even with the same shape, two classes with different names are not interchangeable. This is different from the structural typing used in Luau, where two objects with the same shape are interchangeable.
 For example:
 
 ```luau
@@ -94,7 +94,7 @@ declare class MyClass extends BaseClass
 end
 ```
 
-More examples can found in [luau-lsp's globalTypes.d.luau](https://github.com/JohnnyMorganz/luau-lsp/blob/main/scripts/globalTypes.d.luau) and [luau's parser tests](https://github.com/luau-lang/luau/blob/master/tests/Parser.test.cpp#L1908)
+More examples can found in [luau-lsp's globalTypes.d.luau](https://github.com/JohnnyMorganz/luau-lsp/blob/main/scripts/globalTypes.d.luau) and [Luau's parser tests](https://github.com/luau-lang/luau/blob/master/tests/Parser.test.cpp#L1908)
 
 ## Drawbacks
 
@@ -102,4 +102,4 @@ A drawback would be that this is an unstable implementation detail, which allows
 
 ## Alternatives
 
-The alternative to this is to leave this as an implementation detail. However this makes it inconvenient for embedders of luau to use the declaration syntax.
+The alternative to this is to leave this as an implementation detail. However this makes it inconvenient for embedders of Luau to use the declaration syntax.
