@@ -40,6 +40,29 @@ declare function delay<T...>(delayTime: number?, callback: (T...) -> ())
 ```
 
 ## Classes
+Classes are nominally typed, meaning that the class name is used to identify the class. Even with the same shape, two classes with different names are not interchangeable. This is different from the structural typing used in luau, where two objects with the same shape are interchangeable.
+For example:
+
+```luau
+-- assuming A is a class
+declare class B extends A
+    x: number
+    y: number
+end
+
+declare class C extends A
+    x: number
+    y: number
+end
+```
+
+So in another file, this is invalid:
+```luau
+local a: B = -- some value
+local b: C = -- some value
+a = b -- this is a type error
+```
+
 After `declare`, `class` is expected, followed by an identifier representing the name of the class. If the class inherits from another class, `extends` is expected, followed by the name of the class to inherit from.
 
 Class properties and methods are now expected.
@@ -58,12 +81,12 @@ Example:
 ```luau
 declare class MyClass extends BaseClass
     -- properties
-    ["Property1"]: number,
-    [ [[Propery2]] ]: string,
+    ["Property1"]: number
+    [ [[Propery2]] ]: string
     -- note this is not a method
-    Property3: (number, number) -> number,
+    Property3: (number, number) -> number
     -- indexer
-    [number | string]: string,
+    [number | string]: string
     -- methods
     function Method1(self, a: number, b: string): (number, string)
     function Clone(self): MyClass
