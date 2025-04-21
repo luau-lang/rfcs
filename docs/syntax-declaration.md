@@ -10,7 +10,7 @@ RIght now the declaration syntax used by the luau parser is undocumented and an 
 
 ## Design
 
-Declaration syntax should only be usable in definition files. Definition files
+Declaration syntax should only be usable in definition files. Definition files have the extension of `.d.luau` and are used to provide type information for modules. They should not be allowed to do anything beyond declaring type aliases and declarations.
 
 The declaration syntax mirrors the current syntax used by the luau parser. All declarations are prefixed with `declare`, and global variables, global functions, and classes are able to be declared.
 
