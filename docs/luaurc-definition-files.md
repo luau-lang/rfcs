@@ -10,12 +10,12 @@ As cross-runtime code becomes increasingly common, the model which language serv
 
 ## Design
 
-This is the bulk of the proposal. Explain the design in enough detail for somebody familiar with the language to understand, and include examples of how the feature is used.
+When analyzing a file, include all of the files specified in the `declarationFiles` field in analyzation. This supercedes the `globals` field, which should be deprecated.
 
 ## Drawbacks
 
-This brings declaration files to be in a much more user-facing spot, when definition files are not meant to be user-facing.
+This brings declaration files to be in a much more user-facing spot, when definition files are not meant to be user-facing. This could cause confusion, as definition files are currently largely undocumented and have poor syntax.
 
 ## Alternatives
 
-What other designs have been considered? What is the impact of not doing this?
+TODO
