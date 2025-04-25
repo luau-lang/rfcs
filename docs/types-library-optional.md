@@ -16,4 +16,4 @@ end
 
 ## Design
 
-As a solution, a new method to the `types` library should be added called `optional`. This new method will act the same as `types.unionof(type, types.singleton(nil))`.
+As a solution, a new method to the `types` library should be added called `optional`. When called on a union, this will add `nil` to the components. Otherwise, this new method will act the same as `types.unionof(type, types.singleton(nil))`.
