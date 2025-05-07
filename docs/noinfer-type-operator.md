@@ -80,6 +80,10 @@ If all provided generic inputs are represented by `noinfer` generic type(s), the
 
 ## Alternatives
 
+### Type Attributes
+
+Luau could introduce syntax for 'type attributes', consistent with current function attribute syntax. Instead of masking a `noinfer` type as a type function, you could use `@noinfer T` as a type.
+
 ### Greedy Annotation for Generic Types
 
 New syntax could be introduced to allow any inference of a generic type `T` to modify subsequent occurences to follow the behaviour of `noinfer<T>`, expecting a more "precise" type match. This could look something like `greedy T` or `eager T`:
