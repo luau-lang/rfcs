@@ -82,7 +82,7 @@ If all provided generic inputs are represented by `noinfer` generic type(s), the
 
 ### Type Attributes
 
-Luau could introduce syntax for 'type attributes', consistent with current function attribute syntax. Instead of masking a `noinfer` type as a type function, you could use `@noinfer T` as a type.
+Luau could allow 'type attributes', consistent with current function attribute syntax. Instead of masking a `noinfer` type as a type function, you could use `@noinfer T` as a type with an attribute.
 
 ### Greedy Annotation for Generic Types
 
