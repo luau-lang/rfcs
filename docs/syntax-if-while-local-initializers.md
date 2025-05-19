@@ -10,14 +10,16 @@ This RFC is an update and continuation to [if statement initializers](https://gi
 
 ## Motivation
 
-Declaring locally-scoped variables at the point of use in `if` statements simplifies code, better conveys programmer intent, and leads to more readable and better understandable program logic. By combining `if` condition initializers with nilchecks, users can easily handle success/empty conditions and expressively declare control flow.
+In Luau, an extremely common idiom is for fallible functions to return an optional value. Users are expected to *`nil`check* (or truth-check) this result to handle success and failure/empty cases, and this constitutes a major aspect of control flow.
 
-In Luau, an extremely common idiom is for fallible functions to return an optional value. Users are expected to *`nil`check* this result to handle success and failure/empty cases, and this constitutes a major aspect of control flow. An extremely common example of such is Roblox's `Instance:FindFirstChild`, which returns an `Instance` if one was found or nil otherwise:
+Declaring locally-scoped variables at the point of use in `if` statements simplifies code, better conveys programmer intent, and leads to more readable and better understandable program logic. By combining `if` condition initializers with truthiness checks, users can easily handle success/empty conditions and expressively declare control flow.
+
+An extremely common example of such is Roblox's `Instance:FindFirstChild`, which returns an `Instance` if one was found or `nil` otherwise:
 
 ```luau
 local model = workspace:FindFirstChild("MyModel")
-if model ~= nil then
-    -- model is bound and not nil
+if model then
+    -- model is bound and not nil/false
 end
 -- model is still bound here
 ```
@@ -26,7 +28,7 @@ end
 
 ```luau
 if local model = workspace:FindFirstChild("MyModel") then
-    -- model is bound and is not nil
+    -- model is bound here and not nil/false
 end
 -- model is not bound here
 ```
@@ -43,7 +45,7 @@ In this case, an `if local` statement with an `in` clause can reduce repetition 
 
 ```luau
 if local update_time = folders[folder][file_name].last_updated 
-    in update_time < now - TWO_DAYS 
+    in update_time and update_time < now - TWO_DAYS 
 then
     last_updated = update_time
 end
@@ -80,7 +82,7 @@ local function initializeUi()
         local currentRoundIndicator: TextLabel = roundHeaderFrame:FindFirstChild("CurrentRoundLabel")
         local lastWinnerLabel: TextLabel = roundHeaderFrame:FindFirstChild("LastRoundWinnerLabel")
     then
-        -- every one of the bindings above is guaranteed to exist and the user doesn't have to explicitly nilcheck them in here
+        -- every one of the bindings above is guaranteed to exist and the user doesn't have to explicitly check them in here
     else
         task.wait(1)
         return initializeUi()
@@ -105,7 +107,7 @@ while local parent_path = path.parent(current_path) do
         local luaurc = fs.find(luaurc_path).file
     then
         local data = json.decode(luaurc:read())
-        -- note that luaurcs might not necessarily contain aliases, so .aliases should be nilchecked
+        -- note that luaurcs might not necessarily contain aliases, so .aliases should be existence checked
         if local found_aliases = data.aliases then
             for alias, to_path in found_aliases do
                 if not aliases[alias] then
@@ -121,7 +123,7 @@ end
 
 ## Design
 
-This proposal introduces `if local` and `while local` statements, or more precisely, allows `local` bindings to be initialized within the expression portions of `if` and `while` statement declarations respectively.
+This proposal introduces `if local` and `while local` statements, or more precisely, allows `local` bindings to be initialized within the conditional expression portions of `if` and `while` statement declarations respectively.
 
 Note that this RFC refers these two features as `if local` and `while local` statements to distinguish their mental models from those of regular `if` and `while` statements—and because it's how users refer to them anyway.
 
@@ -141,7 +143,7 @@ ifwhilecond ::= exp | {'local' bindinglist '=' explist ['in' exp][';']}
 
 An `if local` statement is any `if` statement with one or more `local`-`in` clauses.
 
-A `local`-`in` clause may be defined following the `if` or `elseif` keywords in an `if` statement, and consists of one or more `local` bindings and one optional `in` clause expression to affect the execution condition of the branch.
+A `local`-`in` clause may be defined following the `if` or `elseif` keywords in an `if` statement, and consists of one or more `local` bindings and one optional `in` clause expression to set the execution condition of the branch.
 
 A `local`-`in` clause may be followed by another `local`-`in` clause and must be eventually terminated by the `then` keyword.
 
@@ -158,9 +160,9 @@ end
 if
     local x = foo()
     local y = x.bar
-    local z = y.baz in z:IsA("BasePart")
+    local z = y.baz in z and z:IsA("BasePart")
 then
-    -- x and y must be non-nil, and z must be non-nil and a BasePart
+    -- x and y must be truthy, and z must be truthy and a BasePart
 end
 -- etc.
 ```
@@ -169,24 +171,21 @@ end
 
 If `local` bindings are provided, then one optional `in` clause may be provided per `local`-`in` clause to partially determine the evaluation condition of the `if/elseif` branch.
 
-- If an `in` clause is not provided, then the evaluation condition of the branch is that the leftmost binding must evaluate not-`nil`.
-  - This is roughly similar to the current behavior of calling a multiret function in `if` statement condition in which the conditional branch will evaluate if the first return of the multiret is truthy (except with a `nil` check instead of a truthiness check).
-- If an `in` clause is provided, then the clause must be satisfied ***and*** the leftmost binding must evaluate not-`nil`.
-- The `in` clause will not be evaluated if the leftmost binding is `nil`.
+- If an `in` clause is not provided, then the evaluation condition of the branch is that the leftmost binding must evaluate truthy; this is the same as the current behavior of calling a multiret function within an `if` statement's condition.
+- If an `in` clause is provided, then the default truthiness check is overriden by the `in` clause expression.
 
-Although this behavior somewhat differs from the previous RFC, this is because the purpose of an `if local` initializer is to check if values exist, and if they do, to bind them. Since fallthrough is not allowed by this RFC, there isn't a major usecase for allowing for the main `local` binding to be `nil`.
+<!-- Although this behavior somewhat differs from the previous RFC, this is because the purpose of an `if local` initializer is to check if values exist, and if they do, to bind them. Since fallthrough is not allowed by this RFC, there isn't a major usecase for allowing for the main `local` binding to be `nil`.
 
 This makes the behavior of `if local`s with `in` clauses *more consistent* with `if local`s without `in` clauses. This also allows us to prioritize the most common usecase (a single `local` binding), allowing users to omit the `character ~= nil` or `character and` `nil` checks in the following example:
 
 ```luau
 if local character = player.Character 
     in character:FindFirstChildOfClass("Humanoid").Health > 20 
-    -- since character is the leftmost binding, it's guaranteed to exist 
-    -- and a `character and` or `character ~= nil` check isn't needed
 then
     -- do something with character
 end
-```
+``` 
+-->
 
 #### Multiple bindings and `if local` stack semantics
 
@@ -241,7 +240,7 @@ This is an extremely useful feature for mitigating ['pyramids of doom'](https://
 
 #### `if local` stack evaluation semantics
 
-If any leftmost `local` binding in an `if local` stack evaluates `nil`, then the entire conditional branch won't execute. This allows for multiple checks on possibly-`nil` values in an intuitive manner without having to `nil`check each individually.
+If any leftmost `local` binding in an `if local` stack evaluates falsey, then the entire conditional branch won't execute. This allows for multiple checks on possibly-falsey values in an intuitive manner without having to check each individually.
 
 #### Binding semantics
 
@@ -264,18 +263,13 @@ end
 
 `if local` fallthrough (bindings in a prior branch's condition are visible in subsequent branches conditions and their `then` bodies) was included in and was a major motivator for the previous `if statement` initializers RFC. It was decided against due to limited utility, complicating the story of the `if local` feature, and since in other languages, it often leads to unexpected behavior, possible footguns, and is mostly only useful for error catching.
 
-As an alternative, this RFC's `if local` pancakes provide a better way to handle stacked and dependent conditions without greatly increasing Luau's cognitive complexity.
+As an alternative, this RFC's `if local` stacks provide a better way to handle stacked and dependent conditions without greatly increasing Luau's cognitive complexity.
 
 #### Edge cases
 
-Initializations without assignments (`if local x then end` or `if local x: FooType then end`) are not permitted and cause syntax errors. Initializations of the leftmost binding to `nil`, including but not limited to the following:
+Initializations without assignments (`if local x then end` or `if local x: FooType then end`) are not permitted and cause syntax errors.
 
-- `if local x = nil then end`
-- `if local x, y = nil, 3 in x == nil or y then end`
-
-will always evaluate to `false` and will never execute a conditional branch; the existing 'if condition always false' lint should be expanded to include `if local`s that never evaluate. This lint should also help clear up any confusion about requiring the leftmost binding to be not-`nil`.
-
-As an edge case, locals may be reassigned within the `in` condition. In this case, the conditional branch executes because x is initially not `nil`, allowing the `in` condition to evaluate, reassign `x` to `nil`, and return `true`:
+Locals may be reassigned within the `in` condition. In this case, the conditional branch executes because x is initially not `nil`, allowing the `in` condition to evaluate, reassign `x` to `nil`, and return `true`:
 
 ```luau
 if local x = 3 in (function() x = nil; return true end)() then
@@ -295,7 +289,7 @@ end
 while local line = nextline() do
 end
 -- or
-while local text = gettext() in text ~= "" do
+while local text = gettext() in text and text ~= "" do
 end
 -- or
 while
@@ -306,9 +300,29 @@ end
 -- etc.
 ```
 
-`while local` identifiers are reassigned before every iteration of the while loop and are visible in their `in` conditions and loop body. Similarly to `if local`s, stacked `local`s in `while local`s are allowed, and iteration stops if any `in` clause evaluates falsey.
+`while local` identifiers are reevaluated before every iteration of the while loop and are visible in their `in` conditions and loop body. Similarly to `if local`s, stacked `local`s in `while local`s are allowed, and iteration stops if any `in` clause evaluates falsey.
 
 > Note that unlike with `if local` stacks, implementing `while local` stacks might be more complicated than by just nesting multiple control structures. We want to propose this within the RFC and let a Luau language engineer with better knowledge of the Luau (non-pancake) stack and compiler judge their viability in comparison to `if local` stacks.
+
+## Prior art
+
+### Rust `if let`
+
+Rust's `if let` expressions are the primary influence for `if local`s, and allow identifiers to be declared within an `if` expression's condition. Additionally, `if let` chains allow multiple variables to be declared in the same manner. `if let` branches have no fallthrough.
+
+```rust
+if let Some(a) = vec_deque.pop_front() && a.ends_with(".luau") {
+    println!(a);
+}
+```
+
+### Python walrus operator
+
+Python allows identifier assignment in expressions with its `:=` (walrus) operator. Due to operator precedence ambiguity, this often means users need to enclose every use of it with parentheses for the intended result. We want to avoid this with `if local`s.
+
+### use of `=` within expressions
+
+Many languages like Ruby, etc. allow the use of identifier assignments as an expression evaluating to the RHS.
 
 ## Drawbacks / Arguments against
 
@@ -324,33 +338,57 @@ While `if local`s may increase the learning burden of the language for beginners
 
 This is a viable concern, however we feel the benefits of adding `if local` statements without an expression equivalent outweigh the drawbacks of not having `if local` statements at all. `if` expressions already have some differences from `if` statements (they can't retun multirets for example and *must* end with an `else`), so adding no `local`s to that mental model shouldn't be too drastic of a drawback. Furthermore, `if local` expressions may be introduced in the future if generalized bindings-in-expression syntax is agreed upon and a subsequent compiler refactor is deemed necessary to allow for it.
 
-## Alternatives
+## Alternative: `local` chains
 
-Many alternate proposals and alternative semantics were considered for this RFC. In no particular order:
+Instead of associated `in` expressions to specific `local` bindings, we could allow mixture of `local` bindings and expressions in a similar way to Rust's `let` chains. This would require a different operator/separator than `and` to preserve backwards compatibility, but would greatly simplify the mental model around `if local`s.
 
-### The leftmost binding should not be required to be non-`nil` when an `in` clause is provided
-
-With this alternative, users would have to specify `identifier and` in every case they want to use `identifier` in an `in` clause.
-
-Since a primary motivator for `if local`s is `nil`checking, and the default behavior of `if local x = foo()` is that `x` should be non-nil, we argue that it makes more sense (and is more intuitive) for `if local`s to always assume `x` is non-nil, even when an `in` clause is provided.
-
-### the default should be for ALL bindings to be non-`nil`, or require users write an `in` condition for `if local`s with multiple bindings within the same `local`-`in` clause
-
-If all bindings were non-nil, we could hit unexpected behavior where users expect their conditions to evaluate but they never do. For example, it's common for `pcall` to not return a value if it succeeds.
+For example, using `&&` as the separator (it's what's used in Rust and isn't a Luau operator yet):
 
 ```luau
-if local success, err = pcall(function()
-    some_roblox_datastore:SetAsync(userid, data)
-end) then
-    if success then
-        -- handle successs
-    else
-        -- handle fail
-    end
+local foo: () -> string?
+local boo: () -> string?
+
+if local a = foo() && local b == boo() && a == b then
 end
 ```
 
-this would never evaluate the conditional branch because `err` would always be nil.
+Since `if local`s already test truthiness, by the time the `a == b` clause evaluates both `a` and `b` are guaranteed to be truthy.
+
+For a more useful example (Roblox-related):
+
+```luau
+if local player = Players:GetPlayerFromCharacter(model)
+    && player.Team ~= Players.LocalPlayer.Team
+    && local character = player.Character
+    && local humanoid = character:FindFirstChildOfClass("Humanoid")
+    && humanoid.Health < 25
+then
+    return "Red"
+end
+```
+
+## Previously considered alternatives
+
+Many alternate proposals and alternative semantics were considered for this RFC. In no particular order:
+
+### The leftmost binding should be required to be truthy *even* when an `in` clause is provided
+
+With this alternative, users would not have to specify `identifier and` in every case they want to use `identifier` in an `in` clause.
+
+For example:
+
+```luau
+if local humanoid = character:FindFirstChildOfClass("Humanoid")
+    in humanoid.Health <= 20 -- `humanoid and` check not needed
+then
+end
+```
+
+`local` chains seem like a better solution to this.
+
+### the default should be for ALL bindings to be truthy or require users write an `in` condition for `if local`s with multiple bindings within the same `local`-`in` clause
+
+This would decrease the ergonomics of using `if local` with `pcall`.
 
 Additionally we should guide users towards `if local` stacks instead of initializing multiple bindings in one `local`-`in` clause, which is more preferable than just requiring an `in` clause be present when multiple bindings are declared.
 
@@ -380,7 +418,7 @@ The issue here is ambiguity with operator precedence. If we follow Python's impl
 
 Additionally, Luau does not and (for now) will not support generalized bindings-in-expression syntax. Allowing `local = foo()` to be used as an expression, but only within `if` statement conditions, would certainly complicate the mental model around expressions in Luau. Explicit `in` clauses are clearly superior to those options.
 
-### Have `if identifier = expr()` alongside `if` and `while` locals for fallthrough
+### Have `if identifier = expr()` with fallthrough alongside `if` and `while` locals without fallthrough
 
 In this case, `if` statement initializers would allow for fallthrough whereas `if local`s wouldn't.
 
@@ -401,9 +439,13 @@ end
 -- content_type not visible here
 ```
 
-This would provide parity with `for i = 1, 10 do` syntax, and would appease both the fallthrough camp and the non-fallthrough camp. However, we don't see a huge reason to add a separate syntax just for fallthrough. If a user wants fallthrough, they can just define the variable above the control structure as they do currently.
+This would provide parity with `for i = 1, 10 do` syntax, and would appease both the fallthrough camp and the non-fallthrough camp. However, this seems unnecessary, and we don't see a huge reason to add a separate syntax just for fallthrough. If a user wants fallthrough, they can just define the variable above the control structure as they do currently.
 
 Furthermore, most usecases for fallthrough are satisfied more elegantly, in our opinion, by `if local` stacks.
+
+### Alternative keywords for `in`
+
+Last RFC proposed and rejected `where` and a semicolon `;` as alternatives to `in`. In the previous RFC, `where` was rejected for behaving in the opposite fashion of `where` in Rust and OCaml in which bindings where declared *after* the `where` clause instead of before. This is still in contention, as most Luau users haven't used Rust or OCaml before, and to many users, `where` seems like a more reasonable keyword there to its use in the English language (as well as SQL). The semicolon was rejected because it's easy to miss and isn't coherent with the keywords-not-symbols philosophy of Luau's runtime syntax.
 
 ## Future work
 
