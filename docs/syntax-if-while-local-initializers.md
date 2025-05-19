@@ -193,12 +193,9 @@ Multiple bindings are allowed in the same `local`-`in` clause and must be separa
 
 ```luau
 if local success, result = pcall(foo) then
-    -- note that success can be false here and still bound; false is falsey but not nil!
-    if success then
-        dothing(result)
-    else
-        print(result)
-    end
+    dothing(result)
+else
+-- handle failure cases, but error is not bound here
 end
 -- or
 if local nevernil, maybenil = foo() in maybenil ~= nil then
@@ -216,7 +213,7 @@ To demonstrate the utility of this, here's a simple Roblox example:
 if
     local model = hit.Parent
     local humanoid = model:FindFirstChildOfClass("Humanoid")
-    local target_player = Players:GetPlayerFromCharacter(model) in target_player.Team ~= player.Team
+    local target_player = Players:GetPlayerFromCharacter(model) in target_player and target_player.Team ~= player.Team
 then
     return hitplayer(target_player, humanoid)
 end
