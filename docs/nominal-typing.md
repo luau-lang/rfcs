@@ -114,7 +114,7 @@ This nominal type disallows the use of `foo(function(_) return true end)`, howev
 ### Runtime semantics
 As with all other types, nominal types are erased at runtime. There is no change to the runtime implementation nor any way to access the name of a type from within code.
 
-The `typeof` function will return the underlying structural type (`number`, `string`, `table`, etc.) rather than the nominal type name.
+The `typeof` function will return the runtime type (`number`, `string`, `table`, etc.) rather than the nominal type's name.
 
 ## Drawbacks
 The introduction of nominal types into the luau type system would increase the complexity of the type system. It adds another thing for beginners to the language to learn, and requires additional work within the type solver.
