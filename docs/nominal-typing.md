@@ -7,7 +7,7 @@ Nominal types are an extension to the type checker, and make no changes to runti
 ## Motivation
 Luau's type system is currently entirely structural. This means types that share the same structure, but differ in name, are still considered compatible.
 
-This further extends to types that are not directly equal, but compatible, such as how `type Vec2 = { x: number, y: number }` can be used in places where a `type Vec3 = { x: number, y: number, z: number }` is expected.
+This further extends to types that are not directly equal, but compatible, such as how `type Vec3 = { x: number, y: number, z: number }` can be used in places where a `type Vec2 = { x: number, y: number }` is expected.
 
 Nominal types allow the programmer to state that, for example, these `Vec2` and `Vec3` types are not compatible with each other. Further, two nominal types can share identical structures. This allows for coincidentally overlapping structures to be considered distinct types, such as an overlap between a `Position2D` and `Velocity2D` type both being `{ x: number, y: number }`.
 
