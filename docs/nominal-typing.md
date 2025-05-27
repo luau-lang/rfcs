@@ -187,7 +187,7 @@ Again raises questions regarding `{ x: newtype number }`. Keywords after the `=`
 type Foo = number
 ```
 
-Attributes would be a potentially viable option, though they currently can apply only to functions. This is also requires an additional line of code which could be undesirable for simple types.
+Attributes would be a potentially viable option, though they currently can apply only to functions. This would deviate from the current pattern of `type` being modified by keywords (`export type`). The use of attributes to fundamentally alter the construction of types may also be confusing, as current uses of attributes are as ways to hint behaviour to luau ("make this function native" and "this is a deprecated feature").
 
 ### Just use tables
 Our example of distinct `UserId` and `AssetId` types could instead be written as
