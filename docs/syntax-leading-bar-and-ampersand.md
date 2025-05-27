@@ -51,7 +51,7 @@ type MyOverloadedFunction = unknown
     & ((number) -> string)
 ```
 
-OCaml and TypeScript supports this same syntax:
+OCaml and TypeScript support this same syntax:
 
 ```ocaml
 type 'a tree =
