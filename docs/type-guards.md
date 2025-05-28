@@ -83,7 +83,7 @@ type Tree = setmetatable<{ value: number, left: Tree?, right: Tree? }, Tree>
 function Tree.new(value: number): Tree
     return setmetatable({ value = value }, Tree)
 end
-function Tree:isLeft(): self is { left: nil, right: nil }
+function Tree:isLeaf(): self is { left: nil, right: nil }
     return self.left == nil and self.right == nil
 end
 ```
