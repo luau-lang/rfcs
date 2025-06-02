@@ -87,12 +87,12 @@ If configuration fields are not provided, `.luauconfig` uses the same default be
 
 ### Search semantics
 
-The search semantics of `.luauconfig` files are the same as `.luaurc`'s:
+The search semantics of `.luauconfig` files are the same as `.luaurc`'s (adapted from old RFC):
 
-> For a given .lua file, Luau will search for .luaurc files starting from the folder that the .lua file is in; all files in the ancestry chain will be parsed and their configuration applied.
-> When multiple files are used, the file closer to the .lua file overrides the settings.
+> For a given `.luau` or `.lua` script, Luau will search for `.luaurc` files starting from the folder that the script is in; all files in the ancestry chain will be parsed and their configuration applied.
+> When multiple configuration files exist throughout the ancestry chain, configurations closer to the script override those in higher-level directories.
 
-However, if both `.luaurc` and `.luauconfig` files are present in a directory, only the `.luauconfig` file is used.
+However, if both `.luaurc` and `.luauconfig` are present in a directory, only the `.luauconfig` file is used.
 Configuration files are not merged; at most one configuration file is recognized per directory.
 
 ### Configuration extraction
