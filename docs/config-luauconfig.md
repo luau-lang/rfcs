@@ -101,8 +101,9 @@ Unlike `.luaurc` files, `.luauconfig` files can contain runtime constructs like 
 To extract configuration from a `.luauconfig` file, its contents are executed in an isolated Luau VM with only the standard libraries enabled (`luaL_openlibs`).
 This approach ensures that configuration files can leverage Luau features while maintaining a sandboxed execution environment.
 
-As with the [user-defined type functions RFC](https://rfcs.luau.org/user-defined-type-functions.html), a time limit is imposed on the execution of `.luauconfig` files to guard against excessive computation.
-For example, executing the following configuration terminates after exceeding the allowed execution time, and an error is thrown during configuration parsing:
+#### Timing out
+
+Executing arbitrarily complex Luau code requires us to guard against excessive computation:
 ```luau
 -- .luauconfig with an infinite loop
 return (function()
@@ -111,8 +112,11 @@ return (function()
 end)()
 ```
 
-This time limit is set to two seconds and can be revisited based on real-world usage and feedback.
+For analysis-time configuration extraction, we adopt the same behavior described in the [user-defined type functions RFC](https://rfcs.luau.org/user-defined-type-functions.html): we simply respect the time limit that the embedding context provides through the `Frontend` API.
+
+At runtime, the configuration extraction timeout is set to two seconds by default.
 This duration is generally sufficient for typical configuration logic, while being short enough to prevent accidental or malicious long-running scripts from impacting performance.
+For more fine-grained control, however, embedders are free to override this at build-time by defining the `LUAUCONFIG_RUNTIME_TIMEOUT_SECONDS` macro.
 
 ## Drawbacks
 
