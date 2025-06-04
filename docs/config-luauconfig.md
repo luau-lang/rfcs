@@ -4,7 +4,7 @@
 
 ## Summary
 
-Introduce `.luauconfig`: a Luau-syntax file used to configure analysis and runtime behavior.
+Introduce `.config.luau`: a Luau-syntax file used to configure analysis and runtime behavior.
 
 ## Motivation
 
@@ -15,11 +15,11 @@ Ideally, embedding Luau should not require implementers to build or maintain spe
 
 ## Design
 
-We introduce a new configuration file called `.luauconfig`.
+We introduce a new configuration file called `.config.luau`.
 
 ### Syntax
 
-An example `.luauconfig` is given below.
+An example `.config.luau` is given below.
 
 ```luau
 return {
@@ -83,29 +83,29 @@ type LuauConfig = {
 }
 ```
 
-If configuration fields are not provided, `.luauconfig` uses the same default behavior as `.luaurc`.
+If configuration fields are not provided, `.config.luau` uses the same default behavior as `.luaurc`.
 
 ### Search semantics
 
-The search semantics of `.luauconfig` files are the same as `.luaurc`'s (adapted from old RFC):
+The search semantics of `.config.luau` files are the same as `.luaurc`'s (adapted from old RFC):
 
 > For a given `.luau` or `.lua` script, Luau will search for `.luaurc` files starting from the folder that the script is in; all files in the ancestry chain will be parsed and their configuration applied.
 > When multiple configuration files exist throughout the ancestry chain, configurations closer to the script override those in higher-level directories.
 
-However, if both `.luaurc` and `.luauconfig` are present in a directory, only the `.luauconfig` file is used.
+However, if both `.luaurc` and `.config.luau` are present in a directory, only the `.config.luau` file is used.
 Configuration files are not merged; at most one configuration file is recognized per directory.
 
 ### Configuration extraction
 
-Unlike `.luaurc` files, `.luauconfig` files can contain runtime constructs like variables, functions, and loops.
-To extract configuration from a `.luauconfig` file, its contents are executed in an isolated Luau VM with only the standard libraries enabled (`luaL_openlibs`).
+Unlike `.luaurc` files, `.config.luau` files can contain runtime constructs like variables, functions, and loops.
+To extract configuration from a `.config.luau` file, its contents are executed in an isolated Luau VM with only the standard libraries enabled (`luaL_openlibs`).
 This approach ensures that configuration files can leverage Luau features while maintaining a sandboxed execution environment.
 
 #### Timing out
 
 Executing arbitrarily complex Luau code requires us to guard against excessive computation:
 ```luau
--- .luauconfig with an infinite loop
+-- .config.luau with an infinite loop
 return (function()
     while true do
     end
@@ -118,6 +118,11 @@ At runtime, the configuration extraction timeout is set to two seconds by defaul
 This duration is generally sufficient for typical configuration logic, while being short enough to prevent accidental or malicious long-running scripts from impacting performance.
 For more fine-grained control, however, embedders are free to override this at build-time by defining the `LUAUCONFIG_RUNTIME_TIMEOUT_SECONDS` macro.
 
+### Interaction with `require`
+
+Despite `.config.luau` being a `.luau` file, it is not recognized as a module by `require` at runtime.
+Concretely, the source file `foo.luau` cannot extract the contents of its sibling `.config.luau` file with the expression `require("./.config")`.
+
 ## Drawbacks
 
 **Complexity**: Allowing arbitrary Luau code in configuration files increases the complexity of parsing and validating configurations, which might make debugging more difficult.
@@ -127,7 +132,7 @@ Most of this can be mitigated by (1) editor tooling, and (2) embedded contexts w
 
 ## Alternatives
 
-**Restrict syntax**: Limit `.luauconfig` files to only contain table literals and forbid functions, loops, and other runtime constructs to reduce complexity.
+**Restrict syntax**: Limit `.config.luau` files to only contain table literals and forbid functions, loops, and other runtime constructs to reduce complexity.
 Instead of spawning a new Luau VM to "parse" the file, we could simply spin up a Luau parser.
 
 **Improve support for `.luaurc` files**: We already provide an autocomplete API for Luau-syntax files and could expose an API that facilitates editing `.luaurc` files.
