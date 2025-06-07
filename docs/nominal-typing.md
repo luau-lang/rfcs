@@ -85,18 +85,78 @@ local user_2 = user_1 + 1  -- Cannot perform arithmetic on nominal type
 In cases where this behaviour would be desired, the option remains to write `(user_1 :: number) + 1` following the previous rules regarding casting. `user_1 + user_1` would likewise be disallowed. This is done to avoid accidental loss of semantic meaning
 
 ### Intersection of nominal types
-Intersection between nominal types results in a `never` type. This follows also for intersection between a nominal type and any structural type other than a union. Intersection of a nominal type and a union of types behaves as one would expect.
+Intersection between two different nominal types always results in a `never` type.
 
-Intersection of a nominal type with itself is inhabitable, and evaluates to the existing type.
+Intersection between any nominal type and itself results in itself.
+
+Intersection between a nominal type and a structural type results in one of:
+
+1. `never`, if the structural constraints cannot be entirely satisfied by the nominal type
+2. The nominal type, if the structural constraints completely match the nominal type
+3. A `T & { ... }` type, narrowing the nominal type while retaining the nominal semantics.
+
+(3) can only be simplified into (2), in the case where the structural type performs no narrowing and matches the nominal entirely. (3) can never simplify into a purely structural type without the use of an explicit cast.
+
+Nominal types that contain type parameters can have their type parameters narrowed, provided the original nominal type is still present in the resultant type.
+
+To present this as a series of examples:
 
 ```lua
-distinct type A = number
-distinct type B = number
+distinct type Ok<T> = { ok: true, value: T}
+distinct type Err<E> = { ok: false, error: E}
+distinct type ResultN<T, E> = Ok<T> | Err<E>
+type Result<T, E> = Ok<T> | Err<E>
 
-type AB = A & B -- never
-type A1 = A & (A | B) -- A
-type AB_ = (A | B) & (A | B | C) -- A | B
-type A2 = A & A -- A
+distinct type OkNS = Ok<number | string>
+type ResultNS = OkNS | Err<string>
+
+function foo(x: ResultN<number | string, string>)
+    if x.ok then
+        -- x : ResultN<number | string, string> & { ok: true }
+
+        -- x does not narrow to Ok<T>, as ResultN is nominal and cannot be discarded.
+        -- It however also doesn't narrow to never, as it is possible to satisfy { ok: true } as a constrained version of the nominal
+    end
+end
+
+function bar(x: ResultN<number | string, string>)
+    if x.ok == "bar" then
+        -- x : ResultN<number | string, string> & { ok: "bar" }
+        -- x : never
+
+        -- x narrows to never, as there is no way for the nominal type to ever satisfy { ok: "bar" }
+    end
+end
+
+function buzz(x: Result<number | string, string>)
+    if x.ok then
+        -- x : Result<number | string, string> & { ok: true }
+        -- x : Ok<number | string>
+
+        -- Our Result type used isn't nominal, so standard narrowing occurs here
+
+        if typeof(x.value) == "number" then
+            -- x : Ok<number>
+
+            -- The generic parameter within Ok has been narrowed, while retaining the nominal type
+        end
+    end
+end
+
+function baz(x: ResultNS)
+    if x.ok then
+        -- x : OkNS
+
+        -- As above, our Result type used isn't nominal, so standard narrowing occurs here
+
+        if typeof(x.value) == "number" then
+            -- x: OkNS & { value: number }
+
+            -- As our OkNS nominal type has encapsulated the union within itself, we cannot narrow the type parameters, nor simplify this intersection type.
+            -- x.value specifically is however narrowed to a number by the intersection
+        end
+    end
+end
 ```
 
 ### Nominal function types
