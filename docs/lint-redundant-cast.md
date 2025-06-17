@@ -8,6 +8,8 @@ This RFC proposes a new, 29th lint rule that emits a warning upon using **typeca
 
 The Luau solver is able to infer variables with high confidence. Despite this, some users choose to assert every type explicitly, either out of habit, preference for explicitness, or to document intent more clearly. This can lead to redundant type assertions that may mislead people unfamiliar with Luau’s type semantics, and in some poorly handled cases, cause runtime errors.
 
+This RFC also serves as a cleanup for redundant casts that were originally written to bandage old type solver issues.
+
 ## Design
 
 The rule operates by checking **3** conditions:
@@ -42,6 +44,8 @@ local a = returnRandom() :: any
 ## Drawbacks
 
 Some developers may find this rule too opinionated or stylistic, especially for those who favor explicit type assertions for documentation or consistency.
+
+This lint rule aims at a coding oversight which isn't that common amongst developers, nor has immediate significant impacts if left ignored.
 
 ## Alternatives
 
