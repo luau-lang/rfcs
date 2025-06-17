@@ -1,4 +1,4 @@
-# New lint rule: `ConfidentSolver`
+# New lint rule: `RedundantCast`
 
 ## Summary
 
