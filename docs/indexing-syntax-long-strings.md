@@ -43,9 +43,12 @@ Under the current behaviour `foo[bar[[[a]]]` parses as `foo[bar"[a"]`, however t
 Under the current behaviour `print([[[[a]])` parses as `print("[[a")`. The change proposed here would cause this to parse as `print(["[a")` which is now invalid code. A single use of this was found on GitHub in a Lua file used for a custom nvim init.
 
 ## Alternatives
-There are two alternatives:
+There are three alternatives:
 
 1. Do absolutely nothing. This is undesirable, as this behaviour remains ambiguous
 2. Retain the current behaviour, defining it explicitly with another RFC
+3. Define `[[[` and `[[[=...=[` as syntax errors.
 
-Of these, (2.) would be preferable if the proposed behaviour in this RFC is rejected.
+(3.) may be the "cleanest" of all the solutions here as it resolves the question of how this should be based, however it still retains the semantic whitespace behaviour.
+
+(1.) is heavily undesirable, and (2.) would be preferable instead.
