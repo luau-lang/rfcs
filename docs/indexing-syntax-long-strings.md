@@ -40,6 +40,8 @@ All current Luau parser implementations do not follow this behaviour. They inste
 
 Under the current behaviour `foo[bar[[[a]]]` parses as `foo[bar"[a"]`, however this proposed behaviour would parse that as `foo[bar["a"]` with an unterminated bracket pair. This is not backwards compatible, however the author of this RFC believes this to be a more expected behaviour, and could not find evidence of this problematic pattern being used in the wild.
 
+Under the current behaviour `print([[[[a]])` parses as `print("[[a")`. The change proposed here would cause this to parse as `print(["[a")` which is now invalid code. A single use of this was found on GitHub in a Lua file used for a custom nvim init.
+
 ## Alternatives
 There are two alternatives:
 
