@@ -110,9 +110,10 @@ type a = onlyClassName<CustomClass>
 
 ## Drawbacks
 
-The implementation for ``type:name()`` seems to copy the Generic Name.
+I don't know if a generic can be directly passed into a type function and then use ``type:name()``.
+But Generic Names are being collected.
 
-If ``type:classname()`` would do this as well, maybe it would be catastrophic to memory.
+If ``type:classname()`` would do this as well, maybe it would be inefficient for memory, because the name already exists.
 In my first implementation, it doesn't do that though within the "serialize" process, instead it's just "read on request", but without caching.
 
 It is currently confusing that there's ``:value()`` but the function name itself, doesn't speak out _"Hey, I am only for singletons"_ or similar.
