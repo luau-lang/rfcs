@@ -53,7 +53,7 @@ I tried an implementation:
 This is its **Unit Test**.
 
 ```lua
-declare class CustomExternType
+declare extern type CustomExternType with
     function testFunc(self): number
 end
 
@@ -87,7 +87,7 @@ type b = pass<vector, "vector">
 ### Example
 
 ```lua
-declare extern type CustomExternType
+declare extern type CustomExternType with
     function testFunc(self): number
 end
 
