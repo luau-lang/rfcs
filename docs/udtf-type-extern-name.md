@@ -1,4 +1,4 @@
-# type externname method utility
+# type ``externname`` method
 
 ## Summary
 
