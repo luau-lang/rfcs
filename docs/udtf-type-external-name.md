@@ -1,19 +1,17 @@
-# type classname method utility
+# type externname method utility
 
 ## Summary
 
-Add a new method to ``type`` for User Defined Type Functions, ``type.classname``. Which will retrieve a ``ExternType``'s name.
+Add a new method to ``type`` for User Defined Type Functions, ``type.externname``. Which will retrieve a ``ExternType``'s name.
 
-Or any other way to get the classname.
+Or any other way to get the name of an external type.
 
 ## Motivation
 
-Why are we doing this? What use cases does it support? What is the expected outcome?
-
 **Use cases:**
-- A lazy (but therefore also quick way?) to filter out class based types (e.g. from ``declare class``)
-  - e.g. class based types that are not accessible through ``types.`` such as ``vector`` for instance
-  - embedders such as Roblox, may also have class based types that can't be filtered without passing a type into the function.
+- A lazy _(but therefore also quick way?)_ to filter out extern types (e.g. from ``declare class``)
+  - e.g. external based types that are not accessible through ``types.`` such as ``vector`` for instance
+  - embedders such as Roblox, may also have external based types that can't be filtered without passing a type into the function.
 - Useful for debug purposes when using ``print`` within a type function.
 
 
@@ -21,12 +19,12 @@ Currently, you can only do this, or other tricks:
 
 ```lua
 --!strict
-type function isClass(input, whatToCheck)
+type function isType(input, whatToCheck)
   return (input == whatToCheck)
 end
 
 type function vectorOnly(input, whatToCheck)
-  local matches = isClass(input, whatToCheck)
+  local matches = isType(input, whatToCheck)
   if (matches) then
     print(matches, "It is a vector type")
     return input
@@ -40,8 +38,8 @@ type a = vectorOnly<typeof(vector.zero), vector>
 
 
 **What it would solve:**
-- You don't have to pass in a sample of a type that you want to check, if it is a class
-- Drawback: If two classes are ever named the same, it would be an inaccurate check, hence why above it mentions _"lazy"_
+- You don't have to pass in a sample of a type that you want to check
+- Drawback: If two ExternTypes are ever named the same, it would be an inaccurate check, hence why above it mentions _"lazy"_
 
 
 ## Design
@@ -61,7 +59,7 @@ end
 
 type function pass(arg, compare)
     if (arg:is("class")) then
-        assert(arg:classname() == compare:value())
+        assert(arg:externname() == compare:value())
     end
 
     return types.unknown
@@ -76,13 +74,13 @@ type b = pass<vector, "vector">
 
 | New/Update | Instance Methods | Type | Description |
 | ------------- | ------------- | ------------- | ------------- |
-| New | `classname()` | `string?` | Returns the name of a class or 'nil' if there's no name. |
+| New | `externname()` | `string?` | Returns the name of an ExternType or 'nil' if there's no name. |
 
 **OR**
 
 | New/Update | Instance Methods | Type | Description |
 | ------------- | ------------- | ------------- | ------------- |
-| Update | `name()` | `string?` | Returns the name of a generic or class, or 'nil' if there's no name. |
+| Update | `name()` | `string?` | Returns the name of a generic or ExternType, or 'nil' if there's no name. |
 
 
 
@@ -93,18 +91,18 @@ declare class CustomClass
     function testFunc(self): number
 end
 
-type function onlyClassName(input)
+type function onlyCustomClass(input)
     assert(input:is("class"))
 
-    if (input:classname() == "CustomClass") then
+    if (input:externname() == "CustomClass") then
       -- ...
       return input
     else
-      error("class is not named CustomClass")
+      error("type is not named CustomClass")
     end
 end
 
-type a = onlyClassName<CustomClass>
+type a = onlyCustomClass<CustomClass>
 ```
 
 
@@ -113,11 +111,11 @@ type a = onlyClassName<CustomClass>
 I don't know if a generic can be directly passed into a type function and then use ``type:name()``.
 But Generic Names are being collected.
 
-If ``type:classname()`` would do this as well, maybe it would be inefficient for memory, because the name already exists.
+If ``type:externname()`` would do this as well, maybe it would be inefficient for memory, because the name already exists.
 In my first implementation, it doesn't do that though within the "serialize" process, instead it's just "read on request", but without caching.
 
 It is currently confusing that there's ``:value()`` but the function name itself, doesn't speak out _"Hey, I am only for singletons"_ or similar.
-Hence why I am wondering whether if something like this should exist, whether it should be ``:classname()`` or ``:name()``
+Hence why I am wondering whether if something like this should exist, whether it should be ``:externname()`` or ``:name()``
 
 
 ## Alternatives
