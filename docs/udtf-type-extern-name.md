@@ -9,7 +9,7 @@ Or any other way to get the name of an external type.
 ## Motivation
 
 **Use cases:**
-- A lazy _(but therefore also quick way?)_ to filter out extern types (e.g. from ``declare class``)
+- A lazy _(but therefore also quick way?)_ to filter out extern types (e.g. from ``declare class``, or ``type a`` passed into a function)
   - e.g. external based types that are not accessible through ``types.`` such as ``vector`` for instance
   - embedders such as Roblox, may also have external based types that can't be filtered without passing a type into the function.
 - Useful for debug purposes when using ``print`` within a type function.
@@ -111,7 +111,7 @@ type a = onlyCustomClass<CustomClass>
 I don't know if a generic can be directly passed into a type function and then use ``type:name()``.
 But Generic Names are being collected.
 
-If ``type:externname()`` would do this as well, maybe it would be inefficient for memory, because the name already exists.
+If ``type:externname()`` would copy the ``externType->name`` into the TypeFunction's ExternType, maybe it would be inefficient for memory, because the name already exists.
 In my first implementation, it doesn't do that though within the "serialize" process, instead it's just "read on request", but without caching.
 
 It is currently confusing that there's ``:value()`` but the function name itself, doesn't speak out _"Hey, I am only for singletons"_ or similar.
