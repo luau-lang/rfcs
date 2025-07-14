@@ -9,7 +9,7 @@ Or any other way to get the name of an external type.
 ## Motivation
 
 **Use cases:**
-- A lazy _(but therefore also quick way?)_ to filter out extern types (e.g. from ``declare class``, or ``type a`` passed into a function)
+- A lazy _(but therefore also quick way?)_ to filter out extern types (e.g. from ``declare class``)
   - e.g. external based types that are not accessible through ``types.`` such as ``vector`` for instance
   - embedders such as Roblox, may also have external based types that can't be filtered without passing a type into the function.
 - Useful for debug purposes when using ``print`` within a type function.
