@@ -9,7 +9,7 @@ Or any other way to get the name of an external type.
 ## Motivation
 
 **Use cases:**
-- A lazy _(but therefore also quick way?)_ to filter out extern types (e.g. from ``declare class``)
+- A lazy _(but therefore also quick way?)_ to filter out extern types (e.g. from ``declare class``/``declare extern type``)
   - e.g. external based types that are not accessible through ``types.`` such as ``vector`` for instance
   - embedders such as Roblox, may also have external based types that can't be filtered without passing a type into the function.
 - Useful for debug purposes when using ``print`` within a type function.
@@ -53,7 +53,7 @@ I tried an implementation:
 This is its **Unit Test**.
 
 ```lua
-declare class CustomClass
+declare class CustomExternType
     function testFunc(self): number
 end
 
@@ -65,7 +65,7 @@ type function pass(arg, compare)
     return types.unknown
 end
 
-type a = pass<CustomClass, "CustomClass">
+type a = pass<CustomExternType, "CustomExternType">
 type b = pass<vector, "vector">
 ```
 
@@ -87,22 +87,22 @@ type b = pass<vector, "vector">
 ### Example
 
 ```lua
-declare class CustomClass
+declare class CustomExternType
     function testFunc(self): number
 end
 
-type function onlyCustomClass(input)
+type function onlyCustomExternType(input)
     assert(input:is("class"))
 
-    if (input:externname() == "CustomClass") then
+    if (input:externname() == "CustomExternType") then
       -- ...
       return input
     else
-      error("type is not named CustomClass")
+      error("type is not named CustomExternType")
     end
 end
 
-type a = onlyCustomClass<CustomClass>
+type a = onlyCustomExternType<CustomExternType>
 ```
 
 
