@@ -4,8 +4,6 @@
 
 Add a new method to ``type`` for User Defined Type Functions, ``type.externname``. Which will retrieve a ``ExternType``'s name.
 
-Or any other way to get the name of an external type.
-
 ## Motivation
 
 **Use cases:**
