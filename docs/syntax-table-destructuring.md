@@ -40,7 +40,7 @@ baz = foo
 ### Key destructuring
 We propose the following syntax for destructuring by keys:
 ```lua
-&{ ["foo"] = foo } = thing
+&{ ["foo"] as foo } = thing
 -- foo == thing.foo
 ```
 
@@ -49,9 +49,9 @@ If the key can be expressed as a valid variable name then a shorthand can be use
 &{ foo } = thing
 ```
 
-Shorthands can be destructured with a different name:
+Shorthands can also be destructured with a different name:
 ```lua
-&{ foo = bar } = thing
+&{ foo as bar } = thing
 -- bar == thing.foo
 ```
 
@@ -91,7 +91,7 @@ Key and array destructuring can be used together.
 
 ```lua
 &{
-    ["@foo"] = foo,
+    ["@foo"] as foo,
     { one, nil, three },
 } = thing
 -- foo == thing["@foo"]
@@ -120,31 +120,12 @@ end
 ```
 *(The type annotation is not neccesary, its purely there for demonstration purposes).*
 
-### Type Destructuring.
-We propose special behaviour for destructing types from requires:
-```lua
-&{ type Foo } = require(...)
-```
-
-You can also precede a destructure assignment with `type`. This is particularly helpful for destructuring multiple types without having to repeat the `type` keyword, although it does have the caveat of only allowing type destructuring.
-```lua
-type &{ Foo, Bar, Baz } = require(...)
-```
-
-Types can also be destructured with a different name:
-```lua
-&{ type Foo = Biz } = require(...)
--- type Biz == type require(...).Foo
-```
-
 
 ## Drawbacks
 Prefixing table destructuring with a symbol may not fit into the language as historically luau has generally not used symbol prefixes. However there are some examples of symbol prefixes (especially in recent years):
 - length operator (`#thing`).
 - function attributes (`@native`).
 - negation operator (`~SomeType`).
-
-
 
 ## Alternatives
 Alternative ideas for table destructuring have been proposed before, most of which have been rejected:
