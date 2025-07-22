@@ -6,7 +6,7 @@ Currently, the ``tag`` for an ExternType is ``class``. This RFC suggests to chan
 
 ## Motivation
 
-"class" is old and out-to-date, it treats ExternType as being a class, while it's not. It should be re-named to "extern" to avoid confusion.
+"class" is old outdated, it treats ExternType as being a class, while these are not "classes". It should be re-named to "extern" to avoid confusion.
 
 The name is ideal, as it mirrors perfectly with the old syntax
 ``declare class`` and ``declare extern type``. Instead of ``class`` there's ``extern``. Making ``extern`` the suitable replacement for ``is("class")``.
