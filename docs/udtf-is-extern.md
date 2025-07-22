@@ -13,8 +13,6 @@ The name is ideal, as it mirrors perfectly with the old syntax
 
 ## Design
 
-This is the bulk of the proposal. Explain the design in enough detail for somebody familiar with the language to understand, and include examples of how the feature is used.
-
 Instead of ``type:is("class")`` you'd do ``type:is("extern")``
 
 ### Changes
