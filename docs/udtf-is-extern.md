@@ -23,7 +23,7 @@ Instead of ``type:is("class")`` you'd do ``type:is("extern")``
 
 | Instance Properties | Type |
 | ------------- | ------------- |
-| `tag` | `"nil" \| "unknown" \| "never" \| "any" \| "boolean" \| "number" \| "string" \| "singleton" \| "negation" \| "union" \| "intersection" \| "table" \| "function" \| "extern"` Remove: ~~`"class"`~~ |
+| `tag` | `"nil" \| "unknown" \| "never" \| "any" \| "boolean" \| "number" \| "string" \| "singleton" \| "negation" \| "union" \| "intersection" \| "table" \| "function" \| "extern"` ~~`"class"`~~ |
 
 ## Drawbacks
 
