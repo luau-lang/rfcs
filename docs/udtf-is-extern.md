@@ -1,4 +1,4 @@
-# ExternType's tag name
+# tag name for extern types
 
 ## Summary
 
