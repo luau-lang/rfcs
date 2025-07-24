@@ -6,8 +6,9 @@
 Introduce new syntax for unpacking values from tables.
 
 ```lua
-local .{ foo, ["@bar"] = bar } = thing
+local .{ .foo, one, ["@bar"] = bar } = thing
 -- foo == thing.foo
+-- one == thing[1]
 -- bar == thing["@bar"]
 ```
 
@@ -41,36 +42,30 @@ baz = foo
 We propose the following syntax for destructuring by keys:
 ```lua
 .{ ["foo"] as foo } = thing
--- foo == thing.foo
+-- foo == thing["foo"]
 ```
 
 If the key can be expressed as a valid variable name then a shorthand can be used instead:
 ```lua
-.{ foo } = thing
+.{ .foo } = thing
 ```
 
 Shorthands can also be destructured with a different name:
 ```lua
-.{ foo as bar } = thing
+.{ .foo as bar } = thing
 -- bar == thing.foo
 ```
 
-We propose nested key destructuring via the following syntax (This also works with shorthands.):
+We propose nested key destructuring via the following syntax (This also works with shorthands):
 ```lua
-.{ ["@foo"] as .{ bar } } = thing
+.{ ["@foo"] as .{ .bar } } = thing
 -- bar == thing["@foo"].bar
 ```
 
-We propose destructuring the rest of the properties via the following syntax (`rest` can be any identifier). Only one rest parameter can be defined.
+## Array destructuring
+We propose the following syntax for array destructuring:
 ```lua
-.{ ["@foo"] as .{ bar }, ...rest } = thing
-```
-
-
-### Array Destructuring
-We propose the following syntax for destructuring arrays:
-```lua
-.{{ one, two, three }} = thing
+.{ one, two, three } == thing
 -- one == thing[1]
 -- two == thing[2]
 -- three == thing[3]
@@ -78,29 +73,17 @@ We propose the following syntax for destructuring arrays:
 
 We propose the following syntax for nested array destructuring:
 ```lua
-.{{ one, .{{ apple }}, three }} = thing
+.{ one, .{ apple }, three } == thing
 -- one == thing[1]
 -- apple == thing[2][1]
 -- three == thing[3]
 ```
 
+## Rest destructuring
+
 We propose destructuring the rest of the properties via the following syntax (`rest` can be any identifier). Only one rest parameter can be defined.
 ```lua
-.{{ one, ...rest }} = thing
-```
-
-### Mixed Destructuring
-Key and array destructuring can be used together.
-
-```lua
-.{
-    ["@foo"] as foo,
-    { one, _, three },
-} = thing
--- foo == thing["@foo"]
--- one == thing[1]
--- _ == thing[2]
--- three == thing[3]
+.{ ["@foo"] as .{ .bar }, ...rest } = thing
 ```
 
 ### Local Destructuring
