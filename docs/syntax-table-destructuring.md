@@ -31,7 +31,7 @@ local .{ .useEffect, .useMemo, .useState } = React
 
 ## Design
 
-We propose that the table destructuring syntax is prefixed with an ampersand (`.`) symbol. Without a prefix destructuring becomes ambiguous in certain scenarios, such as the one below.
+We propose that the table destructuring syntax is prefixed with a period (`.`) symbol. Without a prefix destructuring becomes ambiguous in certain scenarios, such as the one below.
 ```lua
 baz = foo
 { bar } = test
