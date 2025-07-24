@@ -111,7 +111,7 @@ type Props = {
     pear: any
 }
 
-function test(.{ apple, pear }: Props)
+function test(.{ .apple, .pear }: Props)
     ...
 end
 ```
