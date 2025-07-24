@@ -6,7 +6,7 @@
 Introduce new syntax for unpacking values from tables.
 
 ```lua
-local .{ .foo, one, ["@bar"] = bar } = thing
+local .{ .foo, one, ["@bar"] as bar } = thing
 -- foo == thing.foo
 -- one == thing[1]
 -- bar == thing["@bar"]
