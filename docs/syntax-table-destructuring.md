@@ -65,7 +65,7 @@ We propose nested key destructuring via the following syntax (This also works wi
 ## Array destructuring
 We propose the following syntax for array destructuring:
 ```lua
-.{ one, two, three } == thing
+.{ one, two, three } = thing
 -- one == thing[1]
 -- two == thing[2]
 -- three == thing[3]
@@ -73,13 +73,23 @@ We propose the following syntax for array destructuring:
 
 We propose the following syntax for nested array destructuring:
 ```lua
-.{ one, .{ apple }, three } == thing
+.{ one, .{ apple }, three } = thing
 -- one == thing[1]
 -- apple == thing[2][1]
 -- three == thing[3]
 ```
 
-## Rest destructuring
+## Mixed Destructuring
+Key and array destructuring can be used together:
+```lua
+.{ .foo, one, .bar as .{ .baz }, .{ apple } } = thing
+-- foo == thing.foo
+-- one == thing[1]
+-- baz == thing.bar.baz
+-- apple = thing[2][1]
+```
+
+## Rest Destructuring
 
 We propose destructuring the rest of the properties via the following syntax (`rest` can be any identifier). Only one rest parameter can be defined.
 ```lua
