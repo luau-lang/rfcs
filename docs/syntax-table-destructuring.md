@@ -26,7 +26,7 @@ local useState = React.useState
 
 With destructuring syntax this could be shortened to the following:
 ```lua
-local .{ useEffect, useMemo, useState } = React
+local .{ .useEffect, .useMemo, .useState } = React
 ```
 
 ## Design
