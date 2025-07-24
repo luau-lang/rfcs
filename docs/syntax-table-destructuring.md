@@ -6,7 +6,7 @@
 Introduce new syntax for unpacking values from tables.
 
 ```lua
-local &{ foo, ["@bar"] = bar } = thing
+local .{ foo, ["@bar"] = bar } = thing
 -- foo == thing.foo
 -- bar == thing["@bar"]
 ```
@@ -25,12 +25,12 @@ local useState = React.useState
 
 With destructuring syntax this could be shortened to the following:
 ```lua
-local &{ useEffect, useMemo, useState } = React
+local .{ useEffect, useMemo, useState } = React
 ```
 
 ## Design
 
-We propose that the table destructuring syntax is prefixed with an ampersand (`&`) symbol. Without a prefix destructuring becomes ambiguous in certain scenarios, such as the one below.
+We propose that the table destructuring syntax is prefixed with an ampersand (`.`) symbol. Without a prefix destructuring becomes ambiguous in certain scenarios, such as the one below.
 ```lua
 baz = foo
 { bar } = test
@@ -40,69 +40,73 @@ baz = foo
 ### Key destructuring
 We propose the following syntax for destructuring by keys:
 ```lua
-&{ ["foo"] as foo } = thing
+.{ ["foo"] as foo } = thing
 -- foo == thing.foo
 ```
 
 If the key can be expressed as a valid variable name then a shorthand can be used instead:
 ```lua
-&{ foo } = thing
+.{ foo } = thing
 ```
 
 Shorthands can also be destructured with a different name:
 ```lua
-&{ foo as bar } = thing
+.{ foo as bar } = thing
 -- bar == thing.foo
 ```
 
-We propose the following syntax for nested key destructuring:
+We propose nested key destructuring via the following syntax (This also works with shorthands.):
 ```lua
-&{ ["@foo"] = &{ bar } } = thing
+.{ ["@foo"] as .{ bar } } = thing
 -- bar == thing["@foo"].bar
 ```
-This also works with shorthands.
+
+We propose destructuring the rest of the properties via the following syntax (`rest` can be any identifier). Only one rest parameter can be defined.
+```lua
+.{ ["@foo"] as .{ bar }, ...rest } = thing
+```
+
 
 ### Array Destructuring
 We propose the following syntax for destructuring arrays:
 ```lua
-&{{ one, two, three }} = thing
+.{{ one, two, three }} = thing
 -- one == thing[1]
 -- two == thing[2]
 -- three == thing[3]
 ```
 
-You can omit a certain index via the `nil` keyword:
-```lua
-&{{ one, nil, three }} = thing
--- one == thing[1]
--- three == thing[3]
-```
-
 We propose the following syntax for nested array destructuring:
 ```lua
-&{{ one, &{{ apple }}, three }} = thing
+.{{ one, .{{ apple }}, three }} = thing
 -- one == thing[1]
 -- apple == thing[2][1]
 -- three == thing[3]
+```
+
+We propose destructuring the rest of the properties via the following syntax (`rest` can be any identifier). Only one rest parameter can be defined.
+```lua
+.{{ one, ...rest }} = thing
 ```
 
 ### Mixed Destructuring
 Key and array destructuring can be used together.
 
 ```lua
-&{
+.{
     ["@foo"] as foo,
-    { one, nil, three },
+    { one, _, three },
 } = thing
 -- foo == thing["@foo"]
 -- one == thing[1]
+-- _ == thing[2]
 -- three == thing[3]
 ```
 
 ### Local Destructuring
 We propose that if a destructure assignment is preceeded with `local` then all of the destructured variables will be local.
 ```lua
-local &{ hello, world } = thing
+local .{ hello, world } = thing
 ```
 
 ### Function Argument Destructuring
@@ -114,7 +118,7 @@ type Props = {
     pear: any
 }
 
-function test(&{ apple, pear }: Props)
+function test(.{ apple, pear }: Props)
     ...
 end
 ```
@@ -122,10 +126,10 @@ end
 
 
 ## Drawbacks
-Prefixing table destructuring with a symbol may not fit into the language as historically luau has generally not used symbol prefixes. However there are some examples of symbol prefixes (especially in recent years):
-- length operator (`#thing`).
-- function attributes (`@native`).
-- negation operator (`~SomeType`).
+- Prefixing table destructuring with a symbol may not fit into the language as historically luau has generally not used symbol prefixes. However there are some examples of symbol prefixes (especially in recent years):
+  - length operator (`#thing`).
+  - function attributes (`@native`).
+  - negation operator (`~SomeType`).
 
 ## Alternatives
 Alternative ideas for table destructuring have been proposed before, most of which have been rejected:
