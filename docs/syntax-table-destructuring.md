@@ -125,10 +125,19 @@ end
   - negation operator (`~SomeType`).
 
 ## Alternatives
-Alternative ideas for table destructuring have been proposed before, most of which have been rejected:
-- https://github.com/luau-lang/rfcs/pull/24 (`local {.a, .b} = t`)
-- https://github.com/luau-lang/luau/pull/629 (`local { a, b } = t`)
-- https://github.com/luau-lang/rfcs/pull/95 (`local { a, b } = t`)
+- Alternative ideas for table destructuring have been proposed before, most of which have been rejected:
+  - https://github.com/luau-lang/rfcs/pull/24 (`local {.a, .b} = t`)
+  - https://github.com/luau-lang/luau/pull/629 (`local { a, b } = t`)
+  - https://github.com/luau-lang/rfcs/pull/95 (`local { a, b } = t`)
 
-The main reasons for their rejection include ambiguity issues, not handling arrays, and not handling non-local assignments.
+  The main reasons for their rejection include ambiguity issues, not handling arrays, and not handling non-local assignments.
+
+- For nested destructuring we could omit the period prefix however this may increase parsing complexity. For example the following:
+  ```lua
+  local .{ .foo as .{ .bar } }
+  ```
+  would become:
+  ```lua
+  local .{ .foo as { .bar } }
+  ```
 
