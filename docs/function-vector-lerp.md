@@ -1,3 +1,4 @@
+
 # vector.lerp
 
 ## Summary
@@ -22,11 +23,11 @@ This implementation mirrors the one for `math.lerp` and inherits the same mathem
 ## Drawbacks
 This adds another library function, and most likely would require another fast-call slot for any meaningful performance gain in an interpreted runtime.
 
-The implementation of `Vector3:Lerp` in Roblox holds all of the numerical properties *including* determinacy (returns NaN if `t` is infinity or `a`/`b` are NaN), while the proposed function and `math.lerp` don't. This could cause confusion as the two don't behave exactly the same.
+The implementation of `Vector3:Lerp(goal, alpha)` in Roblox does not have the same guarantees of its numerical properties, i.e. it is not exact or deterministic. This may cause confusion because the two won't behave or return the exact same results for certain cases.
 
 ## Alternatives
 Do nothing and leave people to write their own implementations. This forgoes any portability, ergonomic and performance opportunities, especially in cases where a numerically correct implementation is preferred and the context cannot take advantage of native codegen.
 
 Instead of a scalar `t` argument, the function could be fully vectorized and take in a vector for the alpha. While theoretically useful, most use-cases only require a scalar alpha, and the concerns for performance and numerical correctness of a fully vectorized implementation outweigh its usefulness.
 
-To match Roblox's `Vector3:Lerp` correctness guarantees, the implementation could also account for determinacy. This comes at the cost of performance and would make `vector.lerp` inconsistent with `math.lerp`.
+A different set of correctness tradeoffs could be chosen such as guaranteeing determinacy. This would come at the cost of performance and make `vector.lerp` inconsistent with `math.lerp`.
