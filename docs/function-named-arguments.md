@@ -295,9 +295,9 @@ There are several common alternatives (which just shows how widespread this prob
    - Prevents falling back to positional arguments, which is useful when using varargs (`...`),
    - The curly brackets are ugly boilerplate, especially in functions with mixed arguments:
 
-   ```luau
-   fs.watch("/", { recursive = true })
-   ```
+     ```luau
+     fs.watch("/", { recursive = true })
+     ```
 
 3. Comments
 
@@ -316,13 +316,13 @@ There are several common alternatives (which just shows how widespread this prob
    - For optional parameters, requires manually inserting `nil` (and adding or removing them as the function signature changes),
    - If the function signature changes, this can lead to ugly silent errors:
 
-   ```luau
-   type Ugly = (argument_a: number) -> ()
-
-   local ugly: Ugly
-
-   ugly(--[[ argument_b ]] 0.0)
-   ```
+     ```luau
+     type Ugly = (argument_a: number) -> ()
+  
+     local ugly: Ugly
+  
+     ugly(--[[ argument_b ]] 0.0)
+     ```
 
 4. Strings or Enums 
 
