@@ -56,7 +56,7 @@ declare extern type CustomExternType with
 end
 
 type function pass(arg, compare)
-    if (arg:is("class")) then
+    if (arg:is("extern")) then
         assert(arg:externname() == compare:value())
     end
 
@@ -90,7 +90,7 @@ declare extern type CustomExternType with
 end
 
 type function onlyCustomExternType(input)
-    assert(input:is("class"))
+    assert(input:is("extern"))
 
     if (input:externname() == "CustomExternType") then
       -- ...
