@@ -32,6 +32,8 @@ type Mrow = Meow<Mrrp> -- no documentation comment
 
 ## Design
 
+### Whitespace Requirements
+
 Documentation comments are to be automatically detected by luau, with them requiring no whitespace in between the end of the comment and whatever they're commenting on be it a variable, type, table, or function. Although a single new line is allowed at the end of a comment, as the following would be quite ugly:
 
 ```luau
@@ -53,96 +55,71 @@ Whitespace sensitivity is also existent as to avoid issues with header comments 
 
 type Meow = "mrrp" -- in luau lsp as of writing Meow has its documentation comment as the header comment
 ```
-</br>
 
-Doc comments can be any comment, aslong as it follows the whitespace rules as defined above.
+### Comment Requirements
+
+Doc comments can be any comment, aslong as it follows the whitespace rules as defined previously.
 There is a slight deviation here for better backwards compatiblity; where any extra dashes at the beginning will be removed from the comment when displayed, so for example this comment:
 ```luau
 ---- I have extra dashes!
 ```
 Would appear as "I have extra dashes" instead of "-- I have extra dashes!".
-</br>
 
-Documentation comments are able to be detected for any of the following cases seen in the codeblocks below:
+### Carrying
 
+Documentation comments automatically carry from variable to variable, and from type to type; unless overriden which can be seen in the example of 2 modules below below.
+
+Module A:
 ```luau
--- BaseNode is a simplified version of a type I've ripped from a library of mine
-type BaseNode<HOS, S, N> = {
-	--[[
-		Indicates if the node has only a single supporter, this is purely internal
-		and only used by `object_tree.closest_empty_node`,
-		as an optimization for trees that have a taper type of "Flat" or "Slope".
-	]]
-	has_one_supporter: HOS,
-	--[[
-		Array of nodes that are supported by this node, if `nil` this node is at the bottom of the tree.
-	]]
-	supported: { N }?, -- not using the node type here because then the recursive type error comes to haunt me
-	--[[
-		Indicates if this node is taken,
-	]]
-	taken: boolean,
-	--[[
-		The CFrame this node is at within the DataModel
-	]]
-	cframe: CFrame,
-	--[[
-		Either an array of nodes that are supported by this node, or if `has_one_supporter` is true this points to a node directly below this node,
-		and if `nil` this node is at the top of the tree.
-	]]
-	supporter: S?,
-}
+-- mrrp
+export type Meow = "mrrp"
 
--- Node if used will have documentation comments (this example is here because it once didn't work in luau lsp)
-export type Node = BaseNode<true, Node, Node> | BaseNode<false, { Node }, Node>
+type Mrrp = module_a.Meow -- Because Mrrp is just Meow, it'll have the same doc comment as Meow
+
+-- I override Meow's documentation comment!
+type Mrow = Meow
+
+return nil
 ```
-
-```luau
---- Indicates if the plugin is enabled
-local ENABLED = true
-
---- Sets the Enabled state of the plugin
-local function SET_ENABLED(s: boolean)
-	ENABLED = s
-end
-```
-
-```luau
-local module = {
-	--- meow
-	meow = "mrrp"
-}
-
---- This documentation comment will not override the documentation comment for module.meow
-module.meow = true
-```
-
-```luau
-local module = {}
-
---[[
-	This documentation comment will show! Because despite not being defined in the brackets,
-	its the first place where meow is defined
-]]
-module.meow = true
-```
-
+Module B:
 ```luau
 local module = require("@module")
 
--- This type will have the same documentation comment as 'Meow' type from the module
-export type Meow = module.Meow
+-- buzz buzz
+type Export = {
+	-- The comment of buzz is me instead of module_a.Meow's comment!
+	buzz: module_a.Meow,
+}
 
---[[
-	This documentation comment overrides the 'Mrrp' type from the module
-]]
-export type Mrrp = module.Mrrp
+-- Module B: for all your needs of bees and cats
+local export = {
+	buzz = "mrrp",
+}
 
--- The same goes for functions/variables returned by the module!
-return {
-	mrow = module.mrow,
-	--- I override module.maow's documentation comment!
-	maow = module.maow,
+-- Casting here overrides the type & comments of export to be that of the type 'Export'
+return export :: Export
+```
+Although fields in tables cannot have their comments overriden, with the comment thats used as a doc comment required to be directly above the first definition of the field:
+```luau
+local module = {
+	-- The callback for this module
+	callback = function() end,
+}
+
+-- I meow, but I cannot override!
+module.callback = function()
+	print("meow")
+end
+```
+Except for table literals, but they'll lint:
+```luau
+local module = {
+	-- The callback for this module
+	callback = function() end,
+	-- I meow!
+	callback = function()
+		print("meow")
+	end,
 }
 ```
 
