@@ -159,6 +159,17 @@ return {
 }
 ```
 
+### Type functions
+
+Documentation Comments will also be exposed in type functions with the following methods added to the `type` instance:
+
+#### `type` Instance
+
+| Instance Methods | Return Type | Description |
+| ------------- | ------------- | ------------- |
+| `getcomment()` | `string?` | returns the comment attached to the type; if there is no comment attached it returns nil |
+| `setcomment(comment: string?)` | `()` | adds / overrides the type's documentation comment; if comment is nil or is a string with a length of 0, removes the types's comment |
+
 ## Alternatives
 
 Luau could require a specific type of comment for all documentation comments (not just short comments) like moonwave. But the goal of this RFC is not to have any fancy syntax for documentation comments, and instead have something that will work with the most amount of codebases today.
