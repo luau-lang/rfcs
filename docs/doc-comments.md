@@ -70,6 +70,7 @@ Would appear as "I have extra dashes" instead of "-- I have extra dashes!".
 Documentation comments automatically carry from variable to variable, and from type to type; unless overriden which can be seen in the example of 2 modules below below.
 
 Module A:
+
 ```luau
 -- mrrp
 export type Meow = "mrrp"
@@ -99,7 +100,10 @@ local export = {
 -- Casting here overrides the type & comments of export to be that of the type 'Export'
 return export :: Export
 ```
+
+</br>
 Although fields in tables cannot have their comments overriden, with the comment thats used as a doc comment required to be directly above the first definition of the field:
+
 ```luau
 local module = {
 	-- The callback for this module
@@ -111,12 +115,14 @@ module.callback = function()
 	print("meow")
 end
 ```
+
 Except for table literals, but they'll lint:
+
 ```luau
 local module = {
 	-- The callback for this module
 	callback = function() end,
-	-- I meow!
+	-- I meow! But I get linted :(
 	callback = function()
 		print("meow")
 	end,
