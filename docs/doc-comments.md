@@ -56,6 +56,21 @@ Whitespace sensitivity is also existent as to avoid issues with header comments 
 type Meow = "mrrp" -- in luau lsp as of writing Meow has its documentation comment as the header comment
 ```
 
+#### Function Parameters
+
+Function parameters don't have any whitespace requirements, this is so luau doesn't have to learn if the user is using tabs as spaces, or just tabs.
+
+```luau
+local function make_them_meow(
+	-- The name of the person who will meow
+	person: string,
+	-- The length of the meow
+	len: number?
+)
+	print(`{person} meowed: me{string.rep("o", len or 1)}w`)
+end
+```
+
 ### Comment Requirements
 
 Doc comments can be any comment, aslong as it follows the whitespace rules as defined previously.
@@ -77,7 +92,7 @@ Module A:
 -- mrrp
 export type Meow = "mrrp"
 
-type Mrrp = module_a.Meow -- Because Mrrp is just Meow, it'll have the same doc comment as Meow
+type Mrrp = module_a.Meow -- Because Mrrp is just Meow, it'll have the same documentation comment as Meow
 
 -- I override Meow's documentation comment!
 type Mrow = Meow
@@ -104,7 +119,7 @@ return export :: Export
 ```
 
 </br>
-Although fields in tables cannot have their comments overriden, with the comment thats used as a doc comment required to be directly above the first definition of the field:
+Although fields in tables cannot have their comments overriden:
 
 ```luau
 local module = {
