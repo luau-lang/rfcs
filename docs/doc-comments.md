@@ -56,6 +56,8 @@ Whitespace sensitivity is also existent as to avoid issues with header comments 
 type Meow = "mrrp" -- in luau lsp as of writing Meow has its documentation comment as the header comment
 ```
 
+</br>
+
 #### Function Parameters
 
 Function parameters don't have any whitespace requirements, this is so luau doesn't have to learn if the user is using tabs as spaces, or just tabs.
