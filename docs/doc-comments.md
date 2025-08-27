@@ -129,6 +129,35 @@ local module = {
 module.meow = true
 ```
 
+```luau
+local module = {}
+
+--[[
+	This documentation comment will show! Because despite not being defined in the brackets,
+	its the first place where meow is defined
+]]
+module.meow = true
+```
+
+```luau
+local module = require("@module")
+
+-- This type will have the same documentation comment as 'Meow' type from the module
+export type Meow = module.Meow
+
+--[[
+	This documentation comment overrides the 'Mrrp' type from the module
+]]
+export type Mrrp = module.Mrrp
+
+-- The same goes for functions/variables returned by the module!
+return {
+	mrow = module.mrow,
+	--- I override module.maow's documentation comment!
+	maow = module.maow,
+}
+```
+
 ## Alternatives
 
 Luau could require a specific type of comment for all documentation comments (not just short comments) like moonwave. But the goal of this RFC is not to have any fancy syntax for documentation comments, and instead have something that will work with the most amount of codebases today.
