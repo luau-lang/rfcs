@@ -60,9 +60,11 @@ type Meow = "mrrp" -- in luau lsp as of writing Meow has its documentation comme
 
 Doc comments can be any comment, aslong as it follows the whitespace rules as defined previously.
 There is a slight deviation here for better backwards compatiblity; where any extra dashes at the beginning will be removed from the comment when displayed, so for example this comment:
+
 ```luau
 ---- I have extra dashes!
 ```
+
 Would appear as "I have extra dashes" instead of "-- I have extra dashes!".
 
 ### Carrying
