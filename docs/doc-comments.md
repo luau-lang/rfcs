@@ -55,25 +55,12 @@ type Meow = "mrrp" -- in luau lsp as of writing Meow has its documentation comme
 ```
 </br>
 
-Doc comments also require comments to be long comments:
-
+Doc comments can be any comment, aslong as it follows the whitespace rules as defined above.
+There is a slight deviation here for better backwards compatiblity; where any extra dashes at the beginning will be removed from the comment when displayed, so for example this comment:
 ```luau
---[[
-	I'm a long comment!
-]]
-
---[=[
-	I'm also a long comment!
-]=]
+---- I have extra dashes!
 ```
-
-Or short comments with an extra dash `---`:
-
-```luau
---- I'm a short documentation comment!
-```
-
-Short comments are otherwise disallowed, as they are generally just notes like `--TODO: meow` or `--the solver will kick and scream if this doesn't exist`.
+Would appear as "I have extra dashes" instead of "-- I have extra dashes!".
 </br>
 
 Documentation comments are able to be detected for any of the following cases seen in the codeblocks below:
