@@ -13,10 +13,10 @@ leading to inconsistancies such as the following:
 --- miaow
 type Meow = "mrrp"
 
-local x: Meow -- "miaow" will be shown as a doc comment with luau lsp, but not in studio
+local x: Meow -- "miaow" will be shown as a documentation comment with luau lsp, but not in studio
 ```
 
-Documentation comments also get stripped from types when a type is put into a type function, as language servers have no way of detecting that the doc comment should still be there.
+Documentation comments also get stripped from types when a type is put into a type function, as language servers have no way of detecting that the documentation comment should still be there.
 
 ```luau
 type function Meow(t)
@@ -24,11 +24,11 @@ type function Meow(t)
 end
 
 --[[
-	I'm a doc comment!
+	I'm a documentation comment!
 ]]
 type Mrrp = "miaow"
 
-type Mrow = Meow<Mrrp> -- no doc comment
+type Mrow = Meow<Mrrp> -- no documentation comment
 ```
 
 ## Design
@@ -44,7 +44,7 @@ Although a single new line is allowed at the end of a comment, as the following 
 end
 ```
 
-Whitespace sensitivity is also existant as to avoid issues with header comments becoming doc comments as seen below.
+Whitespace sensitivity is also existant as to avoid issues with header comments becoming documentation comments as seen below.
 
 ```luau
 
@@ -53,7 +53,7 @@ Whitespace sensitivity is also existant as to avoid issues with header comments 
 	I'm a header!
 ]]
 
-type Meow = "mrrp" -- in luau lsp as of writing Meow has its doc comment as the header comment
+type Meow = "mrrp" -- in luau lsp as of writing Meow has its documentation comment as the header comment
 ```
 </br>
 
@@ -105,7 +105,7 @@ type BaseNode<HOS, S, N> = {
 	supporter: S?,
 }
 
--- Node if used will have doc comments (this example is here because it once didn't work in luau lsp)
+-- Node if used will have documentation comments (this example is here because it once didn't work in luau lsp)
 export type Node = BaseNode<true, Node, Node> | BaseNode<false, { Node }, Node>
 ```
 
@@ -125,10 +125,10 @@ local module = {
 	meow = "mrrp"
 }
 
---- This doc comment will not override the doc comment for module.meow
+--- This documentation comment will not override the documentation comment for module.meow
 module.meow = true
 ```
 
 ## Alternatives
 
-Luau could require a specific type of comment for doc comments like moonwave, but the goal of this rfc is not to have any fancy syntax for doc comments and instead have something that will work with the most amount of codebases today.
+Luau could require a specific type of comment for all documentation comments (not just short comments) like moonwave. But the goal of this RFC is not to have any fancy syntax for documentation comments, and instead have something that will work with the most amount of codebases today.
