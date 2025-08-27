@@ -6,8 +6,7 @@ Adds builtin support for documentation comments to luau.
 
 ## Motivation
 
-Currently it is up to each language server to decide how to parse documentation comments,
-leading to inconsistancies such as the following:
+Currently it is up to each language server to decide how to parse documentation comments, leading to inconsistencies such as the following:
 
 ```luau
 --- miaow
@@ -33,18 +32,17 @@ type Mrow = Meow<Mrrp> -- no documentation comment
 
 ## Design
 
-Documentation comments are to be automaticaly detected by luau, with them requiring no whitespace inbetween the end of the comment and whatever they're commenting on be it a variable, type, table, or function.
-Although a single new line is allowed at the end of a comment, as the following would be quite ugly:
+Documentation comments are to be automatically detected by luau, with them requiring no whitespace in between the end of the comment and whatever they're commenting on be it a variable, type, table, or function. Although a single new line is allowed at the end of a comment, as the following would be quite ugly:
 
 ```luau
 --[[
 	mrow meow mrrp
 ]]local function meow()
-
+	-- code here
 end
 ```
 
-Whitespace sensitivity is also existant as to avoid issues with header comments becoming documentation comments as seen below.
+Whitespace sensitivity is also existent as to avoid issues with header comments becoming documentation comments as seen below.
 
 ```luau
 
@@ -58,6 +56,7 @@ type Meow = "mrrp" -- in luau lsp as of writing Meow has its documentation comme
 </br>
 
 Doc comments also require comments to be long comments:
+
 ```luau
 --[[
 	I'm a long comment!
@@ -67,16 +66,18 @@ Doc comments also require comments to be long comments:
 	I'm also a long comment!
 ]=]
 ```
+
 Or short comments with an extra dash `---`:
+
 ```luau
 --- I'm a short documentation comment!
 ```
 
-Short comments are otherwise disallowed, as they are generally just notes like `--TODO: meow`
-or `--the solver will kick and scream if this doesnt exist`.
+Short comments are otherwise disallowed, as they are generally just notes like `--TODO: meow` or `--the solver will kick and scream if this doesn't exist`.
 </br>
 
 Documentation comments are able to be detected for any of the following cases seen in the codeblocks below:
+
 ```luau
 -- BaseNode is a simplified version of a type I've ripped from a library of mine
 type BaseNode<HOS, S, N> = {
