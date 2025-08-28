@@ -161,4 +161,4 @@ Documentation Comments will also be exposed in type functions with the following
 
 ## Alternatives
 
-Luau could require a specific type of comment for all documentation comments (not just short comments) like moonwave. But the goal of this RFC is not to have any fancy syntax for documentation comments, and instead have something that will work with the most amount of codebases today.
+Luau could require a specific type of comment for documentation comments like moonwave. But the goal of this RFC is not to have any fancy syntax for documentation comments, and instead have something that will work with the most amount of codebases today.
