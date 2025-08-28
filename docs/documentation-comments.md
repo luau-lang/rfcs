@@ -94,13 +94,21 @@ Instead of:
 ### Comment Requirements
 
 Doc comments can be any comment, aslong as it follows the whitespace rules as defined previously.
-There is a slight deviation here for better backwards compatiblity; where any extra dashes at the beginning will be removed from the comment when displayed, so for example this comment:
+There is a slight deviation here for better backwards compatiblity; where any extra dashes at the start and end will be removed from the comment when displayed, so for example this comment:
 
 ```luau
 ---- I have extra dashes!
 ```
 
 Would appear as `"I have extra dashes"` instead of `"-- I have extra dashes!"`.
+
+Dashes are removed from the end as well, so this common styling is properly supported:
+
+```luau
+--[[
+	I have extra dashes at the end!
+--]]
+```
 
 ### Carrying
 
