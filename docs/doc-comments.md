@@ -73,6 +73,29 @@ local function make_them_meow(
 end
 ```
 
+Although luau will take note of the whitespace before the comment, so long comments like this:
+```luau
+local function make_them_meow(
+	--[[
+		The name of the person
+		who will meow
+			Note: cannot be "tim"
+	]]
+	person: string
+```
+Will display like this:
+```
+The name of the person
+who will meow
+	Note: cannot be "tim"
+```
+Instead of:
+```
+	The name of the person
+	who will meow
+		Note: cannot be "tim"
+```
+
 ### Comment Requirements
 
 Doc comments can be any comment, aslong as it follows the whitespace rules as defined previously.
@@ -82,7 +105,7 @@ There is a slight deviation here for better backwards compatiblity; where any ex
 ---- I have extra dashes!
 ```
 
-Would appear as "I have extra dashes" instead of "-- I have extra dashes!".
+Would appear as `"I have extra dashes"` instead of `"-- I have extra dashes!"`.
 
 ### Carrying
 
