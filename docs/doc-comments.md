@@ -179,7 +179,7 @@ Documentation Comments will also be exposed in type functions with the following
 
 | Instance Methods | Return Type | Description |
 | ------------- | ------------- | ------------- |
-| `getdocumentation()` | `string?` | returns the documentation attached to the type; if there is no documentation attached it returns nil |
+| `documentation()` | `string?` | returns the documentation attached to the type; if there is no documentation attached it returns nil |
 | `setdocumentation(documentation: string?)` | `()` | adds / overrides the type's documentation; if documentation is nil or is a string with a length of 0, removes the types's documentation |
 
 ## Alternatives
