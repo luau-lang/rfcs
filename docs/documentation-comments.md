@@ -186,6 +186,8 @@ Documentation Comments will also be exposed in type functions with the following
 | `documentation()` | `string?` | returns the documentation attached to the type; if there is no documentation attached it returns nil |
 | `setdocumentation(documentation: string?)` | `()` | adds / overrides the type's documentation; if documentation is nil or is a string with a length of 0, removes the types's documentation |
 
+For table fields their documentation will be attached to the key type instances, and function parameters will have their documentation be attached to the type instances that make up the head and tail.
+
 ## Alternatives
 
 Luau could require a specific type of comment for documentation comments like moonwave. But the goal of this RFC is not to have any fancy syntax for documentation comments, and instead have something that will work with the most amount of codebases today.
