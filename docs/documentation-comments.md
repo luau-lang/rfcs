@@ -94,7 +94,7 @@ Instead of:
 ### Comment Requirements
 
 Doc comments can be any comment, aslong as it follows the whitespace rules as defined previously.
-There is a slight deviation here for better backwards compatiblity; where any extra dashes at the start and end will be removed from the comment when displayed, so for example this comment:
+There is a slight deviation here for better backwards compatiblity with luau-lsp; where any extra dashes at the start will be removed from the comment when displayed, so for example this comment:
 
 ```luau
 ---- I have extra dashes!
