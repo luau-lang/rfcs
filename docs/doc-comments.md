@@ -2,7 +2,7 @@
 
 ## Summary
 
-Adds builtin basic support for documentation comments to luau, without any specifications as to how documentation comments are to be rendered.
+Adds builtin basic support for documentation comments to luau, without any specifications as to what documentation comments must have in their body.
 
 ## Motivation
 
