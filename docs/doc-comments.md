@@ -2,7 +2,7 @@
 
 ## Summary
 
-Adds builtin support for documentation comments to luau.
+Adds builtin basic support for documentation comments to luau, without any specifications as to how documentation comments are to be rendered.
 
 ## Motivation
 
@@ -32,35 +32,30 @@ type Mrow = Meow<Mrrp> -- no documentation comment
 
 ## Design
 
-### Whitespace Requirements
-
-Documentation comments are to be automatically detected by luau, with them requiring no whitespace in between the end of the comment and whatever they're commenting on be it a variable, type, table, or function. Although a single new line is allowed at the end of a comment, as the following would be quite ugly:
+Documentation comments are to be detected by luau as comments that can have zero or one new line before a `type`, `variable`, `function` parameter, or `table` property declaration.
 
 ```luau
---[[
-	mrow meow mrrp
-]]local function meow()
-	-- code here
-end
+--TODO: Not a documentation comment
+
+-- im a documentation comment :3c
+type Meow = "mrrp"
 ```
 
-Whitespace sensitivity is also existent as to avoid issues with header comments becoming documentation comments as seen below.
-
+Having a whitespace requirement ensures comments are intended to be documentation comments and not any other type of comment, like a header comment:
 ```luau
+--!native
 
 --[[
-	header
-	I'm a header!
+	url
+	utility functions for encoding and decoding urls
 ]]
 
-type Meow = "mrrp" -- in luau lsp as of writing Meow has its documentation comment as the header comment
+export type SpaceEncoding = "+" | "%20" -- SpaceEncoding won't have the header as its documentation comment
 ```
 
-</br>
+### Function Parameters
 
-#### Function Parameters
-
-Function parameters don't have any whitespace requirements, this is so luau doesn't have to learn if the user is using tabs as spaces, or just tabs.
+Function parameter are an exception to the whitespace requirements, this is so luau doesn't have to learn if the user is using tabs as spaces, or just tabs.
 
 ```luau
 local function make_them_meow(
@@ -110,6 +105,7 @@ Would appear as `"I have extra dashes"` instead of `"-- I have extra dashes!"`.
 ### Carrying
 
 Documentation comments automatically carry from variable to variable, and from type to type; unless overriden which can be seen in the example of 2 modules below below.
+This mimics luau-lsp's existing behavior for handling documentation comments.
 
 Module A:
 
