@@ -115,7 +115,7 @@ In the case of explicit instantiation `f<<T>>` fragment where `f` has a metatabl
 
 1. The forall quantifier is nested under the metamethod for that table's metatable: that's three levels of indirection.
 2. A metatable can have multiple metamethods that are polymorphic: it's not even clear what metamethod to instantiate without a way to disambiguate.
-3. It is not always safe to work around this with `getmetatable(t).__call<<T>>` if there is a `__metatable` metamethod.
+3. It is not always safe to work around this with `getmetatable(t).__call<<T>>`: there could be a `__metatable` metamethod to prevent `getmetatable`.
 
 Hence, we must produce a type error if the term is not a function type of the correct kind, full stop.
 
@@ -203,4 +203,5 @@ Relevant to our purposes is the following section:
 > Some languages don’t have a way to specify the types at call site either, Swift being a prominent example. Thus it’s not a given we need this feature in Luau.
 
 This is still the case for Swift at time of writing.
+
 
