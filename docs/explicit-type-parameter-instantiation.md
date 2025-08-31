@@ -109,6 +109,32 @@ local f2 = f<<number>>
 
 When this new syntax is used on a value that is not a function, or does not take those types, a static-time error will be given. This syntax has zero runtime effect.
 
+### Interop with metatables
+
+In the case of explicit instantiation `f<<T>>` fragment where `f` has a metatable, there are three problems, namely:
+
+1. The forall quantifier is nested under the metamethod for that table's metatable: that's three levels of indirection.
+2. A metatable can have multiple metamethods that are polymorphic: it's not even clear what metamethod to instantiate without a way to disambiguate.
+3. It is not always safe to work around this with `getmetatable(t).__call<<T>>` if there is a `__metatable` metamethod.
+
+Hence, we must produce a type error if the term is not a function type of the correct kind, full stop.
+
+If it was supported, explicit type instantiation through the metatable would require disambiguation using the surrounding syntactic context. That is, `t<<number>>.x` instantiates the `__index` metamethod, or `t<<string>>(...)` instantiates the `__call` metamethod, and so forth. The tradeoff there is that the type inference engine will now have an extra `std::optional<Metamethod>` parameter that only gets consumed by the function for the expression `e<<T>>`.
+
+This trivial (and contrived) example shows what it would look like in practice, and generalizing to more complex cases is straightforward but would obscure the core point.
+
+```luau
+type T = setmetatable<{ x: number, y: string }, {
+  __index: <K>(T, K) -> rawget<T, K>,
+  __call: <K>(T, K, rawget<T, K>) -> rawget<T, K>
+}>
+
+local function f(t: T)
+  local x = t<<"x">>.x -- instantiates `__index` with `K = "x"`.
+  local y = t<<"y">>("x", "hello!") -- instantiates `__call` with `K = "y"` (and a type error `"x" </: "y"`)
+end
+```
+
 ## Drawbacks
 
 The syntax proposed in this RFC would close the door on the ability to add a bitwise left-shift operator to Luau. This is because this would make the following usage ambiguous:
@@ -177,3 +203,4 @@ Relevant to our purposes is the following section:
 > Some languages don’t have a way to specify the types at call site either, Swift being a prominent example. Thus it’s not a given we need this feature in Luau.
 
 This is still the case for Swift at time of writing.
+
