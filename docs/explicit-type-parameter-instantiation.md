@@ -111,17 +111,17 @@ When this new syntax is used on a value that is not a function, or does not take
 
 ### Interop with metatables
 
-In the case of explicit instantiation `f<<T>>` fragment where `f` has a metatable, there are three problems, namely:
+In the case of an explicit instantiation fragment `f<<T>>` where `f` has a metatable, there are three problems, namely:
 
-1. The forall quantifier is nested under the metamethod for that table's metatable: that's three levels of indirection.
-2. A metatable can have multiple metamethods that are polymorphic: it's not even clear what metamethod to instantiate without a way to disambiguate.
-3. It is not always safe to work around this with `getmetatable(t).__call<<T>>`: there could be a `__metatable` metamethod to prevent `getmetatable`.
+1. The forall quantifier is nested under the metamethod for that table's metatable, giving three levels of indirection.
+2. It's unclear what metamethod to instantiate without a way to disambiguate, since a metatable can have multiple polymorphic metamethods.
+3. If the `__metatable` field is present, `getmetatable` will throw an error, making it unsafe to work around this with `getmetatable(t).__call<<T>>`.
 
 Hence, we must produce a type error if the term is not a function type of the correct kind, full stop.
 
-If it was supported, explicit type instantiation through the metatable would require disambiguation using the surrounding syntactic context. That is, `t<<number>>.x` instantiates the `__index` metamethod, or `t<<string>>(...)` instantiates the `__call` metamethod, and so forth. The tradeoff there is that the type inference engine will now have an extra `std::optional<Metamethod>` parameter that only gets consumed by the function for the expression `e<<T>>`.
+If it was supported, explicit type instantiation through the metatable would require disambiguation using the surrounding syntactic context. That is, `t<<number>>.x` instantiates the `__index` metamethod, or `t<<string>>(...)` instantiates the `__call` metamethod, and so forth. The tradeoff there is that the type inference engine will now have an extra `std::optional<Metamethod>` parameter that is only used when checking an expression of the form `e<<T>>`.
 
-This trivial (and contrived) example shows what it would look like in practice, and generalizing to more complex cases is straightforward but would obscure the core point.
+This trivial (and contrived) example shows what it would look like in practice, and generalization to more complex cases is straightforward, but would obscure the core point.
 
 ```luau
 type T = setmetatable<{ x: number, y: string }, {
@@ -203,5 +203,3 @@ Relevant to our purposes is the following section:
 > Some languages don’t have a way to specify the types at call site either, Swift being a prominent example. Thus it’s not a given we need this feature in Luau.
 
 This is still the case for Swift at time of writing.
-
-
