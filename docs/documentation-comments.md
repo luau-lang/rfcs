@@ -255,7 +255,7 @@ For example if someone wanted to not have `--TODO:` comments detected, they woul
 }
 ```
 
-Ignored prefixes are applied before [trimming](#trimming), so this setting is less ambiguous for users.
+**Note:** Ignored prefixes are applied after [trimming](#trimming).
 
 ### Type functions
 
@@ -273,8 +273,3 @@ For table fields their documentation will be attached to the key type instances,
 ## Alternatives
 
 Luau could require a specific type of comment for documentation comments like moonwave. But the goal of this RFC is not to have any fancy syntax for documentation comments, and instead have something that will work with the most amount of codebases today.
-
-## Future Work
-
-In future when luau gets an offical package manager, luau will need a way to make every package have its own [`luaurc`](./config-luaurc.md) root, as comment settings need to be applied per package and not globally.
-So if one has `-` in their [`luaurc`](./config-luaurc.md)'s [`ignoredPrefixes`](#ignoredprefixes), it won't cause documentation comments in their packages to possibly not be displayed.
