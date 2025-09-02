@@ -32,7 +32,7 @@ type Mrow = Meow<Mrrp> -- no documentation comment
 
 ## Design
 
-Documentation comments are to be detected by luau as comments that can have zero or one new line before a `type`, `variable`, `function` parameter, or `table` property declaration.
+Documentation comments are to be detected by luau as any comment that has can have an optional new line before a `type`, `variable`, `function` parameter, or `table` property declaration.
 
 ```luau
 --TODO: Not a documentation comment
@@ -42,6 +42,7 @@ type Meow = "mrrp"
 ```
 
 Having a whitespace requirement ensures comments are intended to be documentation comments and not any other type of comment, like a header comment:
+
 ```luau
 --!native
 
@@ -52,6 +53,9 @@ Having a whitespace requirement ensures comments are intended to be documentatio
 
 export type SpaceEncoding = "+" | "%20" -- SpaceEncoding won't have the header as its documentation comment
 ```
+
+Theres also an array of ignored prefixes for documentation comments that can be defined in `luaurc` files.
+This is further explained under the [Configuration](#configuration) section.
 
 ### Function Parameters
 
@@ -69,6 +73,7 @@ end
 ```
 
 Although luau will take note of the whitespace before the comment, so long comments like this:
+
 ```luau
 local function make_them_meow(
 	--[[
@@ -78,31 +83,47 @@ local function make_them_meow(
 	]]
 	person: string
 ```
+
 Will display like this:
-```
+
+```plaintext
 The name of the person
 who will meow
 	Note: cannot be "tim"
 ```
+
 Instead of:
-```
+
+```plaintext
 	The name of the person
 	who will meow
 		Note: cannot be "tim"
 ```
 
-### Comment Requirements
+### Trimming
 
-Doc comments can be any comment, aslong as it follows the whitespace rules as defined previously.
-There is a slight deviation here for better backwards compatiblity with luau-lsp; where any extra dashes at the start will be removed from the comment when displayed, so for example this comment:
+#### Extra whitespace
+
+Extra whitespace is to be trimmed from the start and end of comments, as is done today by luau-lsp and Roblox:
 
 ```luau
----- I have extra dashes!
+--[[
+	I have a tab!
+]]
 ```
 
-Would appear as `"I have extra dashes"` instead of `"-- I have extra dashes!"`.
+Would appear as `I have a tab!` instead of `​ ​ ​ ​ ​ I have a tab!`.
 
-Dashes are removed from the end as well, so this common styling is properly supported:
+#### Extra dashes
+
+Extra dashes are also trimmed on documentation comments for better backwards compatiblity with luau-lsp:
+
+```luau
+--- I have an extra dash!
+```
+
+Would appear as `I have an extra dash!` instead of `- I have an extra dash!`.
+Dashes are also removed at the end as to support this common styling:
 
 ```luau
 --[[
@@ -128,7 +149,9 @@ type Mrow = Meow
 
 return nil
 ```
+
 Module B:
+
 ```luau
 local module = require("@module")
 
@@ -175,6 +198,65 @@ local module = {
 }
 ```
 
+### Configuration
+
+A new key `documentation` will be added to [`luaurc`](./config-luaurc.md) files for conifguring how documentation comments will work, with the following options being underneath it:
+
+#### `requirements`
+
+A map containing optional requirements that can be enabled that effect how documentation comments are detected.
+
+* `allowEndComments`
+
+	Allows comments at the end of things to become their documentation comments:
+
+	```luau
+	local function meow(
+		f: () -> (), -- I'm the documentation comment!
+	)
+		-- code here
+	end
+	```
+
+	Although with this setting enabled luau will still prefer comments above parameters,
+	and will only use end comments if there is no comment above.
+	Luau will also not allow newlines between end comments and whatever they're documenting, as to avoid the following:
+
+	```luau
+	local function meow(
+		f: () -> (),
+		-- I'm the documentation comment for f!
+		mrrp: "meow"
+	)
+		-- code here
+	end
+	```
+
+* `allowMultilineShortComments`
+
+	Allows multiline short comments to be viewed as documentation comments, as normally the following would only have the last short comment displayed:
+
+	```luau
+	-- I'm not displayed by default!
+	-- I'm displayed by default!
+	local ENABLED = false
+	```
+
+#### `ignoredPrefixes`
+
+An array of prefixes that indicate any comments starting with these prefixes are to not be detected as documentation comments.
+For example if someone wanted to not have `--TODO:` comments detected, they would define the following:
+
+```json
+{
+	"documentation": {
+		"ignoredPrefixes": [ "TODO:" ]
+	}
+}
+```
+
+Ignored prefixes are applied before [trimming](#trimming), so this setting is less ambiguous for users.
+
 ### Type functions
 
 Documentation Comments will also be exposed in type functions with the following methods added to the `type` instance:
@@ -191,3 +273,8 @@ For table fields their documentation will be attached to the key type instances,
 ## Alternatives
 
 Luau could require a specific type of comment for documentation comments like moonwave. But the goal of this RFC is not to have any fancy syntax for documentation comments, and instead have something that will work with the most amount of codebases today.
+
+## Future Work
+
+In future when luau gets an offical package manager, luau will need a way to make every package have its own [`luaurc`](./config-luaurc.md) root, as comment settings need to be applied per package and not globally.
+So if one has `-` in their [`luaurc`](./config-luaurc.md)'s [`ignoredPrefixes`](#ignoredprefixes), it won't cause documentation comments in their packages to possibly not be displayed.
