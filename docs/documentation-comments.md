@@ -170,6 +170,7 @@ return export :: Export
 ```
 
 </br>
+
 Although fields in tables cannot have their comments overriden:
 
 ```luau
@@ -195,6 +196,47 @@ local module = {
 		print("meow")
 	end,
 }
+```
+
+</br>
+
+If a field isn't defined in a table literal, fields will only allow their comment to be the first place where the field is defined:
+
+```luau
+local module = {}
+
+do
+	-- The callback for this module
+	module.callback = function() end
+	-- I'm not the documentation comment!
+	module.meow = "mrrp"
+end
+```
+
+Although this ignores functions that aren't called by the module itself before it returns, so the following isn't allowed:
+
+```luau
+local module = {}
+
+function module.meow()
+	-- I'm the documentation comment!
+	module.callback = function() end
+end
+
+return module
+```
+
+Example of a function called by the module itself before it returns:
+
+```luau
+local module = {}
+
+pcall(function()
+	-- The callback for this module
+	module.callback = function() end
+end)
+
+return module
 ```
 
 ### Configuration
