@@ -134,7 +134,6 @@ Dashes are also removed at the end as to support this common styling:
 ### Carrying
 
 Documentation comments automatically carry from variable to variable, and from type to type; unless overriden which can be seen in the example of 2 modules below below.
-This mimics luau-lsp's existing behavior for handling documentation comments.
 
 Module A:
 
