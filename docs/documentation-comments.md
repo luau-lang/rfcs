@@ -54,7 +54,7 @@ Having a whitespace requirement ensures comments are intended to be documentatio
 export type SpaceEncoding = "+" | "%20" -- SpaceEncoding won't have the header as its documentation comment
 ```
 
-Theres also an array of ignored prefixes for documentation comments that can be defined in `luaurc` files.
+Theres also an array of ignored prefixes for documentation comments that can be defined in [`luaurc`](./config-luaurc.md) files.
 This is further explained under the [Configuration](#configuration) section.
 
 ### Function Parameters
