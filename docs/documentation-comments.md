@@ -2,7 +2,7 @@
 
 ## Summary
 
-Adds builtin basic support for documentation comments to luau, without any specifications as to what documentation comments must have in their body.
+Adds builtin basic support for documentation comments to luau, without any specifications as to what format documentation comments must have their body be.
 
 ## Motivation
 
@@ -39,9 +39,22 @@ Documentation comments are to be detected by luau as any comment that has can ha
 
 -- im a documentation comment :3c
 type Meow = "mrrp"
+
+-- im a multiline
+-- short documentation comment :3
+type Mrow = "meow"
 ```
 
-Having a whitespace requirement ensures comments are intended to be documentation comments and not any other type of comment, like a header comment:
+End comments are also allowed and **cannot** have a newline between it and the declaration, but won't be used if there is a comment above the declaration already:
+
+```luau
+-- im used :3
+type Meow = "mrrp" -- im not used :(
+```
+
+</br>
+
+Having newline requirements ensures comments are intended to be documentation comments and not any other type of comment, like a header comment:
 
 ```luau
 --!native
@@ -57,54 +70,11 @@ export type SpaceEncoding = "+" | "%20" -- SpaceEncoding won't have the header a
 Theres also an array of ignored prefixes for documentation comments that can be defined in [`luaurc`](./config-luaurc.md) files.
 This is further explained under the [Configuration](#configuration) section.
 
-### Function Parameters
-
-Function parameter are an exception to the whitespace requirements, this is so luau doesn't have to learn if the user is using tabs as spaces, or just tabs.
-
-```luau
-local function make_them_meow(
-	-- The name of the person who will meow
-	person: string,
-	-- The length of the meow
-	len: number?
-)
-	print(`{person} meowed: me{string.rep("o", len or 1)}w`)
-end
-```
-
-Although luau will take note of the whitespace before the comment, so long comments like this:
-
-```luau
-local function make_them_meow(
-	--[[
-		The name of the person
-		who will meow
-			Note: cannot be "tim"
-	]]
-	person: string
-```
-
-Will display like this:
-
-```plaintext
-The name of the person
-who will meow
-	Note: cannot be "tim"
-```
-
-Instead of:
-
-```plaintext
-	The name of the person
-	who will meow
-		Note: cannot be "tim"
-```
-
 ### Trimming
 
-#### Extra whitespace
+#### Whitespace
 
-Extra whitespace is to be trimmed from the start and end of comments, as is done today by luau-lsp and Roblox:
+Whitespace is to be trimmed from the start and end of comments, as is done today by luau-lsp and Roblox:
 
 ```luau
 --[[
@@ -114,7 +84,27 @@ Extra whitespace is to be trimmed from the start and end of comments, as is done
 
 Would appear as `I have a tab!` instead of `​ ​ ​ ​ ​ I have a tab!`.
 
-#### Extra dashes
+With inner whitespace trimmed after each newline the same amount as the whitespace at the start:
+
+```luau
+--[[
+	meow mrrp
+		maow
+   mrow
+]]
+```
+
+Appearing as:
+
+```plaintext
+meow mrrp
+	maow
+mrow
+```
+
+Multiple spaces inbetween words will also be trimmed, with them being reduced to single spaces so `big ​ space` becomes `big space`.
+
+#### Outer dashes
 
 Extra dashes are also trimmed on documentation comments for better backwards compatiblity with luau-lsp:
 
@@ -243,49 +233,10 @@ return module
 
 A new key `documentation` will be added to [`luaurc`](./config-luaurc.md) files for conifguring how documentation comments will work, with the following options being underneath it:
 
-#### `requirements`
-
-A object containing optional requirements that can be enabled that effect how documentation comments are detected.
-
-* `allowEndComments`
-
-	Allows comments at the end of things to become their documentation comments:
-
-	```luau
-	local function meow(
-		f: () -> (), -- I'm the documentation comment!
-	)
-		-- code here
-	end
-	```
-
-	Although with this setting enabled luau will still prefer comments above parameters,
-	and will only use end comments if there is no comment above.
-	Luau will also not allow newlines between end comments and whatever they're documenting, as to avoid the following:
-
-	```luau
-	local function meow(
-		f: () -> (),
-		-- I'm the documentation comment for f!
-		mrrp: "meow"
-	)
-		-- code here
-	end
-	```
-
-* `allowMultilineShortComments`
-
-	Allows multiline short comments to be viewed as documentation comments, as normally the following would only have the last short comment displayed:
-
-	```luau
-	-- I'm not displayed by default!
-	-- I'm displayed by default!
-	local ENABLED = false
-	```
-
 #### `ignoredPrefixes`
 
 Array of prefixes that indicate any comments starting with these prefixes are to not be detected as documentation comments.
+With ignored prefixes being applied after [trimming](#trimming), so there is no need to allow for string patterns.
 For example if someone wanted to not have `--TODO:` comments detected, they would define the following:
 
 ```json
@@ -296,7 +247,24 @@ For example if someone wanted to not have `--TODO:` comments detected, they woul
 }
 ```
 
-**Note:** Ignored prefixes are applied after [trimming](#trimming).
+Multiline short comments would be are as seperate comments, up until one of the short comments doesn't start with a ignored prefix:
+
+```luau
+--TODO: add types
+--TODO: add code
+-- im a multiline
+-- short documentation comment :3
+local function meow()
+	--code here
+end
+```
+
+With the example displayed as:
+
+```plaintext
+im a multiline
+short documentation comment :3
+```
 
 #### `inferModuleHeaderAsDocumentationForReturn`
 
