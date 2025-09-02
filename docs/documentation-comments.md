@@ -334,7 +334,7 @@ Documentation Comments will also be exposed in type functions with the following
 | `documentation()` | `string?` | returns the documentation attached to the type; if there is no documentation attached it returns nil |
 | `setdocumentation(documentation: string?)` | `()` | adds / overrides the type's documentation; if documentation is nil or is a string with a length of 0, removes the types's documentation |
 
-For table fields their documentation will be attached to the key type instances, and function parameters will have their documentation be attached to the type instances that make up the head and tail.
+For table fields their documentation will be attached to the key and value type instances, and function parameters will have their documentation be attached to the type instances that make up the head and tail.
 
 ## Alternatives
 
