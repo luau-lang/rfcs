@@ -245,7 +245,7 @@ A new key `documentation` will be added to [`luaurc`](./config-luaurc.md) files 
 
 #### `requirements`
 
-A map containing optional requirements that can be enabled that effect how documentation comments are detected.
+A object containing optional requirements that can be enabled that effect how documentation comments are detected.
 
 * `allowEndComments`
 
@@ -285,7 +285,7 @@ A map containing optional requirements that can be enabled that effect how docum
 
 #### `ignoredPrefixes`
 
-An array of prefixes that indicate any comments starting with these prefixes are to not be detected as documentation comments.
+Array of prefixes that indicate any comments starting with these prefixes are to not be detected as documentation comments.
 For example if someone wanted to not have `--TODO:` comments detected, they would define the following:
 
 ```json
@@ -297,6 +297,31 @@ For example if someone wanted to not have `--TODO:` comments detected, they woul
 ```
 
 **Note:** Ignored prefixes are applied after [trimming](#trimming).
+
+#### `inferModuleHeaderAsDocumentationForReturn`
+
+Boolean indicating if header comments in files should be used as documentation for the return of modules, with a default of false.
+This option also trims the first line of the header if it has the same text as the module variable.
+Header comments are detected by them being at the top of the file after hot comments and whitespace, with them not being detected as being attached to anything that can have documentation.
+
+```luau
+--!native
+
+--[[
+	stack_tree
+	library for generating tree structures for objects that are stacked
+	to prevent floating objects from ever happening
+]]
+
+--[[
+	stack_tree has its documentation as:
+	library for generating tree structures for objects that are stacked
+	to prevent floating objects from ever happening
+]]
+local stack_tree = {}
+
+return stack_tree
+```
 
 ### Type functions
 
@@ -314,3 +339,12 @@ For table fields their documentation will be attached to the key type instances,
 ## Alternatives
 
 Luau could require a specific type of comment for documentation comments like moonwave. But the goal of this RFC is not to have any fancy syntax for documentation comments, and instead have something that will work with the most amount of codebases today.
+
+## Future Work
+
+Develop an alternative to hot comments, so the documentation luaurc keys can be exposed nicely per file.
+As this the same type of bad as const in lua:
+
+```luau
+--!documentation ignoredPrefixes "TODO:"
+```
