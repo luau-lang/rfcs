@@ -64,7 +64,7 @@ Having newline requirements ensures comments are intended to be documentation co
 	utility functions for encoding and decoding urls
 ]]
 
-export type SpaceEncoding = "+" | "%20" -- SpaceEncoding won't have the header as its documentation comment
+export type SpaceEncoding = "+" | "%20"
 ```
 
 Theres also an array of ignored prefixes for documentation comments that can be defined in [`luaurc`](./config-luaurc.md) files.
