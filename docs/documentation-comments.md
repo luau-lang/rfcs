@@ -110,7 +110,7 @@ mrrp
 
 #### Outer dashes
 
-Extra dashes are also trimmed on documentation comments for better backwards compatiblity with luau-lsp:
+Extra dashes are also trimmed on documentation comments for better backwards compatibility with luau-lsp:
 
 ```luau
 --- I have an extra dash!
@@ -127,7 +127,7 @@ Dashes are also removed at the end as to support this common styling:
 
 ### Carrying
 
-Documentation comments automatically carry from variable to variable, and from type to type; unless overriden which can be seen in the example of 2 modules below below.
+Documentation comments automatically carry from variable to variable, and from type to type; unless overridden which can be seen in the example of 2 modules below below.
 
 Module A:
 
@@ -165,7 +165,7 @@ return export :: Export
 
 </br>
 
-Although fields in tables cannot have their comments overriden:
+Although fields in tables cannot have their comments overridden:
 
 ```luau
 local module = {
@@ -235,7 +235,7 @@ return module
 
 ### Configuration
 
-A new key `documentation` will be added to [`luaurc`](./config-luaurc.md) files for conifguring how documentation comments will work, with the following options being underneath it:
+A new key `documentation` will be added to [`luaurc`](./config-luaurc.md) files for configuring how documentation comments will work, with the following options being underneath it:
 
 #### `ignoredPrefixes`
 
@@ -251,7 +251,7 @@ For example if someone wanted to not have `--TODO:` comments detected, they woul
 }
 ```
 
-Multiline short comments are treated as seperate comments, up until one of the short comments doesn't start with a ignored prefix:
+Multiline short comments are treated as separate comments, up until one of the short comments doesn't start with a ignored prefix:
 
 ```luau
 --TODO: add types
@@ -333,7 +333,7 @@ For table fields their documentation will be attached to the key and value type 
 
 ## Alternatives
 
-Luau could require a specific type of comment for documentation comments like moonwave. But the goal of this RFC is not to have any fancy syntax for documentation comments, and instead have something that will work with the most amount of codebases today.
+Luau could require a specific type of comment for documentation comments like Moonwave. But the goal of this RFC is not to have any fancy syntax for documentation comments, and instead have something that will work with the most amount of codebases today.
 
 ## Future Work
 
