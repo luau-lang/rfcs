@@ -236,7 +236,7 @@ A new key `documentation` will be added to [`luaurc`](./config-luaurc.md) files 
 #### `ignoredPrefixes`
 
 Array of prefixes that indicate any comments starting with these prefixes are to not be detected as documentation comments.
-With ignored prefixes being applied before [trimming](#trimming), so there is no need to allow for string patterns.
+With ignored prefixes being applied after [trimming](#trimming), so there is no need to allow for string patterns.
 For example if someone wanted to not have `--TODO:` comments detected, they would define the following:
 
 ```json
@@ -247,7 +247,7 @@ For example if someone wanted to not have `--TODO:` comments detected, they woul
 }
 ```
 
-Multiline short comments would be are as seperate comments, up until one of the short comments doesn't start with a ignored prefix:
+Multiline short comments are treated as seperate comments, up until one of the short comments doesn't start with a ignored prefix:
 
 ```luau
 --TODO: add types
@@ -264,6 +264,27 @@ With the example displayed as:
 ```plaintext
 im a multiline
 short documentation comment :3
+```
+
+</br>
+
+Prefixes also get excessive whitespace at the start and end trimmed off by luau (with luau providing a lint telling the user to remove said excessive whitespace if [Support Luau-syntax configuration files](https://github.com/luau-lang/rfcs/pull/125) is merged).
+The reasoning for having excessive whitespace trimmed is because of comments like this:
+
+```luau
+  -- ROBLOX TODO: useTransition,
+  -- ROBLOX TODO: startTransition,
+  -- ROBLOX TODO: useDeferredValue,
+  -- ROBLOX TODO: REACT_SUSPENSE_LIST_TYPE as SuspenseList,
+  unstable_LegacyHidden = ReactSymbols.REACT_LEGACY_HIDDEN_TYPE,
+```
+
+Also because theres probably someone out there that does this:
+
+```luau
+--[[
+	TODO: im a long todo, so long that the user decided i couldnt fit in a short comment
+]]
 ```
 
 #### `inferModuleHeaderAsDocumentationForReturn`
