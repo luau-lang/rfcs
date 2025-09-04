@@ -325,9 +325,6 @@ Documentation Comments will also be exposed in type functions with the following
 
 For table fields their documentation will be attached to the key and value type instances, and function parameters will have their documentation be attached to the type instances that make up the head and tail.
 
-Primitives will error if they have their documentation set, unless they are cloned beforehand as to allow having documentation comments on primitives.
-If a primitive already has a documentation comment, it won't need to be cloned; as this limitation exists so one can't set a documentation comment on `types.number` for example.
-
 ## Alternatives
 
 Luau could require a specific type of comment for documentation comments like moonwave. But the goal of this RFC is not to have any fancy syntax for documentation comments, and instead have something that will work with the most amount of codebases today.
