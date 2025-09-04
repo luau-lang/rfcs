@@ -290,7 +290,7 @@ Also because theres probably someone out there that does this:
 #### `inferModuleHeaderAsDocumentationForReturn`
 
 Boolean indicating if header comments in files should be used as documentation for the return of modules, with a default of false.
-This option also trims the first line of the header if it has the same text as the module variable.
+This option also trims the first line of the header if it has the same text as the file name.
 Header comments are detected by them being at the top of the file after hot comments and whitespace, with them not being detected as being attached to anything that can have documentation.
 
 ```luau
