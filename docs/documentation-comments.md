@@ -74,35 +74,39 @@ This is further explained under the [Configuration](#configuration) section.
 
 #### Whitespace
 
-Whitespace is to be trimmed from the start and end of comments, as is done today by luau-lsp and Roblox:
+Whitespace is to be trimmed from the start and end of each line in comments, as is done today by luau-lsp and Roblox:
 
 ```luau
 --[[
 	I have a tab!
-]]
-```
-
-Would appear as `I have a tab!` instead of `​ ​ ​ ​ ​ I have a tab!`.
-
-With inner whitespace trimmed after each newline the same amount as the whitespace at the start:
-
-```luau
---[[
-	meow mrrp
-		maow
-   mrow
+	I also have a tab!
 ]]
 ```
 
 Appearing as:
 
 ```plaintext
-meow mrrp
-	maow
-mrow
+I have a tab! I also have a tab!
 ```
 
-Multiple spaces inbetween words will also be trimmed, with them being reduced to single spaces so `big ​ space` becomes `big space`.
+Although empty lines are still preserved, but multiple empty lines in a row will be reduced to just one empty line:
+
+```luau
+--[[
+	meow
+
+
+	mrrp
+]]
+```
+
+Appearing as:
+
+```plaintext
+meow
+
+mrrp
+```
 
 #### Outer dashes
 
@@ -283,7 +287,7 @@ Also because theres probably someone out there that does this:
 
 ```luau
 --[[
-	TODO: im a long todo, so long that the user decided i couldnt fit in a short comment
+	TODO: I'm a long todo!! SO SO SO long that the user decided I couldn't fit in a short comment!!!
 ]]
 ```
 
