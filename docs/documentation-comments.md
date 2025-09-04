@@ -272,8 +272,8 @@ Prefixes also get excessive whitespace at the start and end trimmed off by luau 
 The reasoning for having excessive whitespace trimmed is because of comments like this:
 
 ```luau
-  -- ROBLOX TODO: useTransition,
-  -- ROBLOX TODO: startTransition,
+  --ROBLOX TODO: useTransition,
+  --ROBLOX TODO: startTransition,
   -- ROBLOX TODO: useDeferredValue,
   -- ROBLOX TODO: REACT_SUSPENSE_LIST_TYPE as SuspenseList,
   unstable_LegacyHidden = ReactSymbols.REACT_LEGACY_HIDDEN_TYPE,
