@@ -30,24 +30,60 @@ type Mrrp = "miaow"
 type Mrow = Meow<Mrrp> -- no documentation comment
 ```
 
-## Design
+## Comment Terminology
 
-Documentation comments are to be detected by luau as any comment that has can have an optional new line before a `type`, `variable`, `function` parameter, or `table` property declaration.
+This RFC refers to 2 types of comments, short and long. Theres also a third type of comment called a "Multiline short comment", but its really just multiple short comments in a trench coat huddled together.
 
 ```luau
---TODO: Not a documentation comment
+--[[
+	I'm a long comment!
+]]
 
--- im a documentation comment :3c
-type Meow = "mrrp"
+-- I'm a short comment!
 
+-- I'm a multiline
+-- short comment!
+```
+
+## Design
+
+Documentation comments are to be detected by luau as any comment or short comments that is before (with one newline allowed), or after (with no newlines allowed) a `type`, `variable`, `function` parameter, `type` union component, or `table` property declaration.
+There are some caveats to this though:
+
+* Short and long comments can't be merged together, as they're distinctly different types of comments.
+* Comments before a declaration are favored over ones after. So if a declaration has comments before and after, only the comment before will be used.
+
+</br>
+
+```luau
+-- PartType example taken from: https://create.roblox.com/docs/en-us/reference/engine/enums/PartType
+
+-- The PartType enum controls the Shape of a Part.
+type PartType =
+	-- A spherical shape.
+	| "Ball"
+	-- A block shape.
+	| "Block"
+	-- A cylinder shape oriented along the X axis.
+	| "Cylinder"
+	-- A wedge shape with a slope on one side.
+	| "Wedge"
+	-- A wedge shape with slopes on two sides.
+	| "CornerWedge"
+
+--[[
+	I'm not included in the documentation because I'm long and not short!
+]]
 -- im a multiline
 -- short documentation comment :3
 type Mrow = "meow"
-```
 
-End comments are also allowed and **cannot** have a newline between it and the declaration, but won't be used if there is a comment above the declaration already:
+-- I get ignored because short and long comments can't be combined!
+--[[
+	I'm the documentation!
+]]
+type Mrrp = "maow"
 
-```luau
 -- im used :3
 type Meow = "mrrp" -- im not used :(
 ```
