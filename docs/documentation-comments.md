@@ -32,7 +32,7 @@ type Mrow = Meow<Mrrp> -- no documentation comment
 
 ## Comment Terminology
 
-This RFC refers to 2 types of comments, short and long. Theres also a third type of comment called a "Multiline short comment", but its really just multiple short comments merged together.
+This RFC refers to 2 types of comments, short and long. Theres also a third type of comment called a "Multiline short comment", but it's really just multiple short comments merged together.
 
 ```luau
 --[[
@@ -172,7 +172,7 @@ Module A:
 -- mrrp
 export type Meow = "mrrp"
 
-type Mrrp = module_a.Meow -- Because Mrrp is just Meow, it'll have the same documentation comment as Meow
+type Mrrp = Meow -- Because Mrrp is just Meow, it'll have the same documentation comment as Meow
 
 -- I override Meow's documentation comment!
 type Mrow = Meow
@@ -288,7 +288,7 @@ For example if someone wanted to not have `--TODO:` comments detected, they woul
 }
 ```
 
-Multiline short comments are treated as separate comments, up until one of the short comments doesn't start with a ignored prefix:
+Multiline short comments are treated as separate comments, up until one of the short comments doesn't start with an ignored prefix:
 
 ```luau
 --TODO: add types
