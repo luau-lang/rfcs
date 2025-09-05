@@ -277,7 +277,7 @@ A new key `documentation` will be added to [`luaurc`](./config-luaurc.md) files 
 #### `ignoredPrefixes`
 
 Array of prefixes that indicate any comments starting with these prefixes are to not be detected as documentation comments.
-With ignored prefixes being applied after [trimming](#trimming), so there is no need to allow for string patterns.
+With the prefixes being applied after [trimming](#trimming), so prefixes aren't whitespace sensitive.
 For example if someone wanted to not have `--TODO:` comments detected, they would define the following:
 
 ```json
