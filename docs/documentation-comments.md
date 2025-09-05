@@ -52,6 +52,7 @@ There are some caveats to this though:
 
 * Short and long comments can't be merged together, as they're distinctly different types of comments.
 * Comments before a declaration are favored over ones after. So if a declaration has comments before and after, only the comment before will be used.
+* Multiline short documentation comments don't work after a declaration, as they require newlines in-between the short comments they're made up of.
 
 </br>
 
