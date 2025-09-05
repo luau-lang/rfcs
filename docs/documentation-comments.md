@@ -32,7 +32,7 @@ type Mrow = Meow<Mrrp> -- no documentation comment
 
 ## Comment Terminology
 
-This RFC refers to 2 types of comments, short and long. Theres also a third type of comment called a "Multiline short comment", but its really just multiple short comments in a trench coat huddled together.
+This RFC refers to 2 types of comments, short and long. Theres also a third type of comment called a "Multiline short comment", but its really just multiple short comments merged together.
 
 ```luau
 --[[
