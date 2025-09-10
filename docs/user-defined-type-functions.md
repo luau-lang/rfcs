@@ -1,5 +1,7 @@
 # User-Defined Type Functions
 
+**Status**: Implemented
+
 ## Summary
 
 The new Luau type inference engine (or type solver, for short) adds support for a system of built-in type functions that compute result types from provided argument types. This system is already being used to power support for overloadable operators, and the broad design philosophy is to include built-in type functions that correspond to built-in runtime-level operations in the language. To further enhance the expressivity of the type system, this RFC extends that system with a proposed design for user-defined type functions, allowing developers to define their own type functions in ordinary Luau code.

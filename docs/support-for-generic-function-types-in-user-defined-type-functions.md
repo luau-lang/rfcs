@@ -1,5 +1,7 @@
 # Support for Generic Types and Packs in User-Defined Type Functions
 
+**Status**: Implemented
+
 ## Summary
 
 Add support for generic function types in type functions to allow more types to be accepted by them, including tables and classes which might contain generic function types.

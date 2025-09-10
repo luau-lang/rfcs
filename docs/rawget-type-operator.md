@@ -1,5 +1,7 @@
 # `rawget` type function
 
+**Status**: Implemented
+
 ## Summary
 
 This RFC proposes the addition of a new type function, `rawget`, which can be used to look up a specific property of a table type *without* invoking the `__index` metamethod.

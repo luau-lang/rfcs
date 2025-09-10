@@ -1,5 +1,7 @@
 # math.lerp
 
+**Status**: Implemented
+
 ## Summary
 
 Add a `lerp` function to the `math` library, which performs linear interpolation between two numbers.
