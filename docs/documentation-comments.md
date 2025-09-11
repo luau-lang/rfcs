@@ -160,7 +160,7 @@ Extra dashes are also trimmed on documentation comments for better backwards com
 --- I have an extra dash!
 ```
 
-Would appear as `I have an extra dash!` instead of `- I have an extra dash!`.
+Would appear as `I have an extra dash!` instead of `- I have an extra dash!`.</br>
 Dashes are also removed at the end as to support this common styling:
 
 ```luau
