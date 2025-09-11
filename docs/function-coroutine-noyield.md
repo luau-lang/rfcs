@@ -79,7 +79,7 @@ type Engine = {
 
 `beforeFrame` is called before each frame is rendered, and is expected to run quickly. If the provided function yields, the frame will be delayed until it resumes, causing stutter.
 
-Because the current API, which is just a single callback, is not very flexible, we wrap it in our earlier `Event` type. We want to ensure thet the callbacks do not yield, to avoid stutter.
+Because the current API, which is just a single callback, is not very flexible, we wrap it in our earlier `Event` type. We want to ensure that the callbacks do not yield, to avoid stutter.
 
 
 ### Solutions:
@@ -427,7 +427,7 @@ For clarity, let us define:
 
 7. Nested calls to `noYield` will create multiple coroutines unnecessarily, with the same drawbacks as above multiplied.
 
-Problems 3-7 can be mitigated with the techniques from solutions ["implementing a custom yielding library"](#implementing-a-custom-yielding-library)" or ["patch the coroutine global"](#patch-the-coroutine-global-through-_g-shared-or-setfenv), but they add complexity and have their own drawbacks.
+Problems 3-7 can be mitigated with the techniques from solutions ["implementing a custom yielding library"](#implementing-a-custom-yielding-library) or ["patch the coroutine global"](#patch-the-coroutine-global-through-_g-shared-or-setfenv), but they add complexity and have their own drawbacks.
 
 
 #### Error handling
@@ -476,7 +476,7 @@ This is a confusing misuse of a function or feature that relies on an implementa
 
 Implementing a custom yielding library adds complexity and is is impractical. Furthermore, it requires all code to use the custom library and cooperation between them. It is not compatible with third-party code that use the standard coroutine library, or even another library for yielding.
 
-This can be mitigated by using another hacky solution... With the problems they have themselves - you might as well just do them instead.
+This can be mitigated by using another hacky solution on top... With the problems they have themselves - you might as well just do them instead.
 
 
 #### Global patching
@@ -643,7 +643,7 @@ No new coroutine or stack are created. The function is called "directly", with t
 
 	</details>
 
-- Nested `coroutine.noyield` calls are supported, and, other than the added `coroutine.noyield` call to the stack, are functionally identical to doing `fn(...)`.
+- Nested `coroutine.noyield` calls are supported, and, other than the added `coroutine.noyield` call to the stack, are functionally identical to doing `fn(...)`. Ideally, recursive nested calls should not increase the C call stack's depth (which is rather low - 200 calls).
 
 	<details>
 	<summary>Example:</summary>
@@ -682,13 +682,15 @@ No new coroutine or stack are created. The function is called "directly", with t
 
 1. Though the ability to enforce non-yielding calls is useful, directly exposing it it is not a strictly necessary addition - the existing "hacks" are sufficient and performant, though inelegant. If Luau has no plans to change them, they can be documented as the recommended way to enforce non-yielding calls.
 
-2. The implementation detail of throwing a different error message for debugging clarity when yielding across a no-yield boundary may be unnecessary, especially if the traceback is preserved, and the existing `"attempt to yield across C-call boundary"` can be sufficient. In this case, `coroutine.noyield` would no longer need to track if yielding is allowed by the user, making it effectively a sandboxed proxy to the `lua_call` C function.
+2. The implementation detail of throwing a different error message for debugging clarity when yielding across a no-yield boundary may be unnecessary, especially if the traceback is preserved, and the existing `"attempt to yield across C-call boundary"` can be sufficient. In this case, `coroutine.noyield` would no longer need to track if yielding is allowed by the user, making it effectively a sandboxed proxy to the `lua_call` C function (ideally, with the addition of nested calls not increasing the C stack depth).
 
 3. It may be useful to instead add a `coroutine.markyieldable(coro: thread, yieldable: boolean)` function that manually marks a coroutine as yieldable or not, thus dynamically allowing a thread, or other created threads to yield only during specific situations. `coroutine.noyield()` however is a simpler and more user-friendly abstraction, as a system to manually mark coroutines would be more complex to use and error-prone.
 
 4. It'd also be possible to add a `coroutine.createNoYield(fn: () -> ()): thread` function that creates a coroutine that is not allowed to yield once resumed. This would still create a new coroutine, with its own stack.
 
 5. Coroutines in general are not type-safe. An alternative would be to add type system support for yielding and resuming types. This would allow marking functions as not allowed to yield at the type level, and have the type checker enforce it. Coroutines are rather dynamic in nature, and this would be a complex addition to the type system, both for Luau's development and users, with limited benefits. Regardless, `coroutine.noyield()` is a runtime, not compile-time feature, and would still be useful.
+
+6. Previously, Lua did not allow yielding across `pcall` boundaries. Roblox fixed this issue by introducing `ypcall`, which did allow yields.Lua 5.2+ and Luau do allow yielding across `pcall` boundaries, which unfortunately also removed the standard to enforce non-yielding calls. This implementation, however, had the drawback of [not propagating errors](#error-handling). For familiarity, old `pcall` behavior could be reintroduced as a `nypcall` function, which does not allow yielding and protects calls. However, `coroutine.noyield` is a more general and flexible solution, as it allows direct calls and error propagation. The behavior of this `nypcall` would instead be achieved through `pcall(coroutine.noyield, fn, ...)`. If the intent is simply to implement special behavior when a call yields, manually managed coroutines are the way to go - not `coroutine.noyield`.[^1]
 
 
 ## Benchmarks
@@ -920,3 +922,6 @@ Run on Roblox Studio 0.690.0.6900721 (64bit). Microsoft Windows 11 Pro, version 
 | 8        | coroutine wrap   | 0.0674972999986494   |
 | 9        | task spawn       | 0.11786820000270382  |
 | 10       | xpcall handler   | 0.3082933999976376   |
+
+
+[^1]: See https://github.com/luau-lang/rfcs/pull/140#issuecomment-3281813768
