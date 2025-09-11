@@ -54,6 +54,13 @@ There are some caveats to this though:
 * Comments before a declaration are favored over ones after. So if a declaration has comments before and after, only the comment before will be used.
 * Multiline short documentation comments don't work after a declaration, as they require newlines in-between the short comments they're made up of.
 
+Header comments are an exception where despite not being directly over what they're documenting they can be inferred as the documentation for a modules return. If the header comment meets the following requirements:
+
+* The first line matches the file name, with whitespace at the start and end of the first line not included.
+	Spaces are allowed in-between words for improved legibility if the file name is in `camelCase`, `PascalCase`, `snake_case`, or `kebab-case`. So if your file name is `meowMrrp` you can have the first line of the header as `meow mrrp`, `Meow Mrrp`, `meow Mrrp`, `Meow mrrp`, or `meowMrrp`.
+* The modules return doesn't have a documentation comment already
+* Nothing but hot comments (`--!strict`), or whitespace is above it
+
 </br>
 
 ```luau
@@ -326,31 +333,6 @@ Also because theres probably someone out there that does this:
 --[[
 	TODO: I'm a long todo!! SO SO SO long that the user decided I couldn't fit in a short comment!!!
 ]]
-```
-
-#### `inferModuleHeaderAsDocumentationForReturn`
-
-Boolean indicating if header comments in files should be used as documentation for the return of modules, with a default of false.
-This option also trims the first line of the header if it has the same text as the file name.
-Header comments are detected by them being at the top of the file after hot comments and whitespace, with them not being detected as being attached to anything that can have documentation.
-
-```luau
---!native
-
---[[
-	stack_tree
-	library for generating tree structures for objects that are stacked
-	to prevent floating objects from ever happening
-]]
-
---[[
-	stack_tree has its documentation as:
-	library for generating tree structures for objects that are stacked
-	to prevent floating objects from ever happening
-]]
-local stack_tree = {}
-
-return stack_tree
 ```
 
 ### Type functions
