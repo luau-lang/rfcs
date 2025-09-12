@@ -111,9 +111,6 @@ Having newline requirements ensures comments are intended to be documentation co
 export type SpaceEncoding = "+" | "%20"
 ```
 
-Theres also an array of ignored prefixes for documentation comments that can be defined in [`luaurc`](./config-luaurc.md) files.
-This is further explained under the [Configuration](#configuration) section.
-
 ### Trimming
 
 #### Whitespace
@@ -275,64 +272,6 @@ pcall(function()
 end)
 
 return module
-```
-
-### Configuration
-
-A new key `documentation` will be added to [`luaurc`](./config-luaurc.md) files for configuring how documentation comments will work, with the following options being underneath it:
-
-#### `ignoredPrefixes`
-
-Array of prefixes that indicate any comments starting with these prefixes are to not be detected as documentation comments.
-With the prefixes being applied after [trimming](#trimming), so prefixes aren't whitespace sensitive.
-For example if someone wanted to not have `--TODO:` comments detected, they would define the following:
-
-```json
-{
-	"documentation": {
-		"ignoredPrefixes": [ "TODO:" ]
-	}
-}
-```
-
-Multiline short comments are treated as separate comments, up until one of the short comments doesn't start with an ignored prefix:
-
-```luau
---TODO: add types
---TODO: add code
--- im a multiline
--- short documentation comment :3
-local function meow()
-	--code here
-end
-```
-
-With the example displayed as:
-
-```plaintext
-im a multiline
-short documentation comment :3
-```
-
-</br>
-
-Prefixes also get excessive whitespace at the start and end trimmed off by luau (with luau providing a lint telling the user to remove said excessive whitespace if [Support Luau-syntax configuration files](https://github.com/luau-lang/rfcs/pull/125) is merged).
-The reasoning for having excessive whitespace trimmed is because of comments like this:
-
-```luau
-  --ROBLOX TODO: useTransition,
-  --ROBLOX TODO: startTransition,
-  -- ROBLOX TODO: useDeferredValue,
-  -- ROBLOX TODO: REACT_SUSPENSE_LIST_TYPE as SuspenseList,
-  unstable_LegacyHidden = ReactSymbols.REACT_LEGACY_HIDDEN_TYPE,
-```
-
-Also because theres probably someone out there that does this:
-
-```luau
---[[
-	TODO: I'm a long todo!! SO SO SO long that the user decided I couldn't fit in a short comment!!!
-]]
 ```
 
 ### Type functions
