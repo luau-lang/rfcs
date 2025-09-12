@@ -247,7 +247,7 @@ do
 	-- The callback for this module
 	module.callback = function() end
 	-- I'm not the documentation comment!
-	module.meow = "mrrp"
+	module.callback = "mrrp"
 end
 ```
 
