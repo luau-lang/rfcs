@@ -50,7 +50,18 @@ This RFC refers to 2 types of comments, short and long. Theres also a third type
 Documentation comments are to be detected by luau as any comment or short comments that is before (with one newline allowed), or after (with no newlines allowed) a `type`, `variable`, `function` parameter, `type` union component, or `table` property declaration.
 There are some caveats to this though:
 
-* Short and long comments can't be merged together, as they're distinctly different types of comments.
+* Only short comments can be merged together, as short comments merging with long comments goes against how one would think documentation comments should work. The same goes for merging long comments with other long comments.
+
+	```luau
+	--[[
+		It'd be very weird
+	]]
+	--[[
+		if
+	]]
+	-- we merged together
+	```
+
 * Comments before a declaration are favored over ones after. So if a declaration has comments before and after, only the comment before will be used.
 * Multiline short documentation comments don't work after a declaration, as they require newlines in-between the short comments they're made up of.
 
