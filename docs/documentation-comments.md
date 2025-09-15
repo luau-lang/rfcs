@@ -292,12 +292,3 @@ For table fields their documentation will be attached to the key and value type 
 ## Alternatives
 
 Luau could require a specific type of comment for documentation comments like Moonwave. But the goal of this RFC is not to have any fancy syntax for documentation comments, and instead have something that will work with the most amount of codebases today.
-
-## Future Work
-
-Develop an alternative to hot comments, so the documentation luaurc keys can be exposed nicely per file.
-As this the same type of bad as const in lua:
-
-```luau
---!documentation ignoredPrefixes "TODO:"
-```
