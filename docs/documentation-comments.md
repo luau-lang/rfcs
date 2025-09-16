@@ -292,7 +292,7 @@ Documentation Comments will also be exposed in type functions with the `:setdocu
 | Overload | Return Type | Description |
 | ------------- | ------------- | ------------- |
 | `(documentation: string?)` | `()` | adds / overrides the type's documentation; if documentation is nil or is a string with a length of 0, removes the types's documentation |
-| `(type: type)` | `()` | sets the documentation of the type to be same as the provided type's documentation |
+| `(copyfrom: type)` | `()` | sets the documentation of the type to be same as the provided type's documentation |
 
 For table fields their documentation will be attached to the key and value type instances, and function parameters will have their documentation be attached to the type instances that make up the head and tail.
 
