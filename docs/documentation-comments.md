@@ -287,18 +287,16 @@ return module
 
 ### Type functions
 
-Documentation Comments will also be exposed in type functions with the following methods added to the `type` instance:
+Documentation Comments will also be exposed in type functions with the `:setdocumentation()` method on type instances
 
-#### `type` Instance
-
-| Instance Methods | Return Type | Description |
+| Overload | Return Type | Description |
 | ------------- | ------------- | ------------- |
-| `documentation()` | `string?` | returns the documentation attached to the type; if there is no documentation attached it returns nil |
-| `setdocumentation(documentation: string?)` | `()` | adds / overrides the type's documentation; if documentation is nil or is a string with a length of 0, removes the types's documentation |
+| `(documentation: string?)` | `()` | adds / overrides the type's documentation; if documentation is nil or is a string with a length of 0, removes the types's documentation |
+| `(type: type)` | `()` | sets the documentation of the type to be same as the provided type's documentation |
 
 For table fields their documentation will be attached to the key and value type instances, and function parameters will have their documentation be attached to the type instances that make up the head and tail.
 
-**Note:** Primitive type instances on the `types` library (`types.number`, etc) are not allowed to have their documentation set, unless cloned using `types.copy`.
+**Note:** Primitive type instances on the `types` library (`types.number`, etc) are not allowed to have their documentation set, unless copied using `types.copy`.
 
 ## Alternatives
 
