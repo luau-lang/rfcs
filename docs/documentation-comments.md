@@ -160,6 +160,8 @@ meow
 mrrp
 ```
 
+**Note:** 4 Spaces just like in markdown will force a newline, without requiring a blank line in-between
+
 #### Outer dashes
 
 Extra dashes are also trimmed on documentation comments for better backwards compatibility with luau-lsp:
