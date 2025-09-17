@@ -122,63 +122,6 @@ Having newline requirements ensures comments are intended to be documentation co
 export type SpaceEncoding = "+" | "%20"
 ```
 
-### Trimming
-
-#### Whitespace
-
-Whitespace is to be trimmed from the start and end of each line in comments, as is done today by luau-lsp and Roblox:
-
-```luau
---[[
-	I have a tab!
-	I also have a tab!
-]]
-```
-
-Appearing as:
-
-```plaintext
-I have a tab! I also have a tab!
-```
-
-Although empty lines are still preserved, but multiple empty lines in a row will be reduced to just one empty line:
-
-```luau
---[[
-	meow
-
-
-	mrrp
-]]
-```
-
-Appearing as:
-
-```plaintext
-meow
-
-mrrp
-```
-
-**Note:** 4 Spaces just like in markdown will force a newline, without requiring a blank line in-between
-
-#### Outer dashes
-
-Extra dashes are also trimmed on documentation comments for better backwards compatibility with luau-lsp:
-
-```luau
---- I have an extra dash!
-```
-
-Would appear as `I have an extra dash!` instead of `- I have an extra dash!`.</br>
-Dashes are also removed at the end as to support this common styling:
-
-```luau
---[[
-	I have extra dashes at the end!
---]]
-```
-
 ### Carrying
 
 Documentation comments automatically carry from variable to variable, and from type to type; unless overridden which can be seen in the example of 2 modules below below.
