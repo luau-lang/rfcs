@@ -233,12 +233,14 @@ return module
 
 ### Type functions
 
-Documentation Comments will also be exposed in type functions with the `:setdocumentation()` method on type instances
+Documentation Comments will also be exposed in type functions with the `:setdocumentation()` method on type instances. It should be noted that this method will not work on primitive type instances on the `types` library (ie types.number, etc), unless copied using `types.copy`.
 
 | Overload | Return Type | Description |
 | ------------- | ------------- | ------------- |
 | `(documentation: string?)` | `()` | adds / overrides the type's documentation; if documentation is nil or is a string with a length of 0, removes the types's documentation |
 | `(copyfrom: type)` | `()` | sets the documentation of the type to be same as the provided type's documentation |
+
+</br>
 
 Table fields will have their documentation attached to the key type instances, with values having a different documentation comment. So when hovering over the value of the field `sound`, a language server can show the documentation for `PurrMeow`:
 
@@ -252,7 +254,7 @@ type CatInfo = {
 }
 ```
 
-Function parameters will have their documentation be attached to the type instances that make up the head and tail.  
+Function parameters will have their documentation be attached to the type instances that make up the head and tail.
 Although if [Function Parameter Names in User-Defined Type Functions](<https://github.com/luau-lang/rfcs/pull/137>) is accepted, function parameters will work like how table fields do. With the parameters documentation attached to the name, and the values having their own documentation.
 So when hovering over the value of the parameter `sound`, a language server can show the documentation for `PurrMeow`:
 
@@ -266,8 +268,6 @@ local function set_sound(
 	cat_info.sound = sound
 end
 ```
-
-**Note:** Primitive type instances on the `types` library (`types.number`, etc) are not allowed to have their documentation set, unless copied using `types.copy`.
 
 ## Alternatives
 
