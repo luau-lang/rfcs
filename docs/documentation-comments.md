@@ -147,11 +147,13 @@ local module = require("@module")
 type Export = {
 	-- The comment of buzz is me instead of module_a.Meow's comment!
 	buzz: module_a.Meow,
+	mrow: module_a.Meow, -- The field 'mrow' is just module_a.Meow, so it'll have the same documentation comment as module_a.Meow
 }
 
 -- Module B: for all your needs of bees and cats
 local export = {
 	buzz = "mrrp",
+	mrow = "mrrp",
 }
 
 -- Casting here overrides the type & comments of export to be that of the type 'Export'
@@ -238,7 +240,32 @@ Documentation Comments will also be exposed in type functions with the `:setdocu
 | `(documentation: string?)` | `()` | adds / overrides the type's documentation; if documentation is nil or is a string with a length of 0, removes the types's documentation |
 | `(copyfrom: type)` | `()` | sets the documentation of the type to be same as the provided type's documentation |
 
-For table fields their documentation will be attached to the key and value type instances, and function parameters will have their documentation be attached to the type instances that make up the head and tail.
+Table fields their documentation will be attached to the key type instances, with values having a different documentation comment. So when hovering over the value of the field `sound`, a language server can show the documentation for `PurrMeow`:
+
+```luau
+-- a combination between a purr and a meow
+type PurrMeow = "mrrp"
+
+type CatInfo = {
+	-- the sound the cat is currently making
+	sound: PurrMeow
+}
+```
+
+Function parameters will have their documentation be attached to the type instances that make up the head and tail.
+Although if [Function Parameter Names in User-Defined Type Functions](<https://github.com/luau-lang/rfcs/pull/137>), is accepted function parameters will work like how table fields do. With the parameters documentation attached to the name, and the values having their own documentation.
+So when hovering over the value of the parameter `sound`, a language server can show the documentation for `PurrMeow`:
+
+```luau
+local function set_sound(
+	-- The cat that will have its sound changed
+	cat_info: CatInfo,
+	-- The new sound to set the cat to make
+	sound: PurrMeow
+)
+	cat_info.sound = sound
+end
+```
 
 **Note:** Primitive type instances on the `types` library (`types.number`, etc) are not allowed to have their documentation set, unless copied using `types.copy`.
 
