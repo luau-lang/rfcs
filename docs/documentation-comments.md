@@ -85,10 +85,8 @@ type PartType =
 	| "Block"
 	-- A cylinder shape oriented along the X axis.
 	| "Cylinder"
-	-- A wedge shape with a slope on one side.
-	| "Wedge"
-	-- A wedge shape with slopes on two sides.
-	| "CornerWedge"
+	| "Wedge" --[[ A wedge shape with a slope on one side. ]]
+	| "CornerWedge" -- A wedge shape with slopes on two sides.
 
 --[[
 	I'm not included in the documentation because I'm long and not short!
@@ -191,14 +189,15 @@ local module = {
 
 </br>
 
-If a field isn't defined in a table literal, fields will only allow their comment to be the first place where the field is defined:
+If a field isn't defined in a table literal, fields will only allow their comment to be the first place lexically where the field is defined:
 
 ```luau
 local module = {}
 
-do
+if true then
 	-- The callback for this module
 	module.callback = function() end
+else
 	-- I'm not the documentation comment!
 	module.callback = "mrrp"
 end
