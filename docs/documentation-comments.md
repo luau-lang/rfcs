@@ -254,7 +254,7 @@ type CatInfo = {
 }
 ```
 
-Function parameters will have their documentation be attached to the type instances that make up the head and tail.
+Function parameters will have their documentation be attached to the type instances that make up the head and tail.  
 Although if [Function Parameter Names in User-Defined Type Functions](<https://github.com/luau-lang/rfcs/pull/137>) is accepted, function parameters will work like how table fields do. With the parameters documentation attached to the name, and the values having their own documentation.
 So when hovering over the value of the parameter `sound`, a language server can show the documentation for `PurrMeow`:
 
