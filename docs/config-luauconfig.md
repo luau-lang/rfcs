@@ -23,21 +23,23 @@ An example `.config.luau` is given below.
 
 ```luau
 return {
-    languageMode = "nonstrict",
-    lint = {
-        ["*"] = true,
-        LocalUnused = false
-    },
-    lintErrors = true,
-    typeErrors = true,
-    globals = {"expect"},
-    aliases = {
-        src = "./src"
+    luau = {
+        languagemode = "nonstrict",
+        lint = {
+            ["*"] = true,
+            LocalUnused = false
+        },
+        linterrors = true,
+        typeerrors = true,
+        globals = {"expect"},
+        aliases = {
+            src = "./src"
+        }
     }
 }
 ```
 
-The file must return a Luau table of the following `LuauConfig` type:
+The file must return a Luau table of the following `Config` type (facilitated by type checking and autocomplete support):
 ```luau
 type LanguageMode = "strict" | "nonstrict" | "nocheck"
 
@@ -74,26 +76,29 @@ type LintWarning =
     | "RedundantNativeAttribute"
 
 type LuauConfig = {
-    languageMode: LanguageMode?,
+    languagemode: LanguageMode?,
     lint: { [LintWarning]: boolean }?,
-    lintErrors: boolean?,
-    typeErrors: boolean?,
+    linterrors: boolean?,
+    typeerrors: boolean?,
     globals: { string }?,
     aliases: { [string]: string }?,
 }
+
+type Config = {
+    luau: LuauConfig?
+}
 ```
 
-If configuration fields are not provided, `.config.luau` uses the same default behavior as `.luaurc`.
+If configuration fields are not provided, `.config.luau` has the same default behavior as `.luaurc`.
 
 ### Search semantics
 
-The search semantics of `.config.luau` files are the same as `.luaurc`'s (adapted from old RFC):
+The search semantics of `.config.luau` files are the same as `.luaurc`'s (adapted from a previous RFC):
 
 > For a given `.luau` or `.lua` script, Luau will search for `.luaurc` files starting from the folder that the script is in; all files in the ancestry chain will be parsed and their configuration applied.
 > When multiple configuration files exist throughout the ancestry chain, configurations closer to the script override those in higher-level directories.
 
-However, if both `.luaurc` and `.config.luau` are present in a directory, only the `.config.luau` file is used.
-Configuration files are not merged; at most one configuration file is recognized per directory.
+If both `.luaurc` and `.config.luau` are present in a directory, an error is thrown.
 
 ### Configuration extraction
 
@@ -115,7 +120,7 @@ end)()
 For analysis-time configuration extraction, we adopt the same behavior described in the [user-defined type functions RFC](https://rfcs.luau.org/user-defined-type-functions.html): we simply respect the time limit that the embedding context provides through the `Frontend` API.
 
 At runtime, the configuration extraction timeout is set to two seconds by default.
-This duration is generally sufficient for typical configuration logic, while being short enough to prevent accidental or malicious long-running scripts from impacting performance.
+This duration is generally sufficient for typical configuration logic while being short enough to prevent accidental or malicious long-running scripts from impacting performance.
 For more fine-grained control, however, embedders are free to override this at build-time by defining the `LUAUCONFIG_RUNTIME_TIMEOUT_SECONDS` macro.
 
 ### Interaction with `require`
@@ -126,6 +131,7 @@ Concretely, the source file `foo.luau` cannot extract the contents of its siblin
 ## Drawbacks
 
 **Complexity**: Allowing arbitrary Luau code in configuration files increases the complexity of parsing and validating configurations, which might make debugging more difficult.
+Allowing runtime constructs also makes automated edits more difficult to support.
 
 **Multiple formats**: There might be some confusion surrounding the two different configuration files.
 Most of this can be mitigated by (1) editor tooling, and (2) embedded contexts will likely choose one to support, not both.
