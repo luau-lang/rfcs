@@ -121,7 +121,7 @@ For analysis-time configuration extraction, we adopt the same behavior described
 
 At runtime, the configuration extraction timeout for each `.config.luau` file is set to two seconds by default.
 This duration is generally sufficient for typical configuration logic while being short enough to prevent accidental or malicious long-running scripts from impacting performance.
-For more fine-grained control, however, embedders are free to override this at build-time by defining the `LUAUCONFIG_RUNTIME_TIMEOUT_SECONDS` macro.
+For more fine-grained control, however, embedders will be free to override this.
 
 ### Interaction with `require`
 
