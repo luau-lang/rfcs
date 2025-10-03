@@ -105,6 +105,7 @@ If both `.luaurc` and `.config.luau` are present in a directory, an error is thr
 Unlike `.luaurc` files, `.config.luau` files can contain runtime constructs like variables, functions, and loops.
 To extract configuration from a `.config.luau` file, its contents are executed in an isolated Luau VM with only the standard libraries enabled (`luaL_openlibs`).
 This approach ensures that configuration files can leverage Luau features while maintaining a sandboxed execution environment.
+As a consequence, `.config.luau` files cannot require other scripts, as `require` is not included in the standard libraries.
 
 #### Timing out
 
