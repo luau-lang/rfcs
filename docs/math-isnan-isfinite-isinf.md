@@ -74,7 +74,7 @@ print(math.isfinite(z)) -- true
 
 1. Increased API: This proposal adds three new functions to the global `math` library, increasing the overall
    size of the standard library.
-3. Redundancy for experienced developers: Experienced developers familiary with these checks, may view these
+2. Redundancy for experienced developers: Experienced developers familiary with these checks, may view these
    functions as unnecessary syntactic sugar for the already fast and idiomatic check `x ~= x` and
    `math.abs(x) ~= math.huge`.
 
