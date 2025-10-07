@@ -15,8 +15,8 @@ a number is finite requires a verbose check that handles both `NaN` and `Inf` ca
 
 Adding explicit `math.isnan(x)`, `math.isinf(x)` and `math.isfinite(x)` functions brings Luau's math library 
 in line with modern languages (such as C++, JavaScript, Python, etc), improving code clarity, robustness and 
-safety for mathemetical applications. In Roblox validating numbers received from the client is a must and 
-applicable across most games.
+safety for mathemetical applications. In networked environments, validating numbers received from the client is a 
+must and applicable across most games.
 
 ## Design
 
