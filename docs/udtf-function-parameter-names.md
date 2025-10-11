@@ -1,4 +1,4 @@
-# Function Parameter Names in User-Defined Type Functions
+# Function parameter Names in User-Defined Type Functions
 
 ## Summary
 
@@ -20,34 +20,34 @@ The following changes need to be made to the user-defined type functions API:
 
 A parameter may be either a simple type (with no parameter name, like in the current behavior), or a table that contains both a parameter name and a parameter type.
 
-The `head` field of the `parameters` parameter is now of type `{type | Parameter}?`, where a `Parameter` is defined like this:
+The `head` field of the `parameters` parameter is now of type `{type | parameter}?`, where a `parameter` is defined like this:
 
 ```luau
-type Parameter = { name: string?, type: type }
+type parameter = { name: string?, type: type }
 ```
 
 Names that aren't strings, or that are invalid Luau identifiers, should be ignored.
 
 ```luau
-function types.newfunction(parameters: { head: {type | Parameter}?, tail: type? }, ...): type
+function types.newfunction(parameters: { head: {type | parameter}?, tail: type? }, ...): type
 ```
 
 ### `functiontype:setparameters`
 
-The `head` parameter is now of type `{type | Parameter}?`, following the same rules as above.
+The `head` parameter is now of type `{type | parameter}?`, following the same rules as above.
 
 ```luau
-function functiontype:setparameters(head: {type | Parameter}?, tail: type?): ()
+function functiontype:setparameters(head: {type | parameter}?, tail: type?): ()
 ```
 
 ### `functiontype:parameters`
 
-The `head` returned by this method is now of type `{Parameter}?`, there is no `type` union variant because the table is normalized, such that parameter names are always represented by a `Parameter` (unnamed parameters are *always* `{ name: nil, type: type }`, which avoids a branch).
+The `head` returned by this method is now of type `{parameter}?`, there is no `type` union variant because the table is normalized, such that parameter names are always represented by a `parameter` (unnamed parameters are *always* `{ name: nil, type: type }`, which avoids a branch).
 
 This change breaks backwards compatibility, because current type functions assume that `functiontype:parameters().head` is a list of types. See the [Alternatives](#alternatives) section.
 
 ```luau
-function functiontype:parameters(): { head: {Parameter}?, tail: type? }
+function functiontype:parameters(): { head: {parameter}?, tail: type? }
 ```
 
 ## Drawbacks
