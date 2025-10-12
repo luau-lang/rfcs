@@ -1,4 +1,4 @@
-# Function parameter Names in User-Defined Type Functions
+# Function Parameter Names in User-Defined Type Functions
 
 ## Summary
 
