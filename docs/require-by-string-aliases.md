@@ -86,7 +86,6 @@ Of course, users can still use the alias map to explicitly define this behavior 
 
 #### Current limitations of aliases
 
-- Aliases cannot reference other aliases. (However, this is compatible with this proposal and will likely be implemented in the future.)
 - Alias names cannot contain the directory separators `/` and `\`.
 - Aliases can only occur at the beginning of a path.
 
@@ -106,7 +105,9 @@ Proposed structure of an alias map:
 
 Missing aliases in `.luaurc` are inherited from the alias maps of any parent directories, and fields can be overridden.
 
-Additionally, if an alias is bound to a relative path, the path will be evaluated relative to the `.luaurc` file in which the alias was defined.
+If an alias is bound to a relative path, the path will be evaluated relative to the `.luaurc` file in which the alias was defined.
+If an alias resolves to an aliased path, the aliased path is resolved by checking the current `.luaurc` file and falling back to parent directories if needed.
+This search continues iteratively if a chain of aliases must be resolved; if a cycle is detected, alias resolution will fail with an error.
 
 Finally, providing support for alias maps within the Roblox engine is out of the scope of this RFC but is being considered internally.
 
