@@ -42,7 +42,7 @@ print(math.isnan(y)) -- false
 Returns `true` if `x` is positive or negative infinity (`Inf`), and `false` otherwise.
 
 **Example:**
-```lua
+```luau
 local x = math.huge
 local y = 10
 
