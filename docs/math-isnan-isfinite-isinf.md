@@ -48,7 +48,7 @@ local y = 10
 
 print(math.isinf(x)) -- true
 print(math.isinf(y)) -- false
-print(math.isinf(0/0)) -- false (NaN)
+print(math.isinf(0 / 0)) -- false (NaN)
 
 ```
 
