@@ -61,7 +61,7 @@ Returns `true` if `x` is a finite number, meaning it is neither `NaN` nor positi
 **Example:**
 ```lua
 local x = math.huge
-local y = 0/0
+local y = 0 / 0
 local z = 123.45
 
 print(math.isfinite(x)) -- false
