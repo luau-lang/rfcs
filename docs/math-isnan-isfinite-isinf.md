@@ -59,7 +59,7 @@ Returns `true` if `x` is a finite number, meaning it is neither `NaN` nor positi
 (`math.huge`).
 
 **Example:**
-```lua
+```luau
 local x = math.huge
 local y = 0 / 0
 local z = 123.45
