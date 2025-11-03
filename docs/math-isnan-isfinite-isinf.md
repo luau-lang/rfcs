@@ -28,7 +28,7 @@ We propose adding three new functions to the global `math` table:
 Returns `true` if `x` is Not-a-Number (`NaN`), and false otherwise.
 
 **Example:**
-```lua
+```luau
 local x = 0/0 -- produces NaN
 local y = 10
 
