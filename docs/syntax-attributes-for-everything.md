@@ -17,17 +17,15 @@ The following list proposes how attributes should be attached to each bit of syn
 
 ### Variables
 
-This exists as it could be useful for if for instance a function is defined as a local variable and then exported:
+This exists as it could be useful for if for instance a constant is defined as a local variable and then exported:
 
 ```luau
-@[deprecated { reason = "cat is a more modern API"}]
-local function get_cat_sound()
-	return "meow"
-end
+@[deprecated { reason = "dog is a more modern API"}]
+local puppy = "whimper"
 
 return table.freeze({
-	get_cat_sound = get_cat_sound,
-	cat = "meow",
+	puppy = puppy,
+	dog = "woof",
 })
 ```
 
