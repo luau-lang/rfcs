@@ -80,7 +80,7 @@ type pet_sounds = {
 type Puppy = "whimper"
 
 type PetSounds = {
-	-- Just like with tables, entries have their attributes merged with
+	-- Just like with tables, entries have their attributes merged with the values attributes.
 	@deprecated{ use = "dog" } puppy: Puppy,
 	dog: "bark",
 	cat: "mrrp",
