@@ -161,10 +161,19 @@ because the problem isn't coming from the assignments themselves.
 
 ## Drawbacks
 
-Lua 5.1 decoupled the use of locals from the registers they represent. This is
-good because locals are virtual registers, but Lua 5.1 still kept the 200 locals
-per function limit. Luau inherited this design choice (and increased the number
-of physical registers from 200 to 256, the limit of `uint8_t`).
+Unfortunately, the consequence of this is that `res` has the upper bound `ok<a>`
+since it had an initializer `Result.ok(init)`. This means `res = x; break` is
+ill-typed, even though it is exactly equivalent to `return x`. Rust can get away
+with this because they have proper ADTs: `Ok(init)` is not a different type from
+`Err(e)`, because the data constructors `Ok` and `Err` belongs to the type
+`Result<T, E>`. Luau's type system is more granular with polymorphic variants,
+which does not interact with this change in a nice way.
+
+On the subject of shadowing: Lua 5.1 decoupled the use of locals from the
+registers they represent. This is good because locals are virtual registers, but
+Lua 5.1 still kept the 200 locals per function limit. Luau inherited this design
+choice (and increased the number of physical registers from 200 to 256, the
+limit of `uint8_t`).
 
 This means locals are not free from a register allocation point of view, due to
 finite number of virtual registers. There are several ways this can be fixed:
