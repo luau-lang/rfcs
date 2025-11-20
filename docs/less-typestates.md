@@ -169,8 +169,8 @@ of physical registers from 200 to 256, the limit of `uint8_t`).
 This means locals are not free from a register allocation point of view, due to
 finite number of virtual registers. There are several ways this can be fixed:
 
-1. Reuse the same physical register for any locals that have been shadowed, and
-   do not count such locals towards the limit.
+1. Reuse the same physical register for any locals that have been shadowed in
+   the same scope, and do not count such locals towards the limit.
 2. Use liveness analysis: count the number of simultaneously live registers
    across all program points in a function. Throw a compile error if the number
    of registers exceed the maximum number of physical registers, then remove the
