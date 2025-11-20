@@ -12,15 +12,15 @@ should be made idiomatic and to disable all `LocalShadow` lints by default.
 
 When Luau's new type solver was being developed, typestates did not exist, and
 we generated a fresh metavariable for each unannotated binding in a `local`
-declaration. This turned out to be problematic because locals are not
-parameters of a function and thus don't follow the same typing rules:
+declaration. This turned out to be problematic because locals are not parameters
+of a function and thus don't follow the same typing rules:
 
 1. Each use of the local binding is negatively used, reducing the allowed domain
-   the local binding can range over. This means the upper bound will _always_
+   the local binding can range over. This means the upper bound will always
    approach `never`, even if the program is valid!
 2. Each assignment of the local binding is positively used, which is an
-   over-approximation because it affects all _uses_ of the local binding, after
-   _and_ before the assignment.
+   over-approximation because it affects all uses of the local binding, after
+   and before the assignment.
 
 If your system produces multiple incorrect solutions for a given problem, it
 usually means the system is not granular enough to capture the nuances, which
@@ -80,12 +80,12 @@ If we replaced `'res` by the upper bound, then an error would be raised at
 `res.value = f(res.value, x.value)` since `res` is `ok<a> | err<e>`, which is
 nonsensical. The same is true when replaced by its lower bound.
 
-Therefore the metavariable approach is incorrect, since it cannot be replaced
-by the upper bound nor the lower bound in a way that allows the type system to
+Therefore the metavariable approach is incorrect, since it cannot be replaced by
+the upper bound nor the lower bound in a way that allows the type system to
 decide whether the program is well-typed. Typestates was the solution to this
 problem: instead of introducing a fresh metavariable, any unannotated locals
 such as `local x = 5` is defaulted to the equivalent of `local x: unknown = 5`,
-and the _next use_ of `x` would infer `number`, rather than `unknown`.
+and the next use of `x` would infer `number`, rather than `unknown`.
 
 Similarly, in this smaller contrived program, if we replaced `x` by its lower
 bound, then `x: number | string` and all uses of `x` would be ill-typed.
@@ -137,13 +137,13 @@ late_bound = 5 -- fine
 ```
 
 The reason why this seems to make sense is because there's nothing here that we
-could use to _pin_ the local to a specific type in such cases, because of all
+could use to pin the local to a specific type in such cases, because of all
 sorts of nontrivial programs such as:
 
 ```luau
 local result
 
--- replace this branch with _any possible program_ that initializes `result`
+-- replace this branch with any possible program that initializes `result`
 if math.random() > 0.5 then
   result = 7
 elseif f(x) and g(y) then
@@ -204,10 +204,10 @@ only the number of virtual registers.
 
 Do nothing. The argument that "every type system throws an error when assigning
 a different type to a local" is weak given that Luau is fundamentally a
-dynamically typed programming language, and languages that _grew_ with a type
+dynamically typed programming language, and languages that grew with a type
 system have the privilege to make this an error whereas Luau might not. This has
 the consequence of having to support pre-existing idioms.
 
-Introduce a `let` syntax that disallows assignment _of a different type_ at type
+Introduce a `let` syntax that disallows assignment of a different type at type
 checking time, e.g. `let x = 5; x = "five"` compiles to the same bytecode, but
 is ill-typed. `local`s still retain its current behavior.
