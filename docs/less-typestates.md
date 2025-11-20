@@ -169,37 +169,6 @@ with this because they have proper ADTs: `Ok(init)` is not a different type from
 `Result<T, E>`. Luau's type system is more granular with polymorphic variants,
 which does not interact with this change in a nice way.
 
-On the subject of shadowing: Lua 5.1 decoupled the use of locals from the
-registers they represent. This is good because locals are virtual registers, but
-Lua 5.1 still kept the 200 locals per function limit. Luau inherited this design
-choice (and increased the number of physical registers from 200 to 256, the
-limit of `uint8_t`).
-
-This means locals are not free from a register allocation point of view, due to
-finite number of virtual registers. There are several ways this can be fixed:
-
-1. Reuse the same physical register for any locals that have been shadowed in
-   the same scope, and do not count such locals towards the limit.
-2. Use liveness analysis: count the number of simultaneously live registers
-   across all program points in a function. Throw a compile error if the number
-   of registers exceed the maximum number of physical registers, then remove the
-   200 locals per function limit.
-
-Option #1 is obviously braindead easy to do. Option #2 is harder to do, but
-would liberate the users from the maximum number of locals per function since it
-is extremely unlikely for the user to have exceeded 256 physical registers just
-from locals (unless used as function arguments, but you cannot have more than
-256 values passed on the stack, so this is a non-issue).
-
-On top of that, there is a possible optimization coming in the future where
-tables becomes a scalar and its fields are locals until they escape. This will
-make the locals and scalar tables compete for the same finite resource of
-physical registers, which actually motivates liveness analysis in order to allow
-more shadowing, and allow even more tables to be scalars.
-
-Note that this does not propose increasing the number of physical registers,
-only the number of virtual registers.
-
 ## Alternatives
 
 Do nothing. The argument that "every type system throws an error when assigning
