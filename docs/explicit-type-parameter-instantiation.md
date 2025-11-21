@@ -112,7 +112,8 @@ When this new syntax is used on a value that is not a function, or does not take
 ### Interoperability with metatables
 
 
-In the case of an explicit instantiation fragment `f<<T>>` where `f` has a metatable, there are three problems, namely:
+There are three problems that arise when attempting to instantiate a table with a metatable attached, namely:
+
 
 1. The forall quantifier is nested under the metamethod for that table's metatable, giving three levels of indirection.
 2. It's unclear what metamethod to instantiate without a way to disambiguate, since a metatable can have multiple polymorphic metamethods.
