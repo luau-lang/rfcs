@@ -109,7 +109,8 @@ local f2 = f<<number>>
 
 When this new syntax is used on a value that is not a function, or does not take those types, a static-time error will be given. This syntax has zero runtime effect.
 
-### Interop with metatables
+### Interoperability with metatables
+
 
 In the case of an explicit instantiation fragment `f<<T>>` where `f` has a metatable, there are three problems, namely:
 
