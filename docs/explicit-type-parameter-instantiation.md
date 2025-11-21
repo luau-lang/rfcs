@@ -111,9 +111,7 @@ When this new syntax is used on a value that is not a function, or does not take
 
 ### Interoperability with metatables
 
-
 There are three problems that arise when attempting to instantiate a table with a metatable attached, namely:
-
 
 1. The forall quantifier is nested under the metamethod for that table's metatable, giving three levels of indirection.
 2. It's unclear what metamethod to instantiate without a way to disambiguate, since a metatable can have multiple polymorphic metamethods.
@@ -205,3 +203,4 @@ Relevant to our purposes is the following section:
 > Some languages don’t have a way to specify the types at call site either, Swift being a prominent example. Thus it’s not a given we need this feature in Luau.
 
 This is still the case for Swift at time of writing.
+
