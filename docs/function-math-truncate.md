@@ -60,6 +60,10 @@ trunc_with_idp(1.2345, 4)
 _or see alternative below_
 
 
+Other questions to ask:
+- Will a built-in offer optimization over the alternatives below?
+
+
 ## Alternatives
 
 From [here](https://github.com/Facepunch/garrysmod/blob/8e96e31fc9ab9de053edc0513f9d7a6f3e4be1e1/garrysmod/lua/includes/extensions/math.lua#L168-L171)
