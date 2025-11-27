@@ -66,7 +66,7 @@ Other questions to ask:
 
 ## Alternatives
 
-From [here](https://github.com/Facepunch/garrysmod/blob/8e96e31fc9ab9de053edc0513f9d7a6f3e4be1e1/garrysmod/lua/includes/extensions/math.lua#L168-L171)
+A Lua function from [here](https://github.com/Facepunch/garrysmod/blob/8e96e31fc9ab9de053edc0513f9d7a6f3e4be1e1/garrysmod/lua/includes/extensions/math.lua#L168-L171)
 ```lua
 function math.Truncate( num, idp )
 	local mult = 10 ^ ( idp or 0 )
