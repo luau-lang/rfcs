@@ -8,7 +8,7 @@ A method that returns the integer part of a number by removing any fractional di
 
 ``math.floor`` does not give the same effect as ``Math.trunc()`` from JavaScript, for instance. But ``math.floor`` and ``math.ceil`` can be used together, to re-produce the same result that ``Math.trunc()`` would give, but a function like ``math.truncate`` directly as a built-in would be more straightforward.
 
-For instance:
+For instance, negative numbers:
 ```lua
 print( math.floor(-0.005) )
 -- Returns: -1
@@ -17,10 +17,14 @@ print( math.ceil(-0.005) )
 -- Returns: -0
 ```
 
+
+
 ```js
 Math.trunc(-0.005)
 // Returns: -0
 ```
+
+Truncation specifically just cuts off the digits, while the others try to round.
 
 
 ## Design
