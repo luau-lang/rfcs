@@ -6,7 +6,7 @@ A method that returns the integer part of a number by removing any fractional di
 
 ## Motivation
 
-``math.floor`` does not give the same effect as, for instance ``Math.trunc()`` from JavaScript. But ``math.floor`` and ``math.ceil`` can be used together, to re-produce the same result that ``Math.trunc()`` would give, but a function like ``math.truncate`` directly as a built-in would be more straightforward.
+``math.floor`` does not give the same effect as ``Math.trunc()`` from JavaScript, for instance. But ``math.floor`` and ``math.ceil`` can be used together, to re-produce the same result that ``Math.trunc()`` would give, but a function like ``math.truncate`` directly as a built-in would be more straightforward.
 
 For instance:
 ```lua
