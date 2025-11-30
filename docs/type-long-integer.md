@@ -48,7 +48,7 @@ Converts a string representation of a number into a long in accordance with a sp
 `long.add`, `long.sub`, `long.mul`, `long.div`, `long.mod`, `long.mod`, `long.band`, `long.bor`, `long.xor`, `long.lt`, `long.le`
 
 Performs the associated operation on a long and another long.
-Operators should be implemented, erroring on use with numbers like any other type that has no valid coersion.
+Operators for this type will not be implemented
 
 `long.lshift`, `long.rshift`, `long.arshift`
 
