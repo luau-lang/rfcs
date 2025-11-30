@@ -33,6 +33,8 @@ Long integer literals will support separators, hex, and binary values.
 Long integer literals should be parsed as an alternative to floating point values akin to the following regular expression `\d`.
 Long integer literals should support scientific notation declarations `1e8` and should produce an error if they result in a fractional part.
 
+Longs will not have any conversions.
+
 Functions for creating/manipulating this type will exist in a new library called 'long`, which will have the following functions:
 
 `long.fromstring(str: string, base: number?) -> long`
@@ -46,7 +48,7 @@ Converts a long to a string representation of the long in accordance with the sp
 `long.add`, `long.sub`, `long.mul`, `long.div`, `long.udiv`, `long.mod`, `long.umod`, `long.band`, `long.bor`, `long.xor`, `long.ult`, `long.lt`, `long.le`
 
 Performs the associated operation on a long and another long.
-Operators `==`, `~=`, `+`, `-`, `*` should be implemented.
+Operators `==`, `~=`, `+`, `-`, `*` should be implemented, erroring on use with numbers like any other type that has no valid conversion.
 
 `long.lshift`, `long.rshift`, `long.arshift`
 
