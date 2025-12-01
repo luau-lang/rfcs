@@ -15,7 +15,11 @@ In the case of vector implementations, ergonomics are improved by storing the en
 In both cases, performance is lacking compared to what could be provided by a native implementation.
 
 As Luau grows the restriction to doubles will be an increasing pain point for any use case which involves a 64-bit integer.
-System support for 64-bit integers is ubiquitous their use is widespread.
+System support for 64-bit integers is ubiquitous and their use is widespread.
+
+Specific use cases involve the implementation of specific algorithms (e.g. cryptography, FNV), simpler integration with C libraries/runtimes including FFI, larger space for identifiers, wider range of usable bits for libraries that currently are restricted to 2^53-1 
+
+While the above solutions, in addition to runtimes being able to define their own userdata do exist, requiring each runtime to reimplement 64 bit integer support with potentially different semantics could prove damaging to libraries that will have to find a common API between any supported runtime or use their own library to use something as simple as int64.
 
 While a runtime could implement 64-bit integers with userdata, performing an allocation for each integer (which can easily fit within an existing Luau value) is an onerous requirement.
 A lightuserdata could avoid this allocation this but implementers will not be able to use operators or have any integration with the type system.
@@ -26,28 +30,32 @@ Most other high-level language have builtin support for 64-bit integers, includi
 
 This will be implemented a with new type called "long".
 
-The long type will store a 64 bit integer and have a means to determine it's signedness.
+The long type will store a 64 bit integer.
 
 An additional character may be specified at the end of numeric literals `L` which will signify an long integer literal.
 Long integer literals will support separators, hex, and binary values.
 Long integer literals should be parsed as an alternative to floating point values akin to the following regular expression `\d`.
-Long integer literals should support scientific notation declarations `1e8` and should produce an error if they result in a fractional part.
+Long integer literals should support scientific notation declarations e.g. `1e8L` and should produce an error if they result in a fractional part.
 
-Longs will not not coerce to a number but may coerce to a string.
+Longs will not coerce to a number or string, though type should include a __tostring.
 
 Functions for creating/manipulating this type will exist in a new library called 'long`, which will have the following functions:
 
 `long.tolong(n: number) -> long`
 
-Converts a number to a long. Will throw an error if the value of the number exceeds 2^64, or if there is a fractional component to the number.
+Converts a number to a long. Will throw an error if the value of the number exceeds the maximum integer, or if there is a fractional component to the number.
 
 `long.fromstring(str: string, base: number?) -> long`
 
 Converts a string representation of a number into a long in accordance with a specified base or base 10 if no argument is provided.
 
-`long.add`, `long.sub`, `long.mul`, `long.div`, `long.mod`, `long.mod`, `long.band`, `long.bor`, `long.xor`, `long.lt`, `long.le`
+`long.tostring(n: long, b: base?) -> string`
 
-Performs the associated operation on a long and another long.
+Converts a long to a string representation with the given base.
+
+`long.add`, `long.sub`, `long.mul`, `long.div`, `long.mod`, `long.udiv`, `long.umod`, `long.band`, `long.bor`, `long.xor`, `long.lt`, `long.le`, `long.ult`
+
+Performs the associated operation on a long and another long. Functions prefixed with `u` operate over unsigned values where their normal counterparts assume signedness.
 Operators for this type will not be implemented
 
 `long.lshift`, `long.rshift`, `long.arshift`
@@ -65,21 +73,18 @@ Writes a long to a buffer at the given offset.
 ### C API
 
 `int64_t lua_tolong(lua_State *L, int index)`
-`uint64_t lua_toulong(lua_State *L, int index)`
 
-Returns a long value of the specified signedness on the stack at `index` if no value exists or if it is not a `long` then returns `0`.
+Returns a long value on the stack at `index` if no value exists or if it is not a `long` then returns `0`.
 
 `void lua_pushlong(lua_State *L, int64_t n)`
-`void lua_pushulong(lua_State *L, uint64_t n)`
 
 Pushes a long value of the specified signed to the stack
 
-`int lua_islong(lua_State *L, int n, int *signed)`
+`int lua_islong(lua_State *L, int n)`
 
-Determines if a value at index `n` is a long. If a non-null pointer is provied it will update the value with its signnedness, if the provided pointer is `NULL` then it will do nothing.
+Determines if a value at index `n` is a long.
 
 `int64_t luaL_checklong(lua_State *L, int index)`
-`uint64_t luaL_checkulong(lua_State *L, int index)`
 
 Same behavior as `lua_tolong` and `lua_toulong` except errors if the value is not a long.
 
