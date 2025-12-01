@@ -17,12 +17,13 @@ In both cases, performance is lacking compared to what could be provided by a na
 As Luau grows the restriction to doubles will be an increasing pain point for any use case which involves a 64-bit integer.
 System support for 64-bit integers is ubiquitous and their use is widespread.
 
-Specific use cases involve the implementation of specific algorithms (e.g. cryptography, FNV), simpler integration with C libraries/runtimes including FFI, larger space for identifiers, wider range of usable bits for libraries that currently are restricted to 2^53-1 
+Specific use cases involve the implementation of specific algorithms (e.g. cryptography, FNV), timestamps, simpler integration with C libraries/runtimes including FFI, larger space for incremental identifiers, wider range of usable bits for libraries that currently are restricted to 2^53-1 
 
 While the above solutions, in addition to runtimes being able to define their own userdata do exist, requiring each runtime to reimplement 64 bit integer support with potentially different semantics could prove damaging to libraries that will have to find a common API between any supported runtime or use their own library to use something as simple as int64.
 
-While a runtime could implement 64-bit integers with userdata, performing an allocation for each integer (which can easily fit within an existing Luau value) is an onerous requirement.
-A lightuserdata could avoid this allocation this but implementers will not be able to use operators or have any integration with the type system.
+Representing 64-bit numbers as heap-allocated userdata is sufficient for correctness but adds a layer of indirection for something that can fit within the existing value size. In cases where the use of these numbers is more common, the performance characteristics of different implementations including userdata could be problematic.
+
+Userdata remain the right mechanism for complex or embedder-specific numeric types but 64-bit integers have a sufficiently large problem domain to justify their inclusion as a core value type which may have benefits for performance wider interoperability in the overall ecosystem.
 
 Most other high-level language have builtin support for 64-bit integers, including Lua since 5.3.
 
