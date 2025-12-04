@@ -1,6 +1,22 @@
 # RFCs
 
-{% assign sortedPages = site.pages | sort: 'title' %}
+{% assign allPages = site.pages %}
+{% assign implementedPages = '' | split: '' %}
+{% assign notImplementedPages = '' | split: '' %}
+
+{% for page in allPages %}
+{% assign ext = page.name | split:'.' | last %}
+{% if ext == 'md' and page.name != 'index.md' %}
+{% if page.content contains '**Status**: Implemented' %}
+{% assign implementedPages = implementedPages | push: page %}
+{% else %}
+{% assign notImplementedPages = notImplementedPages | push: page %}
+{% endif %}
+{% endif %}
+{% endfor %}
+
+{% assign implementedPages = implementedPages | sort: 'title' %}
+{% assign notImplementedPages = notImplementedPages | sort: 'title' %}
 
 Luau uses RFCs to discuss and document the language evolution process. They are hosted [in a GitHub repository](https://github.com/luau-lang/rfcs) which accepts pull requests for corrections to existing RFCs as well as new RFCs.
 
@@ -11,11 +27,14 @@ If you'd like to submit a new RFC, please [read our guidelines first](https://gi
 Note that if you'd like to submit a substantial change to an existing RFC that is already implemented according to its Status field, you would need to submit a new amendment RFC instead of editing an existing one.
 
 <ul>
-{% for page in sortedPages %}
-{% assign ext = page.name | split:'.' | last %}
-{% if ext == 'md' and page.name != 'index.md' %}
+{% for page in notImplementedPages %}
 <li>
 <a href="{{ page.url }}">{{ page.title }}</a>
 </li>
-{% endif %}
 {% endfor %}
+{% for page in implementedPages %}
+<li>
+<a href="{{ page.url }}">{{ page.title }} (Implemented)</a>
+</li>
+{% endfor %}
+</ul>
