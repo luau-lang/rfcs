@@ -1,7 +1,5 @@
 # Write-only properties
 
-**Status**: Implemented
-
 ## Summary
 
 Allow properties of classes and tables to be inferred as write-only.
