@@ -1,5 +1,7 @@
 # Function Attribute Parameters
 
+**Status**: Implemented
+
 ## Summary
 
 This RFC proposes a syntax for function attribute parameters. This is a follow up to the [Attributes](./syntax-attributes-functions.md) RFC, which proposed a design for function attributes. We only propose a syntactic extension in this RFC; the rest of the implementation details remain unchanged.

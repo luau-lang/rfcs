@@ -1,5 +1,7 @@
 # Metatable Type Functions
 
+**Status**: Implemented
+
 ## Summary
 
 Implement type functions for `getmetatable` and `setmetatable`.

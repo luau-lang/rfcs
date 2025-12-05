@@ -1,5 +1,7 @@
 # Abstract module paths and `init.luau`
 
+**Status**: Implemented
+
 ## Summary
 
 We will redefine `foo/init.luau` to be the contents of the module named foo for

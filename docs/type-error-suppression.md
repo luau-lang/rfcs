@@ -1,5 +1,7 @@
 # Type Error Suppression
 
+**Status**: Implemented
+
 ## Summary
 
 An alternative approach to type error suppression and the `any` type.

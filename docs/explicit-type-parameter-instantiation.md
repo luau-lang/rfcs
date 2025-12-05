@@ -1,5 +1,7 @@
 # Explicit type parameter instantiation
 
+**Status**: Implemented
+
 ## Summary
 
 We will add support for the ability to bind a function defined with generics to specific types at the time of expression. This behavior is analagous to C++'s `f<T>` and Rust's `f::<T>`, where `f` is defined as a function accepting a type parameter `T`.

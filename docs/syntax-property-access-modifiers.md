@@ -1,5 +1,7 @@
 # Syntax for table property access modifiers
 
+**Status**: Implemented
+
 ## Summary
 
 We need syntax to match the semantics of read-only and write-only modifiers for table properties and indexers.

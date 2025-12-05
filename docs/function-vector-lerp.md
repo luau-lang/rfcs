@@ -1,6 +1,8 @@
 
 # vector.lerp
 
+**Status**: Implemented
+
 ## Summary
 Add the function `vector.lerp` to the vector library, which performs linear interpolation between two vectors and is a direct parallel to [`math.lerp`](https://rfcs.luau.org/function-math-lerp.html).
 
