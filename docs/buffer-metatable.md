@@ -7,13 +7,15 @@ The metatable and some of its keys will be frozen for potential improvements in 
 
 ## Motivation
 
-Providing a buffer object with a metatable will allow creation of objects with small storage footprint which can also be matched to native structures on the side of the application using Luau. 
+Providing a buffer object with a metatable will allow buffer objects can have properties (direct or computed), methods and other kinds of operations like operators.
 
-By having a metatable, these buffer objects can have properties, methods and other kinds of operations.
+This will allow the behavior to be defined and extended on the Luau side, compared to userdata that is strictly defined by the host.
 
-This will also allow the behavior to be defined and extended on the Luau side, compared to userdata that is strictly defined by the host.
+This extension preserves the simple small core of the Luau language while providing a flexible extension point for developers.
 
-In a way, this will provide an alternative to `ctypes` in luajit.
+Such buffers can also be made to match the structure of the host data types and to handle FFI cases.
+
+In a way, this will provide an alternative to luajit 'cdata' in Luau.
 
 ```luau
 -- A float4 in a buffer
@@ -68,7 +70,7 @@ buf:normalize()
 local xn = buf:x()
 ```
 
-Or any other custom way the developer wants property access to be performed.
+Or any other custom way the developer wants property accesses to be performed.
 
 ## Design
 
@@ -82,19 +84,25 @@ Table freezing will have the same limitation as `table.freeze`, throwing an erro
 Any of these tables can be frozen before the call.
 
 When `__index` or `__newindex` is a function, VM will be allowed to ignore changes to the environment of those function.
+This is similar to function inlining functionality we have where an inlined function will no longer respect its environment.
 
 The freezing is performed to provide additional guarantees for field access and other metamethod evaluation to unlock potential optimization opportunities.
-This is similar to limitations placed on ctypes by luajit.
+This is similar to limitations placed on 'cdata' by luajit.
 Having said that, this RFC doesn't make a promise of a particular implementation making those optimizations, so should be viewed as a buffer object usability improvement first.
+
+Any chained metatables on table fields are not modified.
+This provides an option to have a more dynamic behavior, but giving up on potential performance improvements of a chained indexing access.
+This matches behavior of 'cdata' in luajit and will provide a familiarity for developers switching over.
 
 VM metatable lookups and `getmetatable` will look for the buffer object metatable first and then fall back to the global buffer metatable.
 This preserves the existing buffer extensibility point for hosts.
 
-`setmetatable` will not be supported on buffer objects, the metatable reference is immutable.
+`setmetatable` will still not be supported on buffer objects, the metatable reference is immutable.
 
 Equality checks in the VM will call `__eq` for buffers similar to tables and userdata.
 
-`__type` metatable key is ignored by `typeof`. As before, only host is allowed to define type names.
+`__type` metatable key is ignored by `typeof`, just like it does for tables.
+As before, only host is allowed to define type names.
 
 In order for the typechecker to understand buffers with attached metatables, we propose extending the intersections to be allowed on buffers, similar to `extern` types:
 
@@ -105,10 +113,11 @@ In order for the typechecker to understand buffers with attached metatables, we 
 This increases buffer size by 8 bytes, with the bigger impact on 0-8 byte buffers going from 16 to 24 bytes and allocated from 32 byte page.
 
 This RFC also introduces a special evaluation rule for metamethod functions.
-While it is introduced for potential improvement in caching of operations, this might come at a surprise to users of deprecated environment modification functions.
+It is introduced for potential improvement in caching of operations, but might come at a surprise to users of deprecated environment modification functions.
+While similar to the effects of function inlining Luau performs, it is an extra item to keep in mind.
 
 ## Alternatives
 
 Instead of extending the buffer object with a limited set of functionality, we might pursue a new kind of object like Records were which can build internal field mappings for an easier optimization path.
 
-Another possibility is some alternative way of specifying the fields that would support building both the right __index function and internal acceleration structures.
+Another possibility is some alternative way of specifying the fields that would support building both the right `__index` function and internal acceleration structures.
