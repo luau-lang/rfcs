@@ -108,6 +108,17 @@ In order for the typechecker to understand buffers with attached metatables, we 
 
 `type Obj = buffer & { x: number, y: number, z: number }`
 
+## Forwards compatibility
+
+A potential evolution of the buffer type might move the data from the buffer memory block to a separate location with a redirection.
+
+Doing that will enable extending the buffer size without a major impact on performance (shrinking is a problem for range check eliminations).
+It might also allow buffer views and slices.
+
+In both cases, this change is compatible. The slice will reuse a section of the data but being a buffer it will have its own metatable.
+
+This makes it possible to have a large memory buffer and sub-allocate buffer objects with attached custom behaviors.
+
 ## Drawbacks
 
 This increases buffer size by 8 bytes, with the bigger impact on 0-8 byte buffers going from 16 to 24 bytes and allocated from 32 byte page.
