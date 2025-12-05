@@ -1,6 +1,6 @@
 # Support Luau-syntax configuration files
 
-**Status**: Not implemented
+**Status**: Implemented
 
 ## Summary
 

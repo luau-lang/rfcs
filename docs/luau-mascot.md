@@ -1,5 +1,7 @@
 # An official mascot for Luau
 
+**Status**: Implemented
+
 ## Summary
 
 Luau's branding is currently entirely based around a rotated square logo in a particular shade of blue.

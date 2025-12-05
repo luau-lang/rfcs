@@ -1,5 +1,7 @@
 # math.isnan, math.isinf and math.isfinite for Math Library
 
+**Status**: Implemented
+
 ## Summary
 
 This RFC proposes a `math.isnan`, a `math.isinf`, and a `math.isfinite` function to be added to the math library.

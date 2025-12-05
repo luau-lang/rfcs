@@ -1,5 +1,7 @@
 # Deprecated Attribute for Functions
 
+**Status**: Implemented
+
 ## Summary
 
 This RFC proposes a `@deprecated` attribute to annotate Luau functions for deprecation. Using these functions will result in a deprecation warning from the linter. The Luau LSP can indicate the deprecated status of these functions in its completion list by showing them in a visually distinct style.
