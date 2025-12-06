@@ -312,13 +312,14 @@ return item
 
 &nbsp;
 
-Another question to ask is about ``typeof({})``, all this is, is a trick.
+Another question to ask is about ``typeof({})``.
+This is mostly a trick to have an unsealed table, but you can't mix it with sealed tables.
 ```lua
 -- Assuming that SharedTable.new() gives you a table
 local foo = SharedTable.new() :: typeof({})
 foo.bar = 2
 ```
-Without ``typeof({})`` there would be nothing.
+Without ``typeof({})`` there would be no autocomplete and the type would be empty.
 
 But how official is ``typeof({})`` ?
 
