@@ -91,14 +91,14 @@ tbl = modify((tbl :: any)) -- "any" to silence the Type Error
 
 tbl.moreStuff = "test"
 ```
-
 </details>
 
 &nbsp;
 
+Autocomplete wise, and etc. the Old Solver allowed things, that the New Solver doesn't, and there's no way to alter it.
+
 &nbsp;
 
-----
 
 Are there cases where ``--!strict`` feels too "strict"? There aren't really ways to _tweak_ such behavior,
 other than changing to _completely_ change to other modes.
