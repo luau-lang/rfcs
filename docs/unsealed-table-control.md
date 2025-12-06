@@ -201,6 +201,10 @@ It's not just about the type checking anymore, it's also about the autocomplete 
 Not only that, but if you have a pre-set table template, and you distribute the code,
 others would also have to go to wherever the template is, to modify it.
 
+
+Also, ``table.clone`` let's you return a unsealed as well. But if you'd make your custom one, you can't?
+
+
 ## Design
 
 The goal here is to allow the user to tweak the ``--!strict`` behavior, through lighter annotation.
