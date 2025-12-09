@@ -1,4 +1,4 @@
-# Long Integer Type
+# 64-bit Integer Type
 
 ## Summary
 
@@ -29,69 +29,67 @@ Most other high-level language have builtin support for 64-bit integers, includi
 
 ## Design
 
-This will be implemented a with new type called "long".
+This will be implemented a with new type called "int64".
 
-The long type will store a 64 bit integer.
+An additional character may be specified at the end of numeric literals `L` which will signify an 64 bit integer literal.
+64 bit integer literals will support separators, hex, and binary values.
+64 bit integer literals should be parsed as an alternative to floating point values akin to the following regular expression `\d`.
+64 bit integer literals should support scientific notation declarations e.g. `1e8L` and should produce an error if they result in a fractional part.
 
-An additional character may be specified at the end of numeric literals `L` which will signify an long integer literal.
-Long integer literals will support separators, hex, and binary values.
-Long integer literals should be parsed as an alternative to floating point values akin to the following regular expression `\d`.
-Long integer literals should support scientific notation declarations e.g. `1e8L` and should produce an error if they result in a fractional part.
+64 bit integers will not coerce to a number or string, though type should include a __tostring metamethod by default.
 
-Longs will not coerce to a number or string, though type should include a __tostring.
+Functions for creating/manipulating this type will exist in a new library called 'int64`, which will have the following functions:
 
-Functions for creating/manipulating this type will exist in a new library called 'long`, which will have the following functions:
+`int64.toint64(n: number) -> int64`
 
-`long.tolong(n: number) -> long`
+Converts a number to an int64. Will throw an error if the value of the number exceeds the maximum integer, or if there is a fractional component to the number.
 
-Converts a number to a long. Will throw an error if the value of the number exceeds the maximum integer, or if there is a fractional component to the number.
+`int64.fromstring(str: string, base: number?) -> int64`
 
-`long.fromstring(str: string, base: number?) -> long`
+Converts a string representation of a number into a int64 in accordance with a specified base or base 10 if no argument is provided.
 
-Converts a string representation of a number into a long in accordance with a specified base or base 10 if no argument is provided.
+`int64.tostring(n: int64, b: base?) -> string`
 
-`long.tostring(n: long, b: base?) -> string`
+Converts an int64 to a string representation with the given base.
 
-Converts a long to a string representation with the given base.
+`int64.add`, `int64.sub`, `int64.mul`, `int64.div`, `int64.mod`, `int64.udiv`, `int64.umod`, `int64.band`, `int64.bor`, `int64.xor`, `int64.lt`, `int64.le`, `int64.ult`
 
-`long.add`, `long.sub`, `long.mul`, `long.div`, `long.mod`, `long.udiv`, `long.umod`, `long.band`, `long.bor`, `long.xor`, `long.lt`, `long.le`, `long.ult`
-
-Performs the associated operation on a long and another long. Functions prefixed with `u` operate over unsigned values where their normal counterparts assume signedness.
+Performs the associated operation on a int64 and another int64. Functions prefixed with `u` operate over unsigned values where their normal counterparts assume signedness.
 Operators for this type will not be implemented
 
-`long.lshift`, `long.rshift`, `long.arshift`
+`int64.lshift`, `int64.rshift`, `int64.arshift`
 
-Performs the associated bitwise operation on a long by a number.
+Performs the associated bitwise operation on a int64 by a number.
 
-`buffer.readlong(b: buffer, offset: number) -> long`
+`buffer.readint64(b: buffer, offset: number) -> int64`
 
-Reads a long out of a buffer at the given offset.
+Reads a int64 out of a buffer at the given offset.
 
-`buffer.writelong(b: buffer, offset: number, value: long)`
+`buffer.writeint64(b: buffer, offset: number, value: int64)`
 
-Writes a long to a buffer at the given offset.
+Writes a int64 to a buffer at the given offset.
 
 ### C API
 
-`int64_t lua_tolong(lua_State *L, int index)`
+`int64_t lua_toint64(lua_State *L, int index)`
 
-Returns a long value on the stack at `index` if no value exists or if it is not a `long` then returns `0`.
+Returns a int64 value on the stack at `index` if no value exists or if it is not a `int64` then returns `0`.
 
-`void lua_pushlong(lua_State *L, int64_t n)`
+`void lua_pushint64(lua_State *L, int64_t n)`
 
-Pushes a long value of the specified signed to the stack
+Pushes a int64 value of the specified signed to the stack
 
-`int lua_islong(lua_State *L, int n)`
+`int lua_isint64(lua_State *L, int n)`
 
-Determines if a value at index `n` is a long.
+Determines if a value at index `n` is a int64.
 
-`int64_t luaL_checklong(lua_State *L, int index)`
+`int64_t luaL_checkint64(lua_State *L, int index)`
 
-Same behavior as `lua_tolong` and `lua_toulong` except errors if the value is not a long.
+Same behavior as `lua_toint64` and `lua_touint64` except errors if the value is not a int64.
 
-`luaopen_long(lua_State *L)`
+`luaopen_int64(lua_State *L)`
 
-Registers the `long` library. Included in `luaL_openlibs`
+Registers the `int64` library. Included in `luaL_openlibs`
 
 ## Drawbacks
 
