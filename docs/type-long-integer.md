@@ -23,7 +23,7 @@ While the above solutions, in addition to runtimes being able to define their ow
 
 Representing 64-bit numbers as heap-allocated userdata is sufficient for correctness but adds a layer of indirection for something that can fit within the existing value size. In cases where the use of these numbers is more common, the performance characteristics of different implementations including userdata could be problematic.
 
-Userdata remain the right mechanism for complex or embedder-specific numeric types but 64-bit integers have a sufficiently large problem domain to justify their inclusion as a core value type which may have benefits for performance wider interoperability in the overall ecosystem.
+Userdata remain the right mechanism for complex or embedder-specific numeric types but 64-bit integers have a sufficiently large problem domain to justify their inclusion as a core value type which may have significant benefits for performance as well as wider interoperability in the overall ecosystem.
 
 Most other high-level language have builtin support for 64-bit integers, including Lua since 5.3.
 
