@@ -1,8 +1,8 @@
-# Attributes Everywhere
+# Allow attributes to be used on types, variables, and table fields
 
 ## Summary
 
-Allows [Attributes](./syntax-attributes-functions.md) to be applied to almost anything in Luau.
+Allows [Attributes](./syntax-attributes-functions.md) to be applied to types, variables, and table fields in Luau.
 
 ## Motivation
 
@@ -87,6 +87,4 @@ type PetSounds = {
 
 ## Drawbacks
 
-Allowing attributes everywhere, would be added complexity to the language. Although would be more inline with what a user would expect/want, as its currently odd as a user that types can't be marked as deprecated.
-
-This RFC does not define how attributes should be able to be added to comments, although there is no clear use case for this currently.
+Allowing attributes to be on types, variables, and table fields, would be added complexity to the language. Although would be more inline with what a user would expect/want, as its odd from the perspective of a user that currently types can't be marked as deprecated.
