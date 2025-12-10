@@ -20,13 +20,35 @@ The following list proposes how attributes should be attached to each bit of syn
 This exists as it could be useful for if for instance a constant is defined as a local variable and then exported:
 
 ```luau
-@[deprecated { reason = "dog is a more modern API"}]
+@[deprecated { use = "dog"}]
 local puppy = "whimper"
 
 return table.freeze({
 	puppy = puppy,
 	dog = "woof",
 })
+```
+
+Although this will cause the return in the module to be linted, but this lint won't be passed on to consumers of the module:
+
+Module:
+
+```luau
+-- DeprecatedApi: Variable 'puppy' is deprecated, use 'dog' instead Luau(22)
+return table.freeze({
+	puppy = puppy,
+	dog = "woof",
+})
+```
+
+Consumer:
+
+```luau
+-- No lint occurs on the import
+local module = require("@module")
+
+-- DeprecatedApi: Member 'puppy' is deprecated, use 'dog' instead Luau(22)
+print(module.puppy)
 ```
 
 ### Tables
@@ -44,8 +66,10 @@ module.parrot = "cracker, now"
 return table.freeze(pet_sounds)
 ```
 
-Note: If the value of a entry has attributes, those will be merged with the attributes defined on the entry.
-With the attributes on the entry having priority over the attributes on the value.
+If the value of a field has attributes, those will be merged with the attributes defined on the field.
+With the attributes on the field having priority over the attributes on the value.
+For example: if both the value and the field have a `@deprecated` attribute, the `@deprecated` attribute on the value will be ignored.
+With the `@deprecated` attribute on the field being used instead.
 
 ```luau
 @[deprecated { reason = "cat is a more modern API"}]
@@ -53,6 +77,13 @@ local function get_cat_sound()
 	return "meow"
 end
 
+-- DeprecatedApi: Function 'get_cat_sound' is deprecated, cat is a more modern API Luau(22)
+local bad_module = table.freeze({
+	get_cat_sound = get_cat_sound,
+})
+
+-- No lint occurs, because the @deprecated attribute of the 'get_cat_sound' function has been overridden
+-- by the @deprecated attribute of the field 'get_cat_sound'.
 local module = table.freeze({
 	@[deprecated{ use = "cat" }] get_cat_sound = get_cat_sound,
 	cat = "meow"
@@ -67,16 +98,17 @@ module.get_cat_sound()
 Types work similarly to [Variables](#variables) and [Tables](#tables), except being types.
 
 ```luau
-@[deprecated{ use = "PetSounds" }]
-type pet_sounds = {
-	parrot: "cracker, now",
-	dog: "woof",
-	cat: "meow",
-}
-
 @deprecated
 type Puppy = "whimper"
 
+-- DeprecatedApi: Type 'Puppy' is deprecated Luau(22)
+type CanineSounds = {
+	puppy: Puppy,
+	dog: "woof",
+}
+
+-- No lint occurs, because the @deprecated attribute of the type 'Puppy' has been overridden
+-- by the @deprecated attribute of the field 'puppy'.
 type PetSounds = {
 	-- Just like with tables, entries have their attributes merged with the values attributes.
 	@deprecated{ use = "dog" } puppy: Puppy,
@@ -84,6 +116,8 @@ type PetSounds = {
 	cat: "mrrp",
 }
 ```
+
+Although type declarations can also have attributes directly after the `=`,
 
 ## Drawbacks
 
