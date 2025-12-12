@@ -7,15 +7,20 @@ The metatable and some of its keys will be frozen for potential improvements in 
 
 ## Motivation
 
-Providing a buffer object with a metatable will allow buffer objects can have properties (direct or computed), methods and other kinds of operations like operators.
+Buffer type today has a single metatable provided by the embedder and shared by all buffer instances.
 
-This will allow the behavior to be defined and extended on the Luau side, compared to userdata that is strictly defined by the host.
+This limits the flexibility as all buffers share the same behavior and those behaviors cannot be defined by user in Luau.
+Even for the embedder, defining the methods in Luau is challenging and host language definitions are used instead.
+
+Providing a buffer object with an individual metatable will allow buffer objects to have properties (direct or computed), methods and operators, specific to certain instances.
+
+This will allow the behavior to be defined and extended on the Luau side, compared to userdata that is strictly defined by the embedder.
 
 This extension preserves the simple small core of the Luau language while providing a flexible extension point for developers.
 
 Such buffers can also be made to match the structure of the host data types and to handle FFI cases.
 
-In a way, this will provide an alternative to luajit 'cdata' in Luau.
+In a way, this will provide an alternative to luajit 'cdata' in Luau:
 
 ```luau
 -- A float4 in a buffer
@@ -70,7 +75,7 @@ buf:normalize()
 local xn = buf:x()
 ```
 
-Or any other custom way the developer wants property accesses to be performed.
+Having all the flexibility of a metatable, developer is free to define whatever properties and behaviors they want and interpret their buffer data in a form suitable for them.
 
 ## Design
 
@@ -103,6 +108,12 @@ Equality checks in the VM will call `__eq` for buffers similar to tables and use
 
 `__type` metatable key is ignored by `typeof`, just like it does for tables.
 As before, only host is allowed to define type names.
+This does not change how it behaved with a global host-provided metatable.
+
+Other metamethods (`__add`/`__len`/...) work as expected and do not change from how they work today for buffers with global host-provided metatable.
+
+Buffer structure size increase by the metatable aligns the data to a 16 byte boundary making it possible to store data which requires 16 byte alignment by the embedder.
+This will make buffer data match the alignment guarantee of Luau userdata objects.
 
 In order for the typechecker to understand buffers with attached metatables, we propose extending the intersections to be allowed on buffers, similar to `extern` types:
 
@@ -121,7 +132,9 @@ This makes it possible to have a large memory buffer and sub-allocate buffer obj
 
 ## Drawbacks
 
-This increases buffer size by 8 bytes, with the bigger impact on 0-8 byte buffers going from 16 to 24 bytes and allocated from 32 byte page.
+This increases buffer size by 8 bytes, with the bigger impact on 0-8 byte buffers going from 16 to 24 bytes, with an overhead decreasing with larger sizes as before.
+Starting from 64 bytes the increase is often free based on the current Luau allocator design.
+In particular, sizes like 64/96/128/256 do not increase in internal allocation class.
 
 This RFC also introduces a special evaluation rule for metamethod functions.
 It is introduced for potential improvement in caching of operations, but might come at a surprise to users of deprecated environment modification functions.
