@@ -45,6 +45,26 @@ that the table can be _widened further with properties_, if it is proven to be o
 This is also ``--!strict`` friendly and doesn't impact existing code-bases. ``@widenable`` would be an exclusive attribute to have a function opt-in to behave like that, which is awarely controlled by the user using the language.
 
 
+<br>
+
+We have to use a marker, such as ``@widenable``. If we don't do this, any function that is written like so would be impacted.
+```lua
+--!strict
+function createStuff() return {x=0,y=0,z=0} end
+
+local myStuff = createStuff()
+myStuff.oops = 5 -- This wouldn't type error anymore
+```
+And we don't want to impact this, so ``@widenable`` should be an exlcusive controllable attribute that. "widen-able", meaning it is "able" to be widened, but not forcefully. A sole reference is needed.
+
+If we don't use an attribute like ``@widenable``, everyone would be forced to do this
+```lua
+function createStuff(): {x: number, y: number, z: number} return {x=0,y=0,z=0} end
+```
+
+
+<br>
+
 
 ## Design
 
@@ -169,19 +189,5 @@ based on that table it created.
 Without this RFC for the type solver, the only alternative is to annotate everything ahead,
 or say ``{[string]: any}`` but that would sewer you away from property names and autocomplete.
 
-&nbsp;
 
-We have to use a marker, such as ``@widenable``. If we don't do this, any function that is written like so
-```lua
---!strict
-function createStuff() return {x=0,y=0,z=0} end
 
-local myStuff = createStuff()
-myStuff.oops = 5 -- This wouldn't type error anymore
-```
-And we don't want to impact this, so ``@widenable`` should be an exlcusive controllable attribute that allows tables to be widenable.
-
-If we don't use an attribute, everyone would be forced to do this
-```lua
-function createStuff(): {x: number, y: number, z: number} return {x=0,y=0,z=0} end
-```
