@@ -1,4 +1,4 @@
-# Extendable Returns for Tables with an Unique Reference
+# Extendable tables for function-returned tables with an unique reference
 
 ## Summary
 
