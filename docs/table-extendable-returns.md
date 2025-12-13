@@ -3,7 +3,7 @@
 ## Summary
 
 When a function creates a new table _which proves to be of a fresh and sole unique reference_, we should be able to safely assume that it can be returned and assigned
-to a variable like usual, _**but also able to extended it further**_. Just as if you'd have declared a table normally and then assigned further properties to _widen_ the table.
+to a variable like usual, _**but also able to extended it further**_. Just as if you'd have declared a table normally and then assigned further properties to _extend and widen_ the table.
 
 
 ## Motivation
