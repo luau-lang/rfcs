@@ -1,8 +1,8 @@
-# Extendable tables for function-returned tables with an unique reference
+# @widenable attribute - Extendable tables for function-returned tables with an unique reference
 
 ## Summary
 
-When a function creates a new table _which proves to be of a fresh and sole unique reference_, we should be able to safely assume that it can be returned and assigned
+If a function has the ``@widenable`` attribute, when a function creates a new table _which proves to be of a fresh and sole unique reference_, we should be able to safely assume that it can be returned and assigned
 to a variable like usual, _**but also able to extended it further**_. Just as if you'd have declared a table normally and then assigned further properties to _extend and widen_ the table.
 
 
@@ -37,14 +37,20 @@ Because of this:
 
 But what if you could do it?
 
+However, the Type System would need a clue. How can this clue be given, without complete manual annotation? _e.g. ways would be through function attributes, or comments, or anything parsable._
+
+The only thought is to introduce an attribute, such as ``@widenable``. If a function is marked with this attribute, it means that _if_ the function returns a table
+that the table can be extended further, if it is proven to be of a **sole reference**.
+
+This is also ``--!strict`` friendly and doesn't impact existing code-bases. ``@widenable`` would be an exclusive attribute to have a function opt-in to behave like that, which is awarely controlled by the user using the language.
+
 
 
 ## Design
 
-Any function that creates a table in itself as a standalone, can be proven to be of a sole unique reference. And therefore we can say that this table can be extended
-further when it is returned.
+Any function that has the ``@widenable`` attribute, that creates a table in itself and can be proven to be of a sole unique reference. And therefore we can say that this table can be extended, hence _widened_ up further, when returned.
 
-So as a quick overview for an unique reference:
+As a quick overview for an unique reference:
 - The function **proves** to have creates the table, _e.g. directly declaring ``{}`` or calling a function that created a table._
 - The Type Checker can guarantee that this is the **sole reference** of the table within the function.
   - Which makes it safe to widen the table with further properties when returned.
@@ -53,6 +59,7 @@ So as a quick overview for an unique reference:
 
 ```lua
 --!strict
+@widenable
 function makeTable()
   local tbl = {}
   tbl.assignMeLater = nil :: number?
@@ -78,6 +85,7 @@ tbl.prop = "hello"
 The table that the function returns, would be an unique reference per call. 
 ```lua
 --!strict
+@widenable
 function makeTable() return {} end
 -- Imagine the below but if as if you'd have written this instead:
 -- local tbl_1 = {}
@@ -100,10 +108,12 @@ From where the function comes from is irrelevant, aslong the table the function 
 
 ```lua
 --!strict
+@widenable
 function makeTable()
 	return { one = 1 }
 end
 
+@widenable
 function makeTable2()
 	local tbl = {}
 	tbl.secondTbl = makeTable()
@@ -121,6 +131,7 @@ This would also allow you to use table templates.
 ```lua
 local Helper = {}
 
+@widenable
 function Helper.createTable()
 	local tbl = {}
 	tbl.Init = nil :: () -> ()?
@@ -153,9 +164,14 @@ based on that table it created.
 - If ``table.clone`` ever gets a feature where the reference of a table type is cloned. What would its type annotation look like?
 
 
-- Additionally...
+## Alternatives
 
-Currently, any function written without explicit annotations would be impacted.
+Without this RFC for the type solver, the only alternative is to annotate everything ahead,
+or say ``{[string]: any}`` but that would sewer you away from property names and autocomplete.
+
+&nbsp;
+
+We have to use a marker, such as ``@widenable``. If we don't do this, any function that is written like so
 ```lua
 --!strict
 function createStuff() return {x=0,y=0,z=0} end
@@ -163,19 +179,9 @@ function createStuff() return {x=0,y=0,z=0} end
 local myStuff = createStuff()
 myStuff.oops = 5 -- This wouldn't type error anymore
 ```
+And we don't want to impact this, so ``@widenable`` should be an exlcusive controllable attribute that allows tables to be widenable.
 
-You'd have to do
+If we don't use an attribute, everyone would be forced to do this
 ```lua
 function createStuff(): {x: number, y: number, z: number} return {x=0,y=0,z=0} end
 ```
-
-And then you'd get the warning at ``myStuff.oops``. But this would mean that you'd have to manually annotate it.
-There should be a way to automatically say, that the table strictly isn't meant to be _widenable_.
-
-The Type System would need a clue. How can this clue be given, without complete manual annotation? _e.g. ways would be through function attributes, or comments, or anything parsable._
-
-
-## Alternatives
-
-Without this RFC for the type solver, the only alternative is to annotate everything ahead,
-or say ``{[string]: any}`` but that would sewer you away from property names and autocomplete.
