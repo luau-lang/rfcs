@@ -45,8 +45,8 @@ Any function that creates a table in itself as a standalone, can be proven to be
 further when it is returned.
 
 So as a quick overview for an unique reference:
-- The function creates a table by itself, e.g. ``{}``
-- The Type Checker can guarantee that this is the sole reference of the table within the function.
+- The function **proves** to have creates the table, _e.g. directly declaring ``{}`` or calling a function that created a table._
+- The Type Checker can guarantee that this is the **sole reference** of the table within the function.
   - Which makes it safe to widen the table with further properties when returned.
  
 
