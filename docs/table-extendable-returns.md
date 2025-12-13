@@ -15,8 +15,11 @@ We can declare a table and assign it to a variable and extend it further, like s
 local tbl = {}
 tbl.prop = "hello"
 ```
+We can declare a table, and widen it further with any properties we desire.
 
-But the Type Checker doesn't let us do this:
+&nbsp;
+
+But the Type Checker doesn't let us widen tables that a function created and returned.
 ```lua
 --!strict
 function makeTable()
@@ -28,9 +31,12 @@ tbl.prop = "hello" -- type error
 ```
 
 Because of this:
-- You can't have templates, without fully annotating everything you'd ever put into them.
-  - And you get type warnings because of this.
+- You can't have pre-filled tables or templates, without fully annotating everything you'd ever put into them.
+  - And you get type warnings if you attempt to do this.
 
+<br>
+
+But what if you could do it?
 
 
 
