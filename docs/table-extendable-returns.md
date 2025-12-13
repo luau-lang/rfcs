@@ -174,5 +174,5 @@ There should be a way to automatically say, that the table strictly isn't meant 
 
 ## Alternatives
 
-Without this RFC, the only alternative is to annotate everything ahead,
+Without this RFC for the type solver, the only alternative is to annotate everything ahead,
 or say ``{[string]: any}`` but that would sewer you away from property names and autocomplete.
