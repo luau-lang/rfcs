@@ -53,7 +53,7 @@ We have to use a marker, such as ``@widenable``. If we don't do this, any functi
 function createStuff() return {x=0,y=0,z=0} end
 
 local myStuff = createStuff()
-myStuff.oops = 5 -- This wouldn't type error anymore
+myStuff.oops = 5 -- This should still error if there's no "@widenable" attribute.
 ```
 And we don't want to impact this, so ``@widenable`` should be an exlcusive controllable attribute that. "widen-able", meaning it is "able" to be widened, but not forcefully. A sole reference is needed.
 
@@ -74,7 +74,11 @@ As a quick overview for an unique reference:
 - The function **proves** to have creates the table, _e.g. directly declaring ``{}`` or calling a function that created a table._
 - The Type Checker can guarantee that this is the **sole reference** of the table within the function.
   - Which makes it safe to widen the table with further properties when returned.
- 
+
+Everything else stays the same. If a function returns a ``@widenable`` sole referenced table. It is just like every normal declared table.
+Meaning that the table will get sealed when tables usually get sealed by the type system.
+
+
 
 
 ```lua
@@ -99,6 +103,24 @@ tbl.assignMeLater = nil :: number?
 tbl.entry = 1
 tbl.prop = "hello"
 ```
+
+<br>
+
+If a function doesn't use ``@widenable`` it will follow default behavior.
+```lua
+--!strict
+function createStuff() return {x=0,y=0,z=0} end
+
+local myStuff = createStuff()
+myStuff.oops = 5 -- This would still type error
+```
+
+However, if ``createStuff`` had the ``@widenable`` attribute. It ``.oops`` would no longer give an error.
+
+
+<br>
+
+<br>
 
 <br>
 
@@ -188,6 +210,3 @@ based on that table it created.
 
 Without this RFC for the type solver, the only alternative is to annotate everything ahead,
 or say ``{[string]: any}`` but that would sewer you away from property names and autocomplete.
-
-
-
