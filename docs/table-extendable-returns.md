@@ -127,7 +127,7 @@ You'd get hinted at, that you have an ``.Init`` function
 ```lua
 --!strict
 local Helper = require("./Helper")
-local module = {} :: typeof( Helper.createTable() )
+local module = Helper.createTable()
 
 function module.Init() end
 function module.DoSomethingElse() end -- No Type Error, and works
