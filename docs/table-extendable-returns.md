@@ -152,6 +152,8 @@ based on that table it created.
 - If ``table.clone`` ever gets a feature where the reference of a table type is cloned. What would its type annotation look like?
 
 
+- Additionally...
+
 Currently, any function written without explicit annotations would be impacted.
 ```lua
 function createStuff() return {x=0,y=0,z=0} end
