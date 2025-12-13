@@ -1,4 +1,4 @@
-# Extendable Returns for Tables with an unique reference
+# Extendable Returns for Tables with an Unique Reference
 
 ## Summary
 
