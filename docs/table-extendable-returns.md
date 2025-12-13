@@ -157,9 +157,9 @@ based on that table it created.
 
 Currently, any function written without explicit annotations would be impacted.
 ```lua
+--!strict
 function createStuff() return {x=0,y=0,z=0} end
 
---!strict
 local myStuff = createStuff()
 myStuff.oops = 5 -- This wouldn't type error anymore
 ```
