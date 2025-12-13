@@ -39,8 +39,8 @@ But what if you could do it?
 
 However, the Type System would need a clue. How can this clue be given, without complete manual annotation? _e.g. ways would be through function attributes, or comments, or anything parsable._
 
-The only thought is to introduce an attribute, such as ``@widenable``. If a function is marked with this attribute, it means that _if_ the function returns a table
-that the table can be extended further, if it is proven to be of a **sole reference**.
+An attribute could be introduced, such as ``@widenable``. If a function is marked with this attribute, it means that _if_ the function returns a table
+that the table can be _widened further with properties_, if it is proven to be of a _**sole reference**_.
 
 This is also ``--!strict`` friendly and doesn't impact existing code-bases. ``@widenable`` would be an exclusive attribute to have a function opt-in to behave like that, which is awarely controlled by the user using the language.
 
