@@ -39,11 +39,12 @@ Because of this:
 Any function that creates a table in itself as a standalone, can be proven to be of a sole unique reference. And therefore we can say that this table can be extended
 further when it is returned.
 
-So as a quick overview:
+So as a quick overview for an unique reference:
 - The function creates a table by itself, e.g. ``{}``
-- The table gets returned.
 - The Type Checker can guarantee that this is the sole reference of the table within the function.
   - Which makes it safe to widen the table with further properties when returned.
+ 
+
 
 ```lua
 --!strict
@@ -88,7 +89,7 @@ tbl_2.TWO = 2
 
 <br>
 
-From where the function comes from is irrelevant, aslong the table the function creates, is proven to be of a unique reference.
+From where the function comes from is irrelevant, aslong the table the function creates, is proven to be of an unique reference.
 
 
 ```lua
