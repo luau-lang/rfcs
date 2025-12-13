@@ -173,6 +173,8 @@ function createStuff(): {x: number, y: number, z: number} return {x=0,y=0,z=0} e
 And then you'd get the warning at ``myStuff.oops``. But this would mean that you'd have to manually annotate it.
 There should be a way to automatically say, that the table strictly isn't meant to be _widenable_.
 
+The Type System would need a clue. How can this clue be given, without complete manual annotation? _e.g. ways would be through function attributes, or comments, or anything parsable._
+
 
 ## Alternatives
 
