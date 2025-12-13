@@ -79,8 +79,9 @@ The table that the function returns, would be an unique reference per call.
 ```lua
 --!strict
 function makeTable() return {} end
--- Imagine the below but if as if you'd have written
--- local tbl_1 = {} instead
+-- Imagine the below but if as if you'd have written this instead:
+-- local tbl_1 = {}
+-- local tbl_2 = {}
 
 local tbl_1 = makeTable()
 local tbl_2 = makeTable()
