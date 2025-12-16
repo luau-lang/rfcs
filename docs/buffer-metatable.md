@@ -79,7 +79,7 @@ Having all the flexibility of a metatable, developer is free to define whatever 
 
 ## Design
 
-`buffer.create(size: number, metatable: table): buffer`
+`buffer.create(size: number, metatable: table?): buffer`
 
 Buffer construction will accept a second argument which will be a metatable for the buffer object.
 
