@@ -115,9 +115,11 @@ Other metamethods (`__add`/`__len`/...) work as expected and do not change from 
 Buffer structure size increase by the metatable aligns the data to a 16 byte boundary making it possible to store data which requires 16 byte alignment by the embedder.
 This will make buffer data match the alignment guarantee of Luau userdata objects.
 
-In order for the typechecker to understand buffers with attached metatables, we propose extending the intersections to be allowed on buffers, similar to `extern` types:
+In order for the typechecker to understand buffers with attached metatables, we propose using the `setmetatable` type function:
 
-`type Obj = buffer & { x: number, y: number, z: number }`
+`type Obj = setmetatable<buffer, { __index = { x: number, y: number, z: number } }>`
+
+If there is already a metatable on a buffer type, `setmetatable` will fail.
 
 ## Forwards compatibility
 
