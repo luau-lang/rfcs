@@ -78,9 +78,10 @@ type idxType3 = index<Person | Person2, "age"> -- idxType3 = number | string
 type idxType4 = index<Person | Person2, "alive" | "age"> -- Error message: Property '"age" | "alive"' does not exist on type 'Person | Person2'
 ```
 
-In the circumstance that the indexee's type is a class or table with an `__index` metamethod, the type should reflect
-the result of the expression `(tableValue & ~nil) | (__indexValue)` where `~` is the negation type symbol. This fits
-with Luau's runtime behavior of metatables, falling back to a value from __index if the value is nonpresent.
+In the circumstance that the indexee's type is a class or table with an `__index` metamethod, and the result from the
+main table is nilable, the type should reflect the result of the expression `(tableValue & ~nil) | (__indexValue)` where
+`~` is the negation type symbol. This fits with Luau's runtime behavior of metatables, falling back to a value from
+__index if the main value is nonpresent.
 ```luau
 local exampleClass = { Foo = "eight" }
 local exampleClass2 = setmetatable({ Foo = 8 }, { __index = exampleClass })
