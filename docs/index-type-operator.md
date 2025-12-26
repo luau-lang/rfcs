@@ -90,7 +90,7 @@ local exampleClass4 = setmetatable({ Foo = ... :: number? }, { __index = example
 
 type exampleTy2 = index<typeof(exampleClass2), "Foo"> -- exampleTy2 = number
 type exampleTy3 = index<typeof(exampleClass3), "Foo"> -- exampleTy3 = string
-type exampleTy3 = index<typeof(exampleClass4), "Foo"> -- exampleTy4 = number | string
+type exampleTy4 = index<typeof(exampleClass4), "Foo"> -- exampleTy4 = number | string
 ```
 
 One edge case to consider when using/designing this type function is that `__index` only supports 100 nested `__index` metamethods until it gives up. In the case that a property is not found within the 100 recursive calls, this type function will fail to reduce.
