@@ -9,8 +9,8 @@ buffer is frozen.
 
 Buffers are fully mutable, but this behavior might not always be desired for a user. There is currently no way to create
 buffers which can be read, but not modified. This can result in lots of nasty safety issues when immutability is
-desired (say, a library passing a buffer to a series of user callbacks), but not enforced. This is useful for sandboxing
-a memory buffer without abstracting it into a table with methods, or generally exposing completely immutable objects.
+desired, but not enforced; For example, a library passing a buffer to a series of user callbacks. This feature is useful
+for sandboxing a memory buffer without abstracting it into a table with methods, or generally exposing immutable memory.
 
 ## Design
 
