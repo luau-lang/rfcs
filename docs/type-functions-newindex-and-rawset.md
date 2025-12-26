@@ -43,7 +43,7 @@ behave identically to `newindex` - however, it will completely ignore the metata
 - This change will increase the number of type functions present in the global scope. Over time, large numbers of
 utility globals can inflate autocomplete, conflict with user defined aliases & type functions, and make the language
 more complicated to "learn".
-- Supporting unions fully could have high runtime complexity without insanity.
+- Supporting unions fully without insanity could have high runtime complexity.
 
 ## Alternatives
 
