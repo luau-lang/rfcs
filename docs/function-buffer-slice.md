@@ -43,3 +43,5 @@ this drawback is ostensibly "worth it".
 
 - Do Nothing. This forces users to allocate repetitive memory in order to trim a buffer or create a virtual heap.
 Generally, it is useful to pass around a segment of a mutable whole.
+- Structure arguments as `buffer.slice(buf, start, finish)` rather than offset and size. There is no particular reason
+this would be worse, but the design proposed in this RFC is more consistent with existing functions (`buffer.copy`)
