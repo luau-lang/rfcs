@@ -35,4 +35,6 @@ importantly, `buffer.freeze` / `buffer.isfrozen` might take up a fastcall slot i
 ## Alternatives
 
 - Do Nothing. It will not be possible to create "immutable" / "sandboxed" / "readonly" buffers due to the implications
-on performance and design complexity.
+on performance and design complexity. Instead, users can use strings for this. This is not ideal because strings
+are slower due to builtin interning, comparison, etc. It is also "just nicer" to be able to use the `buffer` library
+as intended.
