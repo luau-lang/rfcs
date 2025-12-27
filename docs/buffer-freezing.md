@@ -38,3 +38,4 @@ importantly, `buffer.freeze` / `buffer.isfrozen` might take up a fastcall slot i
 on performance and design complexity. Instead, users can use strings for this. This is not ideal because strings
 are slower due to builtin interning, comparison, etc. It is also "just nicer" to be able to use the `buffer` library
 as intended.
+- `buffer.frozencopy(buf)` or similar API. This may be more desireable if dynamically applying immutability on an object is seen as problematic.
