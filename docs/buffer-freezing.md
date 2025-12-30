@@ -29,8 +29,7 @@ performance, so this is an important consideration. Modern CPUs with branch pred
 especially if someone never uses a frozen buffer. The larger concern is making VM/NCG/Runtime logic more complicated
 when it comes to dealing with buffers, but the inverse argument can be made - immutable buffers could actually lead to
 VM/NCG/Runtime performance optimizations.
-- This increases the number of standard library functions, which naturally makes the language harder to "learn". More
-importantly, `buffer.freeze` / `buffer.isfrozen` might take up a fastcall slot in the VM.
+- This increases the number of standard library functions, which naturally makes the language harder to "learn".
 
 ## Alternatives
 
