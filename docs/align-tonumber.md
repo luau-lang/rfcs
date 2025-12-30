@@ -7,9 +7,16 @@ allowing for binary literals and underscores in number strings passed to `tonumb
 
 ## Motivation
 
-Currently `tonumber` supports regular numbers and hexadecimals, making `tonumber` support half of luaus number syntax currently.
-This is annoying for users as it means if they want to support `_` in numbers, if they are say making a math expression evaluator they cannot do so without doing some jank things with buffers and the bit32 library.
-Same goes for binary literals, despite not being nearly as useful.
+Currently `tonumber` supports regular numbers and hexadecimals, via the `base` argument and adding `0x` as a prefix to the string being passed to `tonumber`.
+Given `tonumber` supports hexadecimal via `0x`:
+```luau
+print(tonumnber("0xFFFFFF")) --> 16777215
+```
+
+Its currently odd that it doesn't support binary literals via `0b` like luau currently does for numbers.
+Additionally allowing underscores in numbers passed to `tonumber` is fairly easy to implement, and is nice syntax sugar for making parsers that handle numbers in luau.
+Alongside the fact allowing underscores would also make the behavior of `tonumber` simpler for users. As `tonumber` would then parse numbers in the exact same way as Luau,
+rather than how it is now with an odd caveat for hexadecimals.
 
 ## Design
 
