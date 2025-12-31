@@ -9,7 +9,7 @@ Add a new function (`buffer.slice(buf, offset, size)`) which creates buffer slic
 This RFC aims to increase safety and ease-of-use; there are many situations where it is impractical or impossible to
 provide safety to an entire buffer while sending a portion of that memory to a consumer. For example, trimming a buffer
 to be used in a runtime application, or creating a virtual heap. All available solutions are *very* incomplete, and
-often require excess allocations/copies; I.e., currently there is no "good" way to represent a mutable portion of an
+often require excess allocations/copies. To summarize, currently there is no "good" way to represent a mutable portion of an
 existing buffer.
 
 ## Design
