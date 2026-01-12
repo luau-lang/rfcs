@@ -92,6 +92,8 @@ const foo = computeFoo()
 export foo
 ```
 
+If `foo` was declared as `local` instead of `const` then subequent uses of it here will be treates as if it were declared as `const`.
+
 #### Order of Declarations and Mutual Dependencies
 
 As with `local` and `const` exports are evaluated in source order. Using the shorthand from above, mutually recursive or dependent functions can be declared before they are exported.
