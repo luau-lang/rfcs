@@ -137,12 +137,12 @@ end
 
 ### Grammar / Parsing
 
-`const` becomes a keyword in the `local` declaration position. If `const` is currently allowed as an identifier, this is a source-breaking change only for code that uses const as a local variable name in positions where a local declaration is parsed. (See Drawbacks.)
+`const` is a contextual keyword that is only valid in positions where `local` is valid. This makes the introduction fully backwards compatible with existing code.
 
 ## Drawbacks
 
-- Keyword and compatibility surface: if `const` is currently used as an identifier in existing code, reserving it as a keyword can be source-breaking in some contexts.
 - Potential false sense of immutability: developers may misread const as implying deep immutability. This is mitigated by clear documentation and examples, but the risk remains.
+- Lua introduced `const` in the form `local foo <const> = 5` which is inconsistent with this syntax. However, we've already decided we won't adopt Lua const syntax, therefore consider this an acceptable change.
 
 ## Alternatives
 
