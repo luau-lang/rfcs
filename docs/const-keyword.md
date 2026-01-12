@@ -6,9 +6,33 @@ Introduce a `const` keyword for local variable bindings that prevents reassignme
 
 ## Motivation
 
-When writing code, many variables are declared once and never intended to change such as module imports, function declarations, service references, and configuration objects. However, there is no way to prevent them from being rebound, which can lead to accidental rebinding, more time spent validating variables do not change during code reviews, and reducing the effectiveness of certain compiler / typechecker optimizations
+When introducing the [`export`](https://github.com/luau-lang/rfcs/pull/42) keyword we will need to introduce the concept of `const`-ness to the language. Modules with exports return a frozen table of values; however, the variables used to declare those exports are not themselves immutable. This makes it possible to write code such as the following:
 
-Additionally, with the proposal of the [export keyword](https://github.com/luau-lang/rfcs/pull/42), variables declared with it are frozen in the module exports table and therefore expected to refer to stable values. Without const-ness they can accidentally be redefined in confusing ways, within the module definition.
+```luau
+export foo = 5
+
+export function increment()
+	foo += 1
+end
+```
+
+This results in different values for `foo` depending on where it is accessed from:
+
+```luau
+-- Inside the module
+print(foo) --> 5
+increment()
+print(foo) --> 6
+
+-- Outside the module
+print(module.foo) --> 5
+module.increment()
+print(module.foo) --> 5
+```
+
+To address this, we propose that all exported values are `const` by default, preventing reassignment within the module and ensuring that exported bindings represent stable values.
+
+However, this is not the only use-case for `const`. A `const` binding provides a clear guarantee that a name will always refer to the same value for the lifetime of its scope. This property is useful beyond module exports: it makes code easier to reason about, avoids accidental rebinding in closures or long-lived scopes, and allows tools and the typechecker to treat such bindings as stable references rather than values that may change over time. Since `export` already requires this guarantee to behave correctly, exposing `const` as a general language feature avoids introducing special-case rules and provides a simple, consistent way to express immutability of bindings where it is desired.
 
 ## Design
 ### Syntax
