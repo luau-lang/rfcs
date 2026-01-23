@@ -1,4 +1,4 @@
-# Scoped lint silencing
+# Precise lint silencing
 
 ## Summary
 
