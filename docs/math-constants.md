@@ -41,7 +41,9 @@ In addition to `math.pi` and `math.huge`, we propose adding the following consta
     - The exact representation (payload and sign) is unspecified.
     - Comparing to `math.nan` will always return `false`; lint rules recommend using `math.isnan`.
 - `math.e`: the mathematical constant $e = 2.71828182845904523536$.
-- `math.tau`: the mathematical constant $\tau$, defined as `2 * math.pi`.
+- `math.phi`: the golden ratio, defined as $\phi = 1.61803398874989484820$.
+- `math.sqrt2`: the square root of `2`, defined as equal to `math.sqrt(2)`.
+- `math.tau`: the mathematical constant $\tau$, defined as equal to `2 * math.pi`.
 ## Drawbacks
 
 - The semantics of `math.nan` are unique and somewhat unexpected for users not already familiar with IEEE 754's floating-point arithmetic rules.
