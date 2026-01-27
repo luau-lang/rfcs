@@ -18,7 +18,7 @@ However, this mechanism is currently limited to types. Extending `export` to val
 
 ### Syntax
 
-Allow `export` in declarations anywhere `local` is allowed, but only at the top-level of a module. It may prefix a value, function, or type:
+Allow `export` in declarations anywhere that defines a name (`local`s, `function`s, and `type`s), but only at the top-level of a module:
 
 ```luau
 export version = "5.1"
@@ -92,7 +92,7 @@ const foo = computeFoo()
 export foo
 ```
 
-If `foo` was declared as `local` instead of `const` then subequent uses of it here will be treates as if it were declared as `const`.
+If `foo` was declared as `local` instead of `const` then subsequent uses of it here will be treated as if it were declared as `const`.
 
 #### Order of Declarations and Mutual Dependencies
 
