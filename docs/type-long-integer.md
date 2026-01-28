@@ -31,7 +31,7 @@ Most other high-level language have builtin support for 64-bit integers, includi
 
 This will be implemented a with new type called "int64".
 
-An additional character may be specified at the end of numeric literals `I` which will signify an 64 bit integer literal.
+An additional character may be specified at the end of numeric literals `i` which will signify an 64 bit integer literal.
 64 bit integer literals will support separators, hex, and binary values.
 64 bit integer literals should be parsed as an alternative to floating point values akin to the following regular expression `\d`.
 
