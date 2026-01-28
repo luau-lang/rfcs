@@ -31,16 +31,15 @@ Most other high-level language have builtin support for 64-bit integers, includi
 
 This will be implemented a with new type called "int64".
 
-An additional character may be specified at the end of numeric literals `L` which will signify an 64 bit integer literal.
+An additional character may be specified at the end of numeric literals `I` which will signify an 64 bit integer literal.
 64 bit integer literals will support separators, hex, and binary values.
 64 bit integer literals should be parsed as an alternative to floating point values akin to the following regular expression `\d`.
-64 bit integer literals should support scientific notation declarations e.g. `1e8L` and should produce an error if they result in a fractional part.
 
 64 bit integers will not coerce to a number or string, though type should include a __tostring metamethod by default.
 
 Functions for creating/manipulating this type will exist in a new library called 'int64`, which will have the following functions:
 
-`int64.toint64(n: number) -> int64`
+`int64.create(n: number) -> int64`
 
 Converts a number to an int64. Will throw an error if the value of the number exceeds the maximum integer, or if there is a fractional component to the number.
 
@@ -52,12 +51,16 @@ Converts a string representation of a number into a int64 in accordance with a s
 
 Converts an int64 to a string representation with the given base.
 
-`int64.add`, `int64.sub`, `int64.mul`, `int64.div`, `int64.mod`, `int64.udiv`, `int64.umod`, `int64.band`, `int64.bor`, `int64.xor`, `int64.lt`, `int64.le`, `int64.ult`
+`int64.tonumber(n: int64) -> number`
+
+Converts an int64 to a double, erroring if the value cannot be represented accurately.
+
+`int64.add`, `int64.sub`, `int64.mul`, `int64.div`, `int64.mod`, `int64.udiv`, `int64.umod`, `int64.band`, `int64.bor`, `int64.bxor`, `int64.lt`, `int64.le`, `int64.ult`
 
 Performs the associated operation on a int64 and another int64. Functions prefixed with `u` operate over unsigned values where their normal counterparts assume signedness.
 Operators for this type will not be implemented
 
-`int64.lshift`, `int64.rshift`, `int64.arshift`
+`int64.lshift`, `int64.rshift`, `int64.arshift`, `int64.lrotate`, `int64.rrotate`, `int64.extract`, `int64.replace`, `int64.btest`, `int64.countrz`, `int64.countlz`
 
 Performs the associated bitwise operation on a int64 by a number.
 
