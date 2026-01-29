@@ -34,6 +34,8 @@ This will be implemented a with new type called "int64".
 An additional character may be specified at the end of numeric literals `i` which will signify an 64 bit integer literal.
 64 bit integer literals will support separators, hex, and binary values.
 
+Operations performing a string formatting of the an int64 should format the number as signed by default.
+
 Functions for creating/manipulating this type will exist in a new library called 'int64`, which will have the following functions:
 
 `int64.create(n: number) -> int64`
@@ -52,7 +54,7 @@ Converts an int64 to a string representation with the given base.
 
 Converts an int64 to a double, erroring if the value cannot be represented accurately.
 
-`int64.add`, `int64.sub`, `int64.mul`, `int64.div`, `int64.mod`, `int64.udiv`, `int64.umod`, `int64.band`, `int64.bor`, `int64.bxor`, `int64.lt`, `int64.le`, `int64.ult`
+`int64.add`, `int64.sub`, `int64.mul`, `int64.div`, `int64.mod`, `int64.udiv`, `int64.umod`, `int64.band`, `int64.bor`, `int64.bnot`, `int64.bxor`, `int64.lt`, `int64.le`, `int64.ult`
 
 Performs the associated operation on a int64 and another int64. Functions prefixed with `u` operate over unsigned values where their normal counterparts assume signedness.
 Operators for this type will not be implemented
