@@ -33,9 +33,6 @@ This will be implemented a with new type called "int64".
 
 An additional character may be specified at the end of numeric literals `i` which will signify an 64 bit integer literal.
 64 bit integer literals will support separators, hex, and binary values.
-64 bit integer literals should be parsed as an alternative to floating point values akin to the following regular expression `\d`.
-
-64 bit integers will not coerce to a number or string, though type should include a __tostring metamethod by default.
 
 Functions for creating/manipulating this type will exist in a new library called 'int64`, which will have the following functions:
 
