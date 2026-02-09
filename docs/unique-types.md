@@ -20,7 +20,7 @@ A structure that is an intersection between some type T and a unique type U will
 ---
 The proposed syntax to create a unique type is to define it using `unique type TypeName`, it does not have an = symbol after it because all unique types are are opaque unique types, they do not contain any additional information beyond that.
 
-The name `unique` was chosen as it clearly conveys that this specific type is unique and is not the same as any other type
+The name `unique` was chosen as it clearly conveys that this specific type is unique and is not the same as any other type.
 Unique types of the same name defined in different files will, of course, still be unique as their own "primitive" type, and cannot be cast to eachother.
 
 ### Behavior with intersections
