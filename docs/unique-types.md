@@ -23,9 +23,9 @@ The proposed syntax to create a unique type is to define it using `type TypeName
 
 The autocomplete of a unique type should inherit from its defined supertype, as the unique type is gauranteed to have everything that the supertype has.
 
-### Behavior with literals
+### Variable definition semantics
 
-When assigning a literal value to a variable, a cast will NOT be implicitly performed. For example, a number cannot be implicitly cast to a unique type that is a subtype of number, because a supertype cannot be implicitly cast into a subtype, and thus an explicit cast must be done first.
+When assigning a value to a variable, a cast will NOT be implicitly performed. An explicit cast must be done first, because unique types are different types from types such as literals and primitives.
 
 A unique type cannot be cast to another unique type, however can be cast to types it is subtype of (defined by the type expression after the : in the unique types declaration)
 Illustrated in code:
@@ -45,7 +45,13 @@ local function getPlaceData(id: PlaceId)
 
 local data = getPlaceData(1234) -- Doesnt work, must explicitly cast number to PlaceId
 local data = getPlaceData(1234 :: PlaceId) -- Works!
+
+local a = 10
+local moredata = getPlaceData(a) -- Again, doesnt work
+local moreadaatatata = getPlaceData(a :: PlaceId) -- Works!
 ```
+
+Some more examples involving more types of literals:
 
 ### Behavior with intersections
 
@@ -78,8 +84,6 @@ local vec2_2: Vec2 = vec3_1  -- Works, "x" and "y" are present, which is all tha
 local vec3_2: Vec3 = vec2_1  -- Doesnt work, "z" is missing from the type
 local vec3_3: Vec2 = vec3_2 -- Doesnt work, Vec3 cannot be cast into Vec2 despite the fact that Vec2 is a valid subtype of Vec3
 ```
-
-However, an annotation will NOT perform an implicit cast on the value. To assign a value to a variable of a unique type, you must typecast it first. This is so the programmer is required to pass explicit intent that they want this value to be of this unique type
 
 ### Refinement behavior
 
