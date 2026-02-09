@@ -144,7 +144,7 @@ end
 However, if a member of a unique type was to be refined like so:
 
 ```luau
-type Proxy: {inst: Instance?, metadata: {[string}: any}}
+type Proxy: {inst: Instance?, metadata: {[string]: any}}
 
 local function modify(p: Proxy)
     if p.inst then
