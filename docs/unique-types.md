@@ -45,7 +45,7 @@ local data = getPlaceData(1234 :: PlaceId) -- Works!
 
 ### Behavior with intersections
 
-Using a unique type in an intersection would result in `*error type*`, as a unique type simply denotes a distinct type that is a subtype of something else, and intersecting with that shouldn't be allowed.
+Using a unique type in an intersection would result in `*error type*`, as a unique type simply denotes a distinct type that is a subtype of something else, and intersecting with that shouldn't be allowed because theres no actual "value" to intersect with here.
 
 ### Behavior with unions
 
