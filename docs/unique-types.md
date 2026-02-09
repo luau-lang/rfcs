@@ -54,7 +54,7 @@ local moredata = getPlaceData(a) -- Again, doesnt work
 local moreadaatatata = getPlaceData(a :: PlaceId) -- Works!
 ```
 
-Unique types can be casted to other unique types, or other structural types provided the types are compatible in a structural manner. That is to say:
+Unique types can be casted to other structural types provided the types are compatible in a structural manner. That is to say:
 
 ```luau
 type Vec2: { x: number, y: number }
