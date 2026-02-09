@@ -58,11 +58,11 @@ Some more examples involving more types of literals:
 
 ### Behavior with intersections
 
-Using a unique type in an intersection would simply intersect with the subtype of the unique type, for example:
+Using a unique type in an intersection would simply intersect with the supertype of the unique type, for example:
 ```luau
 type Thing: {a: string}
 type ExtendedThing = Thing & {b: number} -- Aliases still work with unique types!
--- The subtype of ExtendedThing has been expanded, and since in the case of intersections, wider = subtype, that means ExtendedThing is now a subtype of {a: string} which is the supertype of Thing.
+-- The supertype of ExtendedThing has been expanded, and since in the case of intersections, wider = subtype, that means ExtendedThing is now a subtype of {a: string} which is the supertype of Thing.
 
 local thing = {a: string, b: number} :: ExpandedThing -- Works!
 local thing2 = thing :: Thing -- This works! Since thing is actually the same unique type, just with the expanded supertype of ExtendedThing, and ExtendedThing is a subtype of {a: string} which is the supertype of Thing, that means this cast is valid.
