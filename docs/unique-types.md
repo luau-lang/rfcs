@@ -144,10 +144,14 @@ local function processItem(item: ItemId | ItemData)
         print("Item: " .. item.name)
     end
 end
+```
+
 Unique types work with discriminated unions:
-luauunique type EventType
-type ClickEvent = EventType & { kind: "click", x: number, y: number }
-type KeyEvent = EventType & { kind: "key", code: string }
+
+```luau
+unique type EventType
+  type ClickEvent = EventType & { kind: "click", x: number, y: number }
+  type KeyEvent = EventType & { kind: "key", code: string }
 
 type Event = ClickEvent | KeyEvent
 
