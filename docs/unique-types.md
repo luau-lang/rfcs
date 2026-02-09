@@ -178,7 +178,7 @@ Due to the nature of unique types, there would be no way to construct unique typ
 
 However, since you should be able to input unique types into type functions, or use it as an upvalue, the following are some semantic rules for unique `type` objects:
 
-- Calling `type:__eq()` or using the `==` operator on a unique `type` object on any type other than itself should return `false`.
+- Using `type:__eq()` on an instantiated unique `type` object on any type other than itself or the type it was instantiated from should return `false` (for example, where T is instantiated from UniqueType and passed as a parameter, `T == UniqueType` -> `true`, `T == T` -> `true`, `UniqueType == types.number` -> `false`, `T == types.string` -> `false`).
 - There should be a new valid string input to `type:is()`, which is `"unique"`. Illustrated in code:
   ```luau
   type function hi(T)
@@ -191,6 +191,22 @@ However, since you should be able to input unique types into type functions, or 
   end
   ```
 - Unique types that are passed into type functions should have a `.tag` property set to `"unique"` too.
+- Implement a new method to `type`, which is `type:generics() -> {type}`. This will return the list of instantiated generic values bound to the unique type.
+- Implement a new method to `type`, which is `type:setgenerics({type}) -> ()`. This will set the list of instantiated generic values bound to the unique type. 
+- `type:is()` will work if you try to check the supertype of a unique type, so for example:
+    ```luau
+    type PlayerId<T>: T
+    
+    type function playerIdToString(t: type)
+        assert(t:is("number") and t == PlayerId)
+        local newid = PlayerId(types.string)
+        return newid
+    end
+
+    local a: PlayerId<number>
+    local b: playerIdToString<typeof(a)> = tostring(a)
+    ```
+- `type:issubtypeof(T)` should return true if T is defined as a supertype of the unique type, false if otherwise.
 
 # Drawbacks
 ---
