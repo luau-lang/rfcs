@@ -70,3 +70,14 @@ This is not feasible as the type namespace and value namespace is strictly separ
 `newtype<T>` could be a subtype of `T`, which would allow a `PlayerId` to be passed into a function expecting a `string` without a cast, while preventing a raw `string` from being passed into a function expecting a `PlayerId`.
 
 This is undesirable as using operators on two different distinct types with the same underlying type would produce a result but would be logically incorrect (`Distance + Time`) which invalidates the point of distinct types.
+
+### Argument-less `newtype` wtih intersection
+
+An alternative design is to make `newtype` a type function that takes no arguments, returning a unique, empty nominal type. To associate it with a representation like `string`, the user would use an intersection.
+
+```luau
+type PlayerId = newtype<> & string
+type PlaceId = newtype<> & string
+```
+
+This mirrors the current "tagging" workaround but uses a native language feature instead of phantom table fields.
