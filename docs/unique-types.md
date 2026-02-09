@@ -81,8 +81,8 @@ Unique types can be casted to other unique types, or other structural types prov
 type Vec2: { x: number, y: number }
 type Vec3: { x: number, y: number, z: number }
 
-local vec2_1 = { x=1, y=1 } :: Vec2
-local vec3_1 = { x=1, y=1, z=2 } :: Vec3
+local vec2_1 = { x=1, y=1 }
+local vec3_1 = { x=1, y=1, z=2 }
 
 local vec2_2: Vec2 = vec3_1  -- Works, "x" and "y" are present, which is all that's required
 local vec3_2: Vec3 = vec2_1  -- Doesnt work, "z" is missing from the type
