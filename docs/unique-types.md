@@ -54,7 +54,7 @@ local moredata = getPlaceData(a) -- Again, doesnt work
 local moreadaatatata = getPlaceData(a :: PlaceId) -- Works!
 ```
 
-Unique types can be casted to other structural types provided the types are compatible in a structural manner. That is to say:
+Unique types can be casted to other structural types provided the types are compatible in a structural manner and vice versa. That is to say:
 
 ```luau
 type Vec2: { x: number, y: number }
@@ -63,9 +63,11 @@ type Vec3: { x: number, y: number, z: number }
 local vec2_1 = { x=1, y=1 }
 local vec3_1 = { x=1, y=1, z=2 }
 
-local vec2_2: Vec2 = vec3_1  -- Works, "x" and "y" are present, which is all that's required
-local vec3_2: Vec3 = vec2_1  -- Doesnt work, "z" is missing from the type
-local vec3_3: Vec2 = vec3_2 -- Doesnt work, Vec3 cannot be cast into Vec2 despite the fact that Vec2 is a valid subtype of Vec3
+local vec2_2 = vec3_1 :: Vec2  -- Works, "x" and "y" are present, which is all that's required
+local vec3_2 = vec2_1 :: Vec3 -- Doesnt work, "z" is missing from the type
+local vec3_3 = vec3_2 :: Vec2 -- Doesnt work, Vec3 cannot be cast into Vec2 despite the fact that Vec2 is a valid subtype of Vec3
+
+local vec2_3 = vec2_2 :: {x: number, y: number} -- This works because {x: number, y: number} is a subtype of {x: number, y: number} (itself)
 ```
 
 ### Behavior with intersections
