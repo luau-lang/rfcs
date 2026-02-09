@@ -58,7 +58,15 @@ Some more examples involving more types of literals:
 
 ### Behavior with intersections
 
-Using a unique type in an intersection would result in `*error type*`, as a unique type simply denotes a distinct type that is a subtype of something else, and intersecting with that shouldn't be allowed because theres no actual "value" to intersect with here.
+Using a unique type in an intersection would simply intersect with the subtype of the unique type, for example:
+```luau
+type Thing: {a: string}
+type ExtendedThing = Thing & {b: number} -- Aliases still work with unique types!
+-- The subtype of ExtendedThing has been expanded, and since in the case of intersections, wider = subtype, that means ExtendedThing is now a subtype of {a: string} which is the supertype of Thing.
+
+local thing = {a: string, b: number} :: ExpandedThing -- Works!
+local thing2 = thing :: Thing -- This works! Since thing is actually the same unique type, just with the expanded supertype of ExtendedThing, and ExtendedThing is a subtype of {a: string} which is the supertype of Thing, that means this cast is valid.
+```
 
 ### Behavior with unions
 
@@ -130,6 +138,18 @@ local function handleUEvent(event: UEvent)
     -- Due to this, this means that the "event" variable will have 0 autocomplete (opaque) because it's unclear which one it's supposed to be
     -- So here, no refinement occurs and event remains as UEvent
   end
+end
+```
+
+However, if a member of a unique type was to be refined like so:
+
+```luau
+type Proxy: {inst: Instance?, metadata: {[string}: any}}
+
+local function modify(p: Proxy)
+    if p.inst then
+        -- The supertype of p would be refined to Proxy & {inst: ~(false?) & Instance, metadata: {[string]: any}}, narrowing the type and becoming a subtype of the original supertype.
+    end
 end
 ```
 
