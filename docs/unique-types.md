@@ -2,9 +2,7 @@
 ---
 ## Summary
 ---
-This RFC proposes adding support for unique types to luau.
-
-Unique types are an extension to the type checker, and make no changes to runtime semantics.
+This RFC proposes adding support for unique types to luau, which are a way to define nominal types that are subtypes of a supertype, and are able to hold instantiated generic types as metadata.
 
 ## Motivation
 ---
