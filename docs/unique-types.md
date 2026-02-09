@@ -239,6 +239,8 @@ However, since you should be able to input unique types into type functions, or 
 There is an alternative nominal typing rfc that proposes encapsulating structural types inside of nominal types instead:
 [#123](https://github.com/luau-lang/rfcs/pull/123)
 
+The way this alternative rfc implements nominal types means that you aren't able to do operations such as multiplication on a `type UserId: number` type that results in a `number` type instead of another `UserId` type (desired) by making nominal types completely opaque when it is encapsulating a primitive type, unlike what this rfc proposes (since it relies on subtyping, any operations such as number + number -> number will be passed onto a unique type that uses it as its supertype even though the types are different from it.)
+
 ### Just use tables
 My example of distinct UserId and AssetId types could instead be written as
 
