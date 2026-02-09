@@ -192,6 +192,26 @@ Since it would be nice for unique types to be able to be used outside of the fil
 The way I propose would be to simply force the syntax of `export unique type TypeName` to be the way to export unique types, for example `unique export type TypeName` shouldn't work.
 This may be a bit verbose however it isn't any longer and is more clear and consistent with existing syntax (`export type function`) than any alternatives such as attributes or symbols.
 
+### Type function semantics
+
+Due to the nature of unique types, there would be no way to construct unique types in type functions.
+
+However, since you should be able to input unique types into type functions, or use it as an upvalue, the following are some semantic rules for unique `type` objects:
+
+- Calling `type:__eq()` or using the `==` operator on a unique `type` object on any type other than itself should return `false`.
+- There should be a new valid string input to `type:is()`, which is `"unique"`. Illustrated in code:
+  ```luau
+  type function hi(T)
+    if T:is("unique") then
+      print("t is unique!")
+    else
+      print("t is normal :(")
+    end
+    return T
+  end
+  ```
+- Unique types that are passed into type functions should have a `.tag` property set to `"unique"` too.
+
 # Drawbacks
 ---
 - **Verbose type signatures**: Types that compose unique types will have an ugly type signature (for example `_uniquetype & string`) which means that developers that want a nice clean identifier signature for their unique types (for example `PlayerId`) will not be able to achieve it without risking type safety by directly using unique types instead of composing them, as illustrated here:
