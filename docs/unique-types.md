@@ -152,6 +152,19 @@ local value = get(entA) -- string
 local value1 = get(entB) -- number
 ```
 
+Generic arguments can also be used to define the supertype, for example:
+
+```luau
+type UserId<ValueType = any>: ValueType
+
+local function getUserId(): UserId
+local function saveUserId(id: UserId<string>)
+
+local id: UserId<number> = getUserId()
+saveUserId(id) -- Does not work! number is not a subtype of string
+saveUserId(id :: UserId<string>) -- Does not work! number is not a subtype of string in the generics list
+```
+
 ### Type function semantics
 
 Due to the nature of unique types, there would be no way to construct unique types in type functions.
