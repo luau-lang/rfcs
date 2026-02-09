@@ -37,7 +37,9 @@ type PlaceId: number
 local user1: UserId = 2  -- Doesnt work, must cast first
 local user2 = 2 :: UserId -- Works! UserId is a subtype of number and its being typecast
 local user3 = "2" :: UserId -- Doesnt work, string is not a supertype of UserId
-local user2: UserId = 12323 :: PlaceId -- Doesnt work, could not convert PlaceId into UserId
+local user4: UserId = 12323 :: PlaceId -- Doesnt work, could not convert PlaceId into UserId
+local user5 = 1234 :: PlaceId
+local user6 = user5 :: UserId -- Doesnt work, could not convert PlaceId into UserId
 
 local function getPlaceData(id: PlaceId)
 
