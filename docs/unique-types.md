@@ -25,15 +25,17 @@ The autocomplete of a unique type should inherit from its defined supertype, as 
 
 ### Behavior with literals
 
-When assigning a literal value to a variable, a cast will be implicitly performed. A unique type cannot be cast to another unique type, however can be cast to types it is subtype of (defined by the type expression after the : in the unique types declaration)
+When assigning a literal value to a variable, a cast will NOT be implicitly performed. A unique type cannot be cast to another unique type, however can be cast to types it is subtype of (defined by the type expression after the : in the unique types declaration)
 Illustrated in code:
 
 ```luau
 type UserId: number
 type PlaceId: number
 
-local user1: UserId = 2  -- works! UserId is subtype of number
-local user2: UserId = 12323 :: PlaceId -- type error: could not convert PlaceId into UserId
+local user1: UserId = 2  -- Doesnt work, must cast first
+local user2 = 2 :: UserId -- Works! UserId is a subtype of number and its being typecast
+local user3 = "2" :: UserId -- Doesnt work, string is not a supertype of UserId
+local user2: UserId = 12323 :: PlaceId -- Doesnt work, could not convert PlaceId into UserId
 ```
 
 ### Behavior with intersections
@@ -50,7 +52,7 @@ type UserIdString: string
 
 local function getData(id: UserIdNumber | UserIdString) end
 
-local data = getData(1234) -- This makes sense, UserIdNumber | UserIdString reads as "UserIdNumber, a type that is a subtype of number, or UserIdString, a type that is a subtype of string".
+local data = getData(1234 :: UserIdNumber) -- This makes sense, UserIdNumber | UserIdString reads as "UserIdNumber, a type that is a subtype of number, or UserIdString, a type that is a subtype of string".
 ```
 
 ### Casting semantics
@@ -60,13 +62,15 @@ Unique types can be casted to other unique types, or other structural types prov
 type Vec2: { x: number, y: number }
 type Vec3: { x: number, y: number, z: number }
 
-local vec2_1 = { x=1, y=1 }
-local vec3_1 = { x=1, y=1, z=2 }
+local vec2_1 = { x=1, y=1 } :: Vec2
+local vec3_1 = { x=1, y=1, z=2 } :: Vec3
 
 local vec2_2: Vec2 = vec3_1  -- Works, "x" and "y" are present, which is all that's required
 local vec3_2: Vec3 = vec2_1  -- Doesnt work, "z" is missing from the type
 local vec3_3: Vec2 = vec3_2 -- Doesnt work, Vec3 cannot be cast into Vec2 despite the fact that Vec2 is a valid subtype of Vec3
 ```
+
+However, an annotation will NOT perform an implicit cast on the value. To assign a value to a variable of a unique type, you must typecast it first. This is so the programmer is required to pass explicit intent that they want this value to be of this unique type
 
 ### Refinement behavior
 
@@ -112,6 +116,29 @@ local function handleUEvent(event: UEvent)
 end
 ```
 
+### Generic arguments semantics
+
+To accomodate usage of generics, unique types are able to declare a list of generic arguments using the `type TypeName<Arg1, Arg2, Arg3, ...Tuple>: Supertype` syntax, or alternatively `type TypeName<Arg1 = A, Arg2 = B, Arg3 = C, ...Tuple = D...>: Supertype` for generics with default values..
+
+Whenever a unique type is instantiated with a list of generics, these generics become part of the instantiated type and will not be discarded even if the generics aren't used in the supertype, acting sort of like metadata for the instantiated unique type.
+
+It's important to note that an instantiated generic unique type T of unique type A will only be able to be cast to another instatiated generic unique type U of unique type A if the generic values of T are all subtypes of the generic values of U (for instance, `A<string> -> A<"hello">` is invalid as `string` is not a subtype of "hello", however `A<"hello"> -> A<string>` is valid, and so is `A<"hello"> -> A<any>`)
+
+An example of usage:
+
+```luau
+type i53: number
+type Entity<T>: i53
+
+local entA = 102 :: Entity<string>
+local entB = 122 :: Entity<number>
+
+local function get<T>(ent: Entity<T>): T
+
+local value = get(entA) -- string
+local value1 = get(entB) -- number
+```
+
 ### Type function semantics
 
 Due to the nature of unique types, there would be no way to construct unique types in type functions.
@@ -134,6 +161,8 @@ However, since you should be able to input unique types into type functions, or 
 
 # Drawbacks
 ---
+
+- Values need to be explicitly cast to the unique type before being able to be assigned to an annotated variable of a unique type
 
 # Alternatives
 ---
