@@ -20,34 +20,6 @@ The proposed syntax to create a unique type is to define it using `type TypeName
 
 A unique type is allowed to have other unique types as its supertype
 
-### Operations & interface of the unique type
-
-The operations & interface of a unique type inherit from its defined supertype, as the unique type is gauranteed to have everything that the supertype has.
-For example:
-
-```luau
-type Vector4: setmetatable<{x: number, y: number, z: number, w: number}, {
-  __add: (Vector4, Vector4) -> (Vector4)
-}>
-
-local function Vector4(x: number?, y: number?, z: number?, w: number?): Vector4
-
-local a = Vector4(1, 2, 3, 4)
-local b = Vector4(2, 3, 4, 5)
-
-print(a + b) -- Works
-```
-
-Or an example with primitives:
-```luau
-type PlaceId: string
-
-local id1: PlaceId = "1212"
-local id2: PlaceId = "32302309"
-
-local result = id1..id2 -- The type of result here would be string, because it takes the __concat operator overload raw from string, which is the supertype defined for it. This may be undesirable however
-```
-
 ### Casting semantics
 
 When assigning a value to a variable, a cast will NOT be implicitly performed. An explicit cast must be done first, because unique types are different types from types such as literals and primitives.
@@ -90,6 +62,34 @@ local vec3_2 = vec2_1 :: Vec3 -- Doesnt work, "z" is missing from the type
 local vec3_3 = vec3_2 :: Vec2 -- Doesnt work, Vec3 cannot be cast into Vec2 despite the fact that Vec2 is a valid subtype of Vec3
 
 local vec2_3 = vec2_2 :: {x: number, y: number} -- This works because {x: number, y: number} is a subtype of {x: number, y: number} (itself)
+```
+
+### Operations & interface of a unique type
+
+The operations & interface of a unique type inherit from its defined supertype, as the unique type is gauranteed to have everything that the supertype has.
+For example:
+
+```luau
+type Vector4: setmetatable<{x: number, y: number, z: number, w: number}, {
+  __add: (Vector4, Vector4) -> (Vector4)
+}>
+
+local function Vector4(x: number?, y: number?, z: number?, w: number?): Vector4
+
+local a = Vector4(1, 2, 3, 4)
+local b = Vector4(2, 3, 4, 5)
+
+print(a + b) -- Works
+```
+
+Or an example with primitives:
+```luau
+type PlaceId: string
+
+local id1 = "1212" :: PlaceId
+local id2 = "32302309" :: PlaceId
+
+local result = id1..id2 -- The type of result here would be string, because it takes the __concat operator overload raw from string, which is the supertype defined for it. This may be undesirable however
 ```
 
 ### Behavior with intersections
