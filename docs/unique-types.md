@@ -20,6 +20,8 @@ A unique type will be able to be cast to its supertype, but not to other unique 
 ---
 The proposed syntax to create a unique type is to define it using `type TypeName: Supertype`, the unique type `TypeName` will be defined as having a supertype `Supertype`, defined after the colon. A unique type with no supertype is not allowed as that type would never exist and is "uninhabited".
 
+A unique type is allowed to have other unique types as its supertype
+
 ### Behavior with autocomplete
 
 The autocomplete of a unique type should inherit from its defined supertype, as the unique type is gauranteed to have everything that the supertype has.
@@ -66,9 +68,10 @@ Using a unique type in a union would work, illustrated in something like:
 type UserIdNumber: number
 type UserIdString: string
 
-local function getData(id: UserIdNumber | UserIdString) end
+local function getData(id: UserIdNumber | UserIdString) -- This makes sense, UserIdNumber | UserIdString reads as "UserIdNumber, a type that is a subtype of number, or UserIdString, a type that is a subtype of string".
+local function getDataStringy(id: string | UserIdString) -- This also makes sense, string | UserIdString reads as "A string, or UserIdString, a type that is a subtype of string".
 
-local data = getData(1234 :: UserIdNumber) -- This makes sense, UserIdNumber | UserIdString reads as "UserIdNumber, a type that is a subtype of number, or UserIdString, a type that is a subtype of string".
+local data = getData(1234 :: UserIdNumber)
 ```
 
 ### Casting semantics
@@ -142,15 +145,17 @@ An example of usage:
 
 ```luau
 type i53: number
-type Entity<T>: i53
+type Component<T>: i53
+type Entity: i53
 
-local entA = 102 :: Entity<string>
-local entB = 122 :: Entity<number>
+local function newEntity(): Entity
+local function newComponent<T>(): Component<T>
+local function get<T>(entity: Entity, component: Component<T>): T
 
-local function get<T>(ent: Entity<T>): T
+local entity = newEntity()
+local component = newComponent<<string>>()
 
-local value = get(entA) -- string
-local value1 = get(entB) -- number
+local value = get(entity, component) -- value is string!
 ```
 
 Generic arguments can also be used to define the supertype, for example:
