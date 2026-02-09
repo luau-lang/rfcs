@@ -163,6 +163,7 @@ local function saveUserId(id: UserId<string>)
 local id: UserId<number> = getUserId()
 saveUserId(id) -- Does not work! number is not a subtype of string
 saveUserId(id :: UserId<string>) -- Does not work! number is not a subtype of string in the generics list
+saveUserId(tostring(id) :: UserId<string>) -- Works! The type signature for tostring is tostring(...any) -> string, and since we now have a string it's able to be converted into UserId<string>.
 ```
 
 ### Type function semantics
