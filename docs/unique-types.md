@@ -236,6 +236,10 @@ However, since you should be able to input unique types into type functions, or 
 # Alternatives
 ---
 
+### The nominal typing rfc
+There is an alternative nominal typing rfc that proposes encapsulating structural types inside of nominal types instead:
+[#123](https://github.com/luau-lang/rfcs/pull/123)
+
 ### Just use tables
 My example of distinct UserId and AssetId types could instead be written as
 
