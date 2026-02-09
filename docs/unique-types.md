@@ -26,7 +26,7 @@ A unique type is allowed to have other unique types as its supertype
 
 The autocomplete of a unique type should inherit from its defined supertype, as the unique type is gauranteed to have everything that the supertype has.
 
-### Variable definition semantics
+### Casting semantics
 
 When assigning a value to a variable, a cast will NOT be implicitly performed. An explicit cast must be done first, because unique types are different types from types such as literals and primitives.
 
@@ -54,7 +54,19 @@ local moredata = getPlaceData(a) -- Again, doesnt work
 local moreadaatatata = getPlaceData(a :: PlaceId) -- Works!
 ```
 
-Some more examples involving more types of literals:
+Unique types can be casted to other unique types, or other structural types provided the types are compatible in a structural manner. That is to say:
+
+```luau
+type Vec2: { x: number, y: number }
+type Vec3: { x: number, y: number, z: number }
+
+local vec2_1 = { x=1, y=1 }
+local vec3_1 = { x=1, y=1, z=2 }
+
+local vec2_2: Vec2 = vec3_1  -- Works, "x" and "y" are present, which is all that's required
+local vec3_2: Vec3 = vec2_1  -- Doesnt work, "z" is missing from the type
+local vec3_3: Vec2 = vec3_2 -- Doesnt work, Vec3 cannot be cast into Vec2 despite the fact that Vec2 is a valid subtype of Vec3
+```
 
 ### Behavior with intersections
 
@@ -80,21 +92,6 @@ local function getData(id: UserIdNumber | UserIdString) -- This makes sense, Use
 local function getDataStringy(id: string | UserIdString) -- This also makes sense, string | UserIdString reads as "A string, or UserIdString, a type that is a subtype of string".
 
 local data = getData(1234 :: UserIdNumber)
-```
-
-### Casting semantics
-Unique types can be casted to other unique types, or other structural types provided the types are compatible in a structural manner. That is to say:
-
-```luau
-type Vec2: { x: number, y: number }
-type Vec3: { x: number, y: number, z: number }
-
-local vec2_1 = { x=1, y=1 }
-local vec3_1 = { x=1, y=1, z=2 }
-
-local vec2_2: Vec2 = vec3_1  -- Works, "x" and "y" are present, which is all that's required
-local vec3_2: Vec3 = vec2_1  -- Doesnt work, "z" is missing from the type
-local vec3_3: Vec2 = vec3_2 -- Doesnt work, Vec3 cannot be cast into Vec2 despite the fact that Vec2 is a valid subtype of Vec3
 ```
 
 ### Refinement behavior
