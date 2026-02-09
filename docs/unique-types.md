@@ -185,6 +185,13 @@ local function handleEvent(event: Event)
 end
 ```
 
+### Exporting unique types
+
+Since it would be nice for unique types to be able to be used outside of the file it was declared in, we need to make the `export` keyword compatible with the `unique type TypeName` syntax.
+
+The way I propose would be to simply force the syntax of `export unique type TypeName` to be the way to export unique types, for example `unique export type TypeName` shouldn't work.
+This may be a bit verbose however it isn't any longer and is more clear and consistent with existing syntax (`export type function`) than any alternatives such as attributes or symbols.
+
 # Drawbacks
 ---
 - **Verbose type signatures**: Types that compose unique types will have an ugly type signature (for example `_uniquetype & string`) which means that developers that want a nice clean identifier signature for their unique types (for example `PlayerId`) will not be able to achieve it without risking type safety by directly using unique types instead of composing them, as illustrated here:
