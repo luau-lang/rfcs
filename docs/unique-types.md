@@ -36,6 +36,11 @@ local user1: UserId = 2  -- Doesnt work, must cast first
 local user2 = 2 :: UserId -- Works! UserId is a subtype of number and its being typecast
 local user3 = "2" :: UserId -- Doesnt work, string is not a supertype of UserId
 local user2: UserId = 12323 :: PlaceId -- Doesnt work, could not convert PlaceId into UserId
+
+local function getPlaceData(id: PlaceId)
+
+local data = getPlaceData(1234) -- Doesnt work, must explicitly cast number to PlaceId
+local data = getPlaceData(1234 :: PlaceId) -- Works!
 ```
 
 ### Behavior with intersections
