@@ -229,6 +229,8 @@ type PlayerId = _playerid & number -- Has type safety, but ugly type signature
 
 - **Complexity with multiple unique tags**: Code using multiple intersected unique types (e.g., `Validated & Sanitized & EventType & { ... }`) can become difficult to read and reason about, especially when determining which unique tags are preserved through refinement.
 
+- **No other language has done this**: The concept of a subset of nominal typing (which is what unique types are) being implemented as first-class syntax hasn't been done in other mainstream languages, which can hinder the adoption of this feature.
+
 # Alternatives
 ---
 
