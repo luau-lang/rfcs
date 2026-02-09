@@ -12,147 +12,87 @@ Since Luau uses structural typing, there is no way to make a primitive distinct.
 
 Current workarounds like tagging (string & { _tag: "PlayerId" }) are messy and confuse autocomplete.
 
-Unique types solve this by being able to be composed with existing types to make them completely unique, kind of like a tag.
-This relies on the behavior of intersections in that an intersection T can only be cast into another intersection U if T is the same/is a subtype of U.
-A structure that is an intersection between some type T and a unique type U will not be able to be cast into another structure that is an intersection between the same type T and another unique type V.
+Unique types solve this by being able to be created with a supertype, giving them additional type information aside from being completely unique.
+A unique type will be able to be cast to its supertype, but not to other unique types or types that are not its supertype.
 
 ## Design
 ---
-The proposed syntax to create a unique type is to define it using `unique type TypeName`, it does not have an = symbol after it because all unique types are are opaque unique types, they do not contain any additional information beyond that.
+The proposed syntax to create a unique type is to define it using `type TypeName: Supertype`, the unique type `TypeName` will be defined as having a supertype `Supertype`, defined after the colon. A unique type with no supertype is not allowed as that type would never exist and is "uninhabited".
 
-The name `unique` was chosen as it clearly conveys that this specific type is unique and is not the same as any other type.
-Unique types of the same name defined in different files will, of course, still be unique as their own "primitive" type, and cannot be cast to eachother.
+### Behavior with autocomplete
 
-### Behavior with intersections
-
-Since unique types simply act as a unique opaque type, this means intersecting them is quite trivial and isn't much different from intersecting other primitive types such as `unknown`.
+The autocomplete of a unique type should inherit from its defined supertype, as the unique type is gauranteed to have everything that the supertype has.
 
 ### Behavior with literals
 
-When assigning a literal value to a variable, a cast will not be implicitly performed. It is expected that unique types will almost exclusively be generated within APIs, rather than written as literals.
+When assigning a literal value to a variable, a cast will be implicitly performed. A unique type cannot be cast to another unique type, however can be cast to types it is subtype of (defined by the type expression after the : in the unique types declaration)
 Illustrated in code:
 
 ```luau
-unique type _useridtag
-type UserId = _useridtag & number
+type UserId: number
+type PlaceId: number
 
-local user1: UserId = 1  -- doesnt work, error
-local user2: UserId = 2 :: UserId  -- works!
+local user1: UserId = 2  -- works! UserId is subtype of number
+local user2: UserId = 12323 :: PlaceId -- type error: could not convert PlaceId into UserId
 ```
 
-It's important to note that the only reason this works is because unique types are opaque, and should work similarly to `unknown` wherein it'll "inherit" anything it's composed with
+### Behavior with intersections
+
+Using a unique type in an intersection would result in `*error type*`, as a unique type simply denotes a distinct type that is a subtype of something else, and intersecting with that shouldn't be allowed.
+
+### Behavior with unions
+
+Using a unique type in a union would work, illustrated in something like:
+
+```luau
+type UserIdNumber: number
+type UserIdString: string
+
+local function getData(id: UserIdNumber | UserIdString) end
+
+local data = getData(1234) -- This makes sense, UserIdNumber | UserIdString reads as "UserIdNumber, a type that is a subtype of number, or UserIdString, a type that is a subtype of string".
+```
 
 ### Casting semantics
 Unique types can be casted to other unique types, or other structural types provided the types are compatible in a structural manner. That is to say:
 
 ```luau
-unique type Vector
-  type Vec2 = Vector & { x: number, y: number }
-  type Vec3 = Vector & { x: number, y: number, z: number }
+type Vec2: { x: number, y: number }
+type Vec3: { x: number, y: number, z: number }
 
-local vec2_1 = { x=1, y=1 } :: Vec2
-local vec3_1 = { x=1, y=1, z=2 } :: Vec3
+local vec2_1 = { x=1, y=1 }
+local vec3_1 = { x=1, y=1, z=2 }
 
-local vec2_2: Vec2 = vec3_1 :: Vec2  -- Works, "x" and "y" are present, which is all that's required
-local vec3_2: Vec3 = vec2_1 :: Vec3  -- Doesnt work, "z" is missing from the type
-```
-
-Again, it's important to note that the only reason this works is because unique types are opaque, and should work similarly to `unknown` wherein it'll "inherit" anything it's composed with
-
-### Enum-like behavior
-
-Because unique types are used as tags within intersections, this means you can get behavior similar to enums
-
-```luau
-unique type SomethingType
-  type Item = SomethingType & "Item"
-  type Weapon = SomethingType & "Weapon"
-
-local function getSomething(ty: SomethingType)
-
-getSomething("Weapon") -- type error: expected SomethingType, got "Weapon"
-getSomething("Weapon" :: Item) -- errors, could not convert "Weapon" into "Item"
-getSomething("Item" :: Item) -- works!
-getSomething("Weapon" :: Weapon) -- works!
-```
-
-### Mutually inclusive types
-
-A unique type can be composed within multiple type definitions to create mutually inclusive types which can only be cast to eachother or the tag but nothing else
-
-```luau
-unique type _coordtag
-  type CoordX = _coordtag & number
-  type CoordY = _coordtag & number
-  type CoordZ = _coordtag & number
-
--- These can all be converted to each other
-local function swapAxes(x: CoordX, y: CoordY): (CoordY, CoordX)
-    return x :: CoordY, y :: CoordX
-end
-
-local function promoteToZ(x: CoordX): CoordZ
-    return x :: CoordZ
-end
-
-local x: CoordX = 10 :: CoordX
-local y: CoordY = 20 :: CoordY
-
-local newY, newX = swapAxes(x, y)  -- Valid
-local z: CoordZ = promoteToZ(x)    -- Valid
-
--- But they're still isolated from regular numbers
-local regular: number = x  -- error: CoordX is not assignable to number
-
--- And from other unique type families
-unique type _othertag
-type OtherId = _othertag & number
-local other: OtherId = x  -- error: Different unique tags
-```
-
-### Operations on unique types
-
-Since unique types themselves act like `unknown`, this means any sort of operations on a unique type itself will error and is invalid.
-However, if you compose a unique type, it'll have all the operations of the types you're composing it with.
-
-```luau
-unique type T
-type U = T & string
-
-local t: T
-local u: U
-
-print(t .. "hi") -- doesnt work, t doesnt have __concat
-print(u .. "hi") -- Works, type "string" does have __concat
+local vec2_2: Vec2 = vec3_1  -- Works, "x" and "y" are present, which is all that's required
+local vec3_2: Vec3 = vec2_1  -- Doesnt work, "z" is missing from the type
+local vec3_3: Vec2 = vec3_2 -- Doesnt work, Vec3 cannot be cast into Vec2 despite the fact that Vec2 is a valid subtype of Vec3
 ```
 
 ### Refinement behavior
 
-Unique types can be refined through type guards and pattern matching based on their underlying structural types.
+Unique types can be refined through type guards and pattern matching based on their supertype.
 
 ```luau
-unique type _itemtag
-  type ItemId = _itemtag & string
-  type ItemData = _itemtag & { id: string, name: string }
+type ItemId: string
+type ItemData: {data: ItemId, name: string}
 
 local function processItem(item: ItemId | ItemData)
     if type(item) == "string" then
-        -- item is refined to ItemId
+        -- item is refined to ItemId as the only type that is a subtype of string is ItemId, and to satisfy type(item) == "string" the type must be a subtype of string
         print("Item ID: " .. item)
     else
-        -- item is refined to ItemData
+        -- item is refined to ItemData as that's the only other member of the union that's not a subtype of string
         print("Item: " .. item.name)
     end
 end
 ```
 
-Unique types work with discriminated unions:
+Unique types work with discriminated unions, however if a unique type itself is a discriminated union, it will not be able to be decomposed into the correct component as unique types due to the "atomic" nature of nominal types:
 
 ```luau
-unique type EventType
-  type ClickEvent = EventType & { kind: "click", x: number, y: number }
-  type KeyEvent = EventType & { kind: "key", code: string }
-
+type ClickEvent: {kind: "click", x: number, y: number}
+type KeyEvent: {kind: "key", code: string}
+type UEvent: ClickEvent | KeyEvent
 type Event = ClickEvent | KeyEvent
 
 local function handleEvent(event: Event)
@@ -161,36 +101,16 @@ local function handleEvent(event: Event)
         print("Click at", event.x, event.y)
     end
 end
-```
 
-When multiple unique types are intersected in a discriminated union, refinement preserves only the unique types that are compatible with all variants in the refined branch:
-
-```luau
-unique type Validated
-unique type Sanitized
-unique type EventType
-
-type ValidatedClick = Validated & EventType & { kind: "click", x: number }
-type SanitizedKey = Sanitized & EventType & { kind: "key", code: string }
-type ValidatedAndSanitizedScroll = Validated & Sanitized & EventType & { kind: "scroll", delta: number }
-
-type Event = ValidatedClick | SanitizedKey | ValidatedAndSanitizedScroll
-
-local function handleEvent(event: Event)
-    if event.kind == "click" or event.kind == "scroll" then
-        -- event is refined to: Validated & EventType & (ClickEvent | ScrollEvent)
-        -- Sanitized is discarded because ValidatedClick doesn't have it
-        processValidated(event)  -- Works: both variants have Validated
-    end
+local function handleUEvent(event: UEvent)
+  if event.kind == "click" then
+    -- UEvent is a subtype of ClickEvent | KeyEvent, which means UEvent is either one of these.
+    -- However, UEvent is a unique type, which means it cannot be decomposed any further
+    -- Due to this, this means that the "event" variable will have 0 autocomplete (opaque) because it's unclear which one it's supposed to be
+    -- So here, no refinement occurs and event remains as UEvent
+  end
 end
 ```
-
-### Exporting unique types
-
-Since it would be nice for unique types to be able to be used outside of the file it was declared in, we need to make the `export` keyword compatible with the `unique type TypeName` syntax.
-
-The way I propose would be to simply force the syntax of `export unique type TypeName` to be the way to export unique types, for example `unique export type TypeName` shouldn't work.
-This may be a bit verbose however it isn't any longer and is more clear and consistent with existing syntax (`export type function`) than any alternatives such as attributes or symbols.
 
 ### Type function semantics
 
@@ -214,22 +134,6 @@ However, since you should be able to input unique types into type functions, or 
 
 # Drawbacks
 ---
-- **Verbose type signatures**: Types that compose unique types will have an ugly type signature (for example `_uniquetype & string`) which means that developers that want a nice clean identifier signature for their unique types (for example `PlayerId`) will not be able to achieve it without risking type safety by directly using unique types instead of composing them, as illustrated here:
-```luau
-unique type PlayerId -- No type safety, but identifier type signature (signature is just the name which is PlayerId)
-unique type _playerid
-type PlayerId = _playerid & number -- Has type safety, but ugly type signature
-```
-
-- **Naming convention burden**: The recommended pattern of using a private unique type tag (e.g., `_playerid`) composed into a public type alias (e.g., `PlayerId`) creates a burden where developers must choose naming conventions for their tags. This could lead to inconsistency across codebases.
-
-- **Migration complexity**: Existing codebases that have string or number types for IDs will need explicit casts everywhere to convert to unique types, which could be a significant migration effort for large projects.
-
-- **Error message clarity**: Type errors involving unique types may be confusing, especially when the error shows the full intersection type (e.g., `_playerid & number`) rather than the friendly alias (`PlayerId`). This could make debugging harder for developers unfamiliar with unique types.
-
-- **Complexity with multiple unique tags**: Code using multiple intersected unique types (e.g., `Validated & Sanitized & EventType & { ... }`) can become difficult to read and reason about, especially when determining which unique tags are preserved through refinement.
-
-- **No other language has done this**: The concept of a subset of nominal typing (which is what unique types are) being implemented as first-class syntax hasn't been done in other mainstream languages, which can hinder the adoption of this feature.
 
 # Alternatives
 ---
