@@ -25,7 +25,9 @@ The autocomplete of a unique type should inherit from its defined supertype, as 
 
 ### Behavior with literals
 
-When assigning a literal value to a variable, a cast will NOT be implicitly performed. A unique type cannot be cast to another unique type, however can be cast to types it is subtype of (defined by the type expression after the : in the unique types declaration)
+When assigning a literal value to a variable, a cast will NOT be implicitly performed. For example, a number cannot be implicitly cast to a unique type that is a subtype of number, because a supertype cannot be implicitly cast into a subtype, and thus an explicit cast must be done first.
+
+A unique type cannot be cast to another unique type, however can be cast to types it is subtype of (defined by the type expression after the : in the unique types declaration)
 Illustrated in code:
 
 ```luau
