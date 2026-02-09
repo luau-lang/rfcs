@@ -12,7 +12,8 @@ Since Luau uses structural typing, there is no way to make a primitive distinct.
 
 Current workarounds like tagging (string & { _tag: "PlayerId" }) are messy and confuse autocomplete.
 
-Unique types solve this by being able to be created with a supertype, giving them additional type information aside from being completely unique.
+Unique types solve this by being completely unique from any other type, therefor allowing programmers to bar casts between different unique types.
+A supertype and a list of generics can be assigned to a unique type to alter its subtyping behavior, making it easier to inter-operate between unique types and normal Luau structural types.
 A unique type will be able to be cast to its supertype, but not to other unique types or types that are not its supertype.
 
 ## Design
