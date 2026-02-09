@@ -13,8 +13,8 @@ Since Luau uses structural typing, there is no way to make a primitive distinct.
 Current workarounds like tagging (string & { _tag: "PlayerId" }) are messy and confuse autocomplete.
 
 Unique types solve this by being able to be composed with existing types to make them completely unique, kind of like a tag.
-This relies on the behavior of intersections in that an intersection T can only be cast into another intersection U if T is the same/is a subtype of U
-A structure that is an intersection between some type T and a unique type U will not be able to be cast into another structure that is an intersection between the same type T and another unique type V
+This relies on the behavior of intersections in that an intersection T can only be cast into another intersection U if T is the same/is a subtype of U.
+A structure that is an intersection between some type T and a unique type U will not be able to be cast into another structure that is an intersection between the same type T and another unique type V.
 
 ## Design
 ---
