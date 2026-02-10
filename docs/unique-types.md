@@ -6,7 +6,7 @@ This RFC proposes adding support for unique types to luau, which are a way to de
 
 ## Motivation
 ---
-Since Luau uses structural typing, there is no way to make a primitive distinct. If there are two types PlayerId and AssetId and they are both strings, the type checker allows a PlayerId to be passed into a function expecting AssetId because they are both just string.
+Since Luau uses structural typing, there is no way to make a primitive distinct. If there are two type aliases PlayerId and AssetId and they are both `string`s, the type checker allows a PlayerId to be passed into a function expecting AssetId because they are both just aliases to `string`.
 
 Current workarounds like tagging (string & { _tag: "PlayerId" }) are messy and confuse autocomplete.
 
