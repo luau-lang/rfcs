@@ -2,7 +2,7 @@
 
 ## Summary
 
-Allow calling functions with interpolated string literals without parentheses. The call is desugared into a function call with three arguments: a format string with `%s` placeholders, a table of the evaluated interpolation values, and a table of the original expression source texts. This enables domain-specific language patterns like structured logging, SQL escaping, and HTML templating.
+Allow calling functions with interpolated string literals without parentheses. The call is desugared into a function call with three arguments: a format string with `%*` placeholders, a table of the evaluated interpolation values, and a table of the original expression source texts. This enables domain-specific language patterns like structured logging, SQL escaping, and HTML templating.
 
 ## Motivation
 
@@ -34,12 +34,12 @@ local function double(x: number)
   return x * 2
 end
 
--- Desugars to `log:Info("The double of %s is %s", {a, double(a)}, {"a", "double(a)"})`
+-- Desugars to `log:Info("The double of %* is %*", {a, double(a)}, {"a", "double(a)"})`
 -- Note that the second argument evalutes to {1, 2} at runtime, but not at the desugaring step.
 log:Info `The double of {a} is {double(a)}`
 ```
 
-The template string enables aggregating logs by message pattern (e.g. grouping all "The double of %s is %s" messages), while the values and expression names provide searchable structured data for platforms like Splunk, Datadog, or Elasticsearch.
+The template string enables aggregating logs by message pattern (e.g. grouping all "The double of %* is %*" messages), while the values and expression names provide searchable structured data for platforms like Splunk, Datadog, or Elasticsearch.
 
 Without this feature, developers must either manually construct all arguments (tedious and error-prone) or use a logging library that implements its own template parsing at runtime (duplicating language functionality).
 
@@ -53,7 +53,7 @@ local sqlite = require("luau_sqlite")
 local function takeUserInput(db: sqlite.DB, user: string, comment: string)
   -- Auto-escape inputs to guard against SQL injection
   db:Exec `INSERT INTO user_inputs (user, comment) VALUES ({user}, {comment})`
-  -- Desugars to: db:Exec("INSERT INTO user_inputs (user, comment) VALUES (%s, %s)", {user, comment}, {"user", "comment"})
+  -- Desugars to: db:Exec("INSERT INTO user_inputs (user, comment) VALUES (%*, %*)", {user, comment}, {"user", "comment"})
 end
 ```
 
@@ -67,7 +67,7 @@ local tmpl = require("luau_html_renderer")
 local function renderPage(r: tmpl.Renderer, userinput: string)
   -- Automatic XSS protection through escaping
   return tmpl.HTML `The user asked about {userinput}`
-  -- Desugars to: tmpl.HTML("The user asked about %s", {userinput}, {"userinput"})
+  -- Desugars to: tmpl.HTML("The user asked about %*", {userinput}, {"userinput"})
 end
 ```
 
@@ -86,7 +86,7 @@ args ::= '(' [explist] ')' | tableconstructor | LiteralString | stringinterp
 
 When a function is called with an interpolated string literal in this style, the compiler desugars the call into a function call with three arguments:
 
-1. **Format string**: The template with each `{expression}` replaced by `%s`, e.g. `"The double of %s is %s"`
+1. **Format string**: The template with each `{expression}` replaced by `%*`, e.g. `"The double of %* is %*"`
 2. **Values table**: A sequential table of the interpolation values, e.g. `{a, double(a)}`
 3. **Expressions table**: A sequential table of the original expression source texts, e.g. `{"a", "double(a)"}`
 
@@ -104,15 +104,15 @@ local user = {name = "Alice"}
 
 -- Simple identifier
 log:Info `Processing item {id}`
--- Desugars to: log:Info("Processing item %s", {42}, {"id"})
+-- Desugars to: log:Info("Processing item %*", {42}, {"id"})
 
 -- Member expression
 log:Info `User {user.name} logged in`
--- Desugars to: log:Info("User %s logged in", {"Alice"}, {"user.name"})
+-- Desugars to: log:Info("User %* logged in", {"Alice"}, {"user.name"})
 
 -- Multiple expressions
 log:Info `{user.name} is processing item {id}`
--- Desugars to: log:Info("%s is processing item %s", {"Alice", 42}, {"user.name", "id"})
+-- Desugars to: log:Info("%* is processing item %*", {"Alice", 42}, {"user.name", "id"})
 ```
 
 ### No expression restrictions
@@ -122,15 +122,15 @@ Unlike some alternative designs that use named keys for interpolated values, thi
 ```luau
 -- Function calls are allowed
 log:Info `Result is {compute()}`
--- Desugars to: log:Info("Result is %s", {compute()}, {"compute()"})
+-- Desugars to: log:Info("Result is %*", {compute()}, {"compute()"})
 
 -- Method calls are allowed
 log:Info `Name is {user:getName()}`
--- Desugars to: log:Info("Name is %s", {user:getName()}, {"user:getName()"})
+-- Desugars to: log:Info("Name is %*", {user:getName()}, {"user:getName()"})
 
 -- Repeated expressions are fine (each is a separate positional entry)
 log:Info `{increment()} and then {increment()}`
--- Desugars to: log:Info("%s and then %s", {increment(), increment()}, {"increment()", "increment()"})
+-- Desugars to: log:Info("%* and then %*", {increment(), increment()}, {"increment()", "increment()"})
 ```
 
 Since values are stored positionally rather than keyed by expression text, there is no ambiguity when the same expression appears multiple times or when expressions have side effects.
@@ -142,8 +142,8 @@ Functions that accept variadic arguments will receive the three desugared argume
 ```luau
 local name = "Alice"
 print `Hello {name}`
--- Desugars to: print("Hello %s", {"Alice"}, {"name"})
--- Output: Hello %s table: 0x... table: 0x...
+-- Desugars to: print("Hello %*", {"Alice"}, {"name"})
+-- Output: Hello %* table: 0x... table: 0x...
 ```
 
 This is likely not the desired output. Developers wanting simple string interpolation should use parentheses:
@@ -191,7 +191,7 @@ end
 -- with the context table
 log `Hello {name}` {userId = 12345, region = "us-east"}
 
--- Desugars to: log("Hello %s", {"Alice"}, {"name"})({userId = 12345, region = "us-east"})
+-- Desugars to: log("Hello %*", {"Alice"}, {"name"})({userId = 12345, region = "us-east"})
 ```
 
 This approach requires no special grammar support. It is a natural composition of a parentheses-free interpolated string call (which returns a function) and a parentheses-free table literal call on that returned function.
@@ -259,7 +259,7 @@ This distinction is intentional and valuable for DSL use cases, but documentatio
 
 Existing functions that are not designed for this calling convention will receive unexpected arguments if called without parentheses. For example, in Roblox, `print` and `warn` accept variadic arguments and would print the format string, values table, and expressions table alongside each other rather than producing a formatted message.
 
-Functions designed for parentheses-free interpolated string calls would need to be written (or updated) to accept the three-argument format. Developers should continue using parenthesized calls for existing functions, or use a pattern such as the `Message` wrapper type described in the Design section to bridge the gap.
+Functions designed for parentheses-free interpolated string calls would need to be written (or updated, if possible) to accept the three-argument format. When an existing function cannot be updated in a non-breaking way (for example, because it accepts variadic arguments), a pattern such as the `Message` wrapper type described in the Design section can be used instead to bridge the gap.
 
 ## Alternatives
 
@@ -279,7 +279,7 @@ tag `Hello {name}, you have {count} messages`
 -- Would call: tag({"Hello ", ", you have ", " messages"}, {name, count})
 ```
 
-This was considered and the proposed design shares the same spirit: decomposing the interpolated string into parts that don't require the consumer to parse Luau expressions. The proposed design differs in using a format string with `%s` placeholders instead of a string parts array, and in providing an additional expressions table with the source text of each interpolated expression. The format string approach:
+This was considered and the proposed design shares the same spirit: decomposing the interpolated string into parts that don't require the consumer to parse Luau expressions. The proposed design differs in using a format string with `%*` placeholders instead of a string parts array, and in providing an additional expressions table with the source text of each interpolated expression. The format string approach:
 
 1. Provides a single template string usable as a log aggregation key or cache key
 2. Is more familiar to Luau developers accustomed to `string.format`-style patterns
