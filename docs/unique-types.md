@@ -100,7 +100,7 @@ local b = Vector4(2, 3, 4, 5)
 print(a + b) -- Works, since we defined the supertype as a literal it's unecessary to replace anything inside it
 ```
 
-And in the case of primitive, aliased or other unique type supertype definitions, here for example, the function signature `string.sub(string, number?, number?)` would be replaced with `PlaceId.sub(PlaceId, number?, number?)` in thexe following ample:
+And in the case of primitive, aliased or other unique type supertype definitions, here for example, the function signature `string.sub(string, number?, number?)` would be replaced with `PlaceId.sub(PlaceId, number?, number?)` in the following examples:
 ```luau
 type PlaceId: string
 
@@ -111,7 +111,6 @@ local subbed = id1:sub(3, -1) -- This works because the string type in the 1st a
 local result = id1..id2 -- The type of result here would be PlaceId because the function signture "__concat: (string, string) -> string" would be replaced with "__concat: (PlaceId, PlaceId) -> PlaceId", this also means you cant concat a PlaceId with any ol' string
 ```
 
-More examples:
 ```luau
 type RayDirection: vector -- This is a primitive supertype, so any mentions of vector in its type signature should be replaced with RayDirection. The vector type itself does not have any methods, however it does have metamethods as operator overloads so that's where the type signature will be replaced.
 
