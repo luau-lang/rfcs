@@ -22,7 +22,7 @@ A unique type is allowed to have other unique types as its supertype
 
 ### Casting semantics
 
-When assigning a value to a variable, a cast will NOT be implicitly performed. An explicit cast must be done first, because unique types are different types from types such as literals and primitives.
+When trying to convert into a unique type, a cast will NOT be implicitly performed. An explicit cast must be done first, because unique types are different types from types such as literals and primitives.
 
 A unique type cannot be cast to another unique type, however can be cast to types it is subtype of (defined by the type expression after the : in the unique types declaration)
 Illustrated in code:
@@ -48,6 +48,20 @@ local moredata = getPlaceData(a) -- Again, doesnt work
 local moreadaatatata = getPlaceData(a :: PlaceId) -- Works!
 ```
 
+However, unique type can be implicitly cast out into another type as long as the type is a supertype of it.
+
+```luau
+type UniqueType: number
+
+local u = 10 :: UniqueType
+
+local function needsNumber(a: number)
+
+needsNumber(u) -- This is fine! number is a supertype of UniqueType, so an implicit cast is allowed.
+
+local a: number = u -- This is also fine
+```
+
 Unique types can be casted to other structural types provided the types are compatible in a structural manner and vice versa. That is to say:
 
 ```luau
@@ -67,8 +81,12 @@ local vec2_3 = vec2_2 :: {x: number, y: number} -- This works because {x: number
 ### Operations & interface of a unique type
 
 The operations & interface of a unique type inherit from its defined supertype, as the unique type is gauranteed to have everything that the supertype has.
-For example:
 
+However, in the case of primitive, aliased or other unique type supertype definitions, all usages of the supertype in the unique type's type signature (including metamethods and operator overloads) should be replaced with the unique type.
+
+The reasoning for this is because primitive, aliased or other unique types can reference themselves in their own definition, so to avoid examples of, for example, adding 2 unique types together and getting a primitive, this replacement of types must be done.
+
+An example with a table literal as a supertype (not primitive, aliased or unique type):
 ```luau
 type Vector4: setmetatable<{x: number, y: number, z: number, w: number}, {
   __add: (Vector4, Vector4) -> (Vector4)
@@ -79,18 +97,58 @@ local function Vector4(x: number?, y: number?, z: number?, w: number?): Vector4
 local a = Vector4(1, 2, 3, 4)
 local b = Vector4(2, 3, 4, 5)
 
-print(a + b) -- Works
+print(a + b) -- Works, since we defined the supertype as a literal it's unecessary to replace anything inside it
 ```
 
-Or an example with primitives:
+And in the case of primitive, aliased or other unique type supertype definitions, here for example, the function signature `string.sub(string, number?, number?)` would be replaced with `PlaceId.sub(PlaceId, number?, number?)` in thexe following ample:
 ```luau
 type PlaceId: string
 
 local id1 = "1212" :: PlaceId
 local id2 = "32302309" :: PlaceId
 
-local result = id1..id2 -- The type of result here would be string, because it takes the __concat operator overload raw from string, which is the supertype defined for it. This may be undesirable however
+local subbed = id1:sub(3, -1) -- This works because the string type in the 1st argument has been replaced with PlaceId
+local result = id1..id2 -- The type of result here would be PlaceId because the function signture "__concat: (string, string) -> string" would be replaced with "__concat: (PlaceId, PlaceId) -> PlaceId", this also means you cant concat a PlaceId with any ol' string
 ```
+
+More examples:
+```luau
+type RayDirection: vector -- This is a primitive supertype, so any mentions of vector in its type signature should be replaced with RayDirection. The vector type itself does not have any methods, however it does have metamethods as operator overloads so that's where the type signature will be replaced.
+
+local add = (vector.create(10, 2, 2) :: RayDirection) + (vector.create(2, 2, 2) :: RayDirection) -- Works
+local dir = vector.create(1, 2, 3) :: RayDirection
+local len = vector.magnitude(vector.cross(dir, vector.one)) -- This works because converting out of a unique type is allowed to be done implicitly. However the return type of vector.cross will still be a vector. This MAY be undesirable but highly unlikely so.
+```
+
+```luau
+type ReadMode: "hi" -- This would be the case of a primitive supertype, why? Because "hi" is a subtype of string, and string is a primitive. So any usage of the string type inside the "hi" literal type would be replaced with ReadMode
+```
+
+With aliases:
+
+```luau
+type Object = setmetatable<{}, {__index: {new: () -> Object}}>
+
+type MyObject: Object -- This would replace all usages of Object inside the type signature with MyObject for the type signature of MyObject. So in this case that means the function signature of new() in __index is now new: () -> MyObject.
+```
+
+It's important to note that library functions would NOT be affected. It is expected for developers to implement their own libraries for manipulating unique types that are subtypes of primitives, for example:
+
+```luau
+type ImageBuffer: buffer
+type u8: number
+type usize: number
+
+local ImageBuffer = {}
+
+function ImageBuffer.writeu8(buf: ImageBuffer, offset: usize, value: u8)
+  buffer.writeu8(buf, offset, value)
+end
+
+return ImageBuffer
+```
+
+There may be more complex examples however this is left as an exercise for the reader.
 
 ### Behavior with intersections
 
@@ -253,6 +311,8 @@ However, since you should be able to input unique types into type functions, or 
 ---
 
 - Values need to be explicitly cast to the unique type before being able to be assigned to an annotated variable of a unique type
+- The introduction of nominal types into the luau type system would increase the complexity of the type system. It adds another thing for beginners to the language to learn, and requires additional work within the type solver.
+- Programmers may be confused when mixing structural types and nominal types, especially as they are likely already used to the exclusively-structural nature of luau. Many things that seem to be "correct" from a structural perspective would be disallowed by the type system.
 
 # Alternatives
 ---
