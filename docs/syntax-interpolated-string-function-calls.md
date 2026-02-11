@@ -150,7 +150,7 @@ Since values are stored positionally rather than keyed by expression text, there
 
 ### Behavior with variadic functions
 
-Functions that accept variadic arguments will receive the three desugared arguments. For example, Roblox's `print` concatenates its arguments with spaces:
+Functions that accept variadic arguments will receive the three desugared arguments. For example, `print` concatenates its arguments with spaces:
 
 ```luau
 local name = "Alice"
@@ -270,7 +270,7 @@ This distinction is intentional and valuable for DSL use cases, but documentatio
 
 ### Surprising behavior with existing functions
 
-Existing functions that are not designed for this calling convention will receive unexpected arguments if called without parentheses. For example, in Roblox, `print` and `warn` accept variadic arguments and would print the format string, values table, and expressions table alongside each other rather than producing a formatted message.
+Existing functions that are not designed for this calling convention will receive unexpected arguments if called without parentheses. For example, `print` and `warn` accept variadic arguments and would print the format string, values table, and expressions table alongside each other rather than producing a formatted message.
 
 Functions designed for parentheses-free interpolated string calls would need to be written (or updated, if possible) to accept the three-argument format. When an existing function cannot be updated in a non-breaking way (for example, because it accepts variadic arguments), a pattern such as the `Message` wrapper type described in the Design section can be used instead to bridge the gap.
 
