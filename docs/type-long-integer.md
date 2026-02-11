@@ -135,6 +135,20 @@ Computes remainder of the unsigned division of `a` by `b`.
 
 If `b` is 0, throws an error.
 
+`function int64.min(a: int64, b: int64): int64`
+
+Returns the smallest of two int64 numbers.
+
+`function int64.max(a: int64, b: int64): int64`
+
+Returns the largest of two int64 numbers.
+
+`function int64.clamp(a: int64, min: int64, max: int64): int64`
+
+Returns `a` if the number is in `[min, max]` range; otherwise, returns `min` when `a < min`, and `max` otherwise.
+
+The function errors if `min > max`, consistent with `math.clamp`.
+
 `function int64.band(a: int64, b: int64): int64`
 
 Performs a bitwise and of `a` and `b`.
