@@ -92,6 +92,19 @@ When a function is called with an interpolated string literal in this style, the
 
 The format string and expressions table are determined at compile time. The values table is evaluated at runtime.
 
+Each entry in the expressions table is the verbatim source text between the `{` and `}` delimiters, with leading and trailing whitespace trimmed. Quoting style, internal spacing, and other formatting are preserved as written:
+
+```luau
+log `{  user.name  }`
+-- Expressions table: {"user.name"} (leading/trailing whitespace trimmed)
+
+log `{"Alice"}`
+-- Expressions table: {"\"Alice\""} (source text preserved, including quotes)
+
+log `{ { ["foo"] = "bar" } }`
+-- Expressions table: {"{ [\"foo\"] = \"bar\" }"} (trimmed, but internal formatting preserved)
+```
+
 For method calls (`:` syntax), `self` is passed first as usual, followed by these three arguments.
 
 If the interpolated string contains no interpolation expressions, the call passes a single string argument (the literal string), identical to a regular string literal call.
