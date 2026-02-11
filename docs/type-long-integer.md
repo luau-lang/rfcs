@@ -238,25 +238,33 @@ Writes a int64 to a buffer at the given offset.
 
 ### C API
 
-`int64_t lua_toint64(lua_State *L, int index)`
+`int64_t lua_toint64(lua_State *L, int idx, int* isint64)`
 
-Returns a int64 value on the stack at `index` if no value exists or if it is not a `int64` then returns `0`.
+Returns an int64 value at `idx` or 0 on failure.
+If `isint64` is not a null pointer, writes 1 if the value at `idx` was an int64 and 0 on failure.
 
 `void lua_pushint64(lua_State *L, int64_t n)`
 
-Pushes a int64 value of the specified signed to the stack
+Pushes a int64 value on top of the stack.
 
-`int lua_isint64(lua_State *L, int n)`
+`int lua_isint64(lua_State *L, int idx)`
 
-Determines if a value at index `n` is a int64.
+Determines if a value at `idx` is an int64.
+This function is implemented as a C macro.
 
-`int64_t luaL_checkint64(lua_State *L, int index)`
+`int64_t luaL_checkint64(lua_State *L, int narg)`
 
-Same behavior as `lua_toint64` and `lua_touint64` except errors if the value is not a int64.
+Returns an int64 value at `narg` or throws an error on failure.
+
+`int64_t luaL_optint64(lua_State *L, int narg, int64_t def)`
+
+Returns an int64 value at `narg` or if `def` if there is no value.
+Throws an error if there is a value but it is not an int64.
 
 `luaopen_int64(lua_State *L)`
 
-Registers the `int64` library. Included in `luaL_openlibs`
+Registers the `int64` library.
+Included in `luaL_openlibs`.
 
 ## Drawbacks
 
