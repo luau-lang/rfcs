@@ -268,6 +268,18 @@ Reads a int64 out of a buffer at the given offset.
 
 Writes a int64 to a buffer at the given offset.
 
+### Extensions to the math library
+
+For parity with Lua 5.3+, two additional constants are added to the math library.
+
+`math.maxinteger`
+
+int64 value representing 2^63-1 (`9_223_372_036_854_775_807i`)
+
+`math.mininteger`
+
+int64 value representing -2^63 (`-9_223_372_036_854_775_808i`)
+
 ### Extensions to the string library
 
 `string.format` function is updated to support int64 arguments.
