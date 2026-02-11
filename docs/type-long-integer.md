@@ -94,35 +94,45 @@ Overflow wraps around according to rules of two-complement arithmetic.
 `function int64.div(a: int64, b: int64): int64`
 
 Performes signed truncated division of `a` by `b`.
+
 If `b` is 0, throws a division by zero error.
+
 If `a` is -2^63 and `b` is -1, throws an overflow error.
 
 `function int64.rem(a: int64, b: int64): int64`
 
 Computes remainder of the signed truncated division of `a` by `b`.
+
 If `b` is 0, throws a division by zero error.
+
 If `a` is -2^63 and `b` is -1, result is 0.
 
 `function int64.idiv(a: int64, b: int64): int64`
 
 Performes signed floored division of `a` by `b`.
+
 If `b` is 0, throws a division by zero error.
+
 If `a` is -2^63 and `b` is -1, throws an overflow error.
 
 `function int64.mod(a: int64, b: int64): int64`
 
 Performes signed floored modulus division of `a` by `b`.
+
 If `b` is 0, throws a division by zero error.
+
 If `a` is -2^63 and `b` is -1, result is 0.
 
 `function int64.udiv(a: int64, b: int64): int64`
 
 Performs unsigned division of `a` by `b`.
+
 If `b` is 0, throws an error.
 
 `function int64.urem(a: int64, b: int64): int64`
 
 Computes remainder of the unsigned division of `a` by `b`.
+
 If `b` is 0, throws an error.
 
 `function int64.band(a: int64, b: int64): int64`
@@ -159,31 +169,44 @@ Compares unsigned less than or equal (<=) comparison of `a` and `b`.
 
 `function int64.lshift(n: int64, i: int64): int64`
 
-Shifts `n` to the left by `i` bits (if `i` is negative, a right shift is performed instead). When `i` is outside of `[-63..63]` range, returns 0.
+Shifts `n` to the left by `i` bits (if `i` is negative, a right shift is performed instead).
+
+When `i` is outside of `[-63..63]` range, returns 0.
 
 `function int64.rshift(n: int64, i: int64): int64`
 
-Shifts `n` to the right by `i` bits (if `i` is negative, a left shift is performed instead). When `i` is outside of `[-63..63]` range, returns 0.
+Shifts `n` to the right by `i` bits (if `i` is negative, a left shift is performed instead).
+
+When `i` is outside of `[-63..63]` range, returns 0.
 
 `function int64.arshift(n: int64, i: int64): int64`
 
 Shifts `n` by `i` bits to the right (if `i` is negative, a left shift is performed instead).
-The most significant bit of `n` is propagated during the shift. When `i` is larger than 63, returns an integer with all bits set to the sign bit of `n`. When `i` is smaller than -63, 0 is returned.
+
+The most significant bit of `n` is propagated during the shift.
+
+When `i` is larger than 63, returns an integer with all bits set to the sign bit of `n`.
+
+When `i` is smaller than -63, 0 is returned.
 
 `function int64.lrotate(n: int64, i: int64): int64`
 
 Rotates `n` to the left by `i` bits (if `i` is negative, a right rotate is performed instead); the bits that are shifted past the bit width are shifted back from the right.
+
 `i` is interpreted modulo 64.
 
 `function int64.rrotate(n: int64, i: int64): int64`
 
 Rotates `n` to the right by `i` bits (if `i` is negative, a left rotate is performed instead); the bits that are shifted past the bit width are shifted back from the left.
+
 `i` is interpreted modulo 64.
 
 `function int64.extract(n: int64, f: int64, w: int64?): int64`
 
 Extracts bits of `n` at position `f` with a width of `w`.
+
 `w` defaults to 1, so a two-argument version of extract returns the bit value at position `f`.
+
 Bits are indexed starting at 0.
 `f` cannot be negative.
 `w` has to be positive (> 0).
@@ -192,7 +215,9 @@ Bits are indexed starting at 0.
 `function int64.replace(n: int64, r: int64, f: int64, w: int64?): int64`
 
 Replaces bits of `n` at position `f` and width `w` with `w` least significant bits of `r`.
+
 `w` defaults to 1, so a three-argument version of replace changes one bit at position `f` to `r` and returns the result.
+
 Bits are indexed starting at 0.
 `f` cannot be negative.
 `w` has to be positive (> 0).
@@ -234,6 +259,7 @@ Writes a int64 to a buffer at the given offset.
 `string.format` function is updated to support int64 arguments.
 
 'd', 'i' and '*' format specifiers will format int64 as a signed 64 bit integer number.
+
 'o', 'u', 'x' and 'X' format specifiers will format int64 as an unsigned 64 bit integer number.
 
 ### C API
@@ -241,6 +267,7 @@ Writes a int64 to a buffer at the given offset.
 `int64_t lua_toint64(lua_State *L, int idx, int* isint64)`
 
 Returns an int64 value at `idx` or 0 on failure.
+
 If `isint64` is not a null pointer, writes 1 if the value at `idx` was an int64 and 0 on failure.
 
 `void lua_pushint64(lua_State *L, int64_t n)`
@@ -250,6 +277,7 @@ Pushes a int64 value on top of the stack.
 `int lua_isint64(lua_State *L, int idx)`
 
 Determines if a value at `idx` is an int64.
+
 This function is implemented as a C macro.
 
 `int64_t luaL_checkint64(lua_State *L, int narg)`
@@ -259,6 +287,7 @@ Returns an int64 value at `narg` or throws an error on failure.
 `int64_t luaL_optint64(lua_State *L, int narg, int64_t def)`
 
 Returns an int64 value at `narg` or if `def` if there is no value.
+
 Throws an error if there is a value but it is not an int64.
 
 `luaopen_int64(lua_State *L)`
