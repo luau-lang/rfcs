@@ -43,7 +43,7 @@ Operations performing a string formatting of an integer should format the number
 
 Integer values will have a built-in equality comparison, but will not have any other operators or metamethods defined.
 
-Functions for creating and manipulating this type will exist in a new library called 'int64`.
+Functions for creating and manipulating this type will exist in a new library called 'integer`.
 
 ### Library
 
@@ -299,11 +299,11 @@ Integer value representing -2^63 (`-9_223_372_036_854_775_808i`)
 
 ### C API
 
-`int64_t lua_tointeger64(lua_State *L, int idx, int* isint)`
+`int64_t lua_tointeger64(lua_State *L, int idx, int* isinteger)`
 
 Returns a value of an integer at `idx` or 0 on failure.
 
-If `isint` is not a null pointer, writes 1 if the value at `idx` was an integer value and 0 on failure.
+If `isinteger` is not a null pointer, writes 1 if the value at `idx` was an integer value and 0 on failure.
 
 `void lua_pushinteger64(lua_State *L, int64_t n)`
 
