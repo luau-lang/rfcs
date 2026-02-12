@@ -43,11 +43,11 @@ Operations performing a string formatting of the an integer should format the nu
 
 Integer values will have a built-in equality comparison, but will not have any other operators or metamethods defined.
 
-Functions for creating/manipulating this type will exist in a new library called 'int64`.
+Functions for creating/manipulating this type will exist in a new library called 'integer`.
 
 ### Library
 
-`function int64.create(n: number): integer?`
+`function integer.create(n: number): integer?`
 
 Converts a number to an integer.
 
@@ -55,7 +55,7 @@ If the double number cannot be represented as an integer exactly: has a fraction
 
 This behavior is chosen to closely match `math.tointeger` from Lua 5.4 and can have a relatively efficient implementation.
 
-`function int64.fromstring(str: string, base: number?): integer?`
+`function integer.fromstring(str: string, base: number?): integer?`
 
 Converts a string representation of a number into an integer.
 
@@ -70,37 +70,37 @@ If the string doesn't contain a number, `nil` is returned.
 
 This behavior is chosen to match `tonumber`, but excludes floating-point numbers.
 
-`function int64.tostring(n: integer): string`
+`function integer.tostring(n: integer): string`
 
 Converts an integer to a string representation.
 
-`function int64.tonumber(n: integer): number`
+`function integer.tonumber(n: integer): number`
 
 Converts an integer to a double.
 
 If the value cannot be represented as a double exactly, round to nearest, tie to even rounding mode is used.
 
-`function int64.neg(a: integer): integer`
+`function integer.neg(a: integer): integer`
 
 Negates the value.
 Overflow wraps around according to rules of two-complement arithmetic.
 
-`function int64.add(a: integer, b: integer): integer`
+`function integer.add(a: integer, b: integer): integer`
 
 Adds `a` to `b`.
 Overflow wraps around according to rules of two-complement arithmetic.
 
-`function int64.sub(a: integer, b: integer): integer`
+`function integer.sub(a: integer, b: integer): integer`
 
 Subtracts `b` from `a`.
 Overflow wraps around according to rules of two-complement arithmetic.
 
-`function int64.mul(a: integer, b: integer): integer`
+`function integer.mul(a: integer, b: integer): integer`
 
 Multiplies `a` and `b`.
 Overflow wraps around according to rules of two-complement arithmetic.
 
-`function int64.div(a: integer, b: integer): integer`
+`function integer.div(a: integer, b: integer): integer`
 
 Performes signed truncated division of `a` by `b`.
 
@@ -108,7 +108,7 @@ If `b` is 0, throws a division by zero error.
 
 If `a` is -2^63 and `b` is -1, throws an overflow error.
 
-`function int64.rem(a: integer, b: integer): integer`
+`function integer.rem(a: integer, b: integer): integer`
 
 Computes remainder of the signed truncated division of `a` by `b`.
 
@@ -116,7 +116,7 @@ If `b` is 0, throws a division by zero error.
 
 If `a` is -2^63 and `b` is -1, result is 0.
 
-`function int64.idiv(a: integer, b: integer): integer`
+`function integer.idiv(a: integer, b: integer): integer`
 
 Performes signed floored division of `a` by `b`.
 
@@ -124,7 +124,7 @@ If `b` is 0, throws a division by zero error.
 
 If `a` is -2^63 and `b` is -1, throws an overflow error.
 
-`function int64.mod(a: integer, b: integer): integer`
+`function integer.mod(a: integer, b: integer): integer`
 
 Performes signed floored modulus division of `a` by `b`.
 
@@ -132,77 +132,77 @@ If `b` is 0, throws a division by zero error.
 
 If `a` is -2^63 and `b` is -1, result is 0.
 
-`function int64.udiv(a: integer, b: integer): integer`
+`function integer.udiv(a: integer, b: integer): integer`
 
 Performs unsigned division of `a` by `b`.
 
 If `b` is 0, throws an error.
 
-`function int64.urem(a: integer, b: integer): integer`
+`function integer.urem(a: integer, b: integer): integer`
 
 Computes remainder of the unsigned division of `a` by `b`.
 
 If `b` is 0, throws an error.
 
-`function int64.min(a: integer, b: integer): integer`
+`function integer.min(a: integer, b: integer): integer`
 
 Returns the smallest of two integer numbers.
 
-`function int64.max(a: integer, b: integer): integer`
+`function integer.max(a: integer, b: integer): integer`
 
 Returns the largest of two integer numbers.
 
-`function int64.clamp(a: integer, min: integer, max: integer): integer`
+`function integer.clamp(a: integer, min: integer, max: integer): integer`
 
 Returns `a` if the number is in `[min, max]` range; otherwise, returns `min` when `a < min`, and `max` otherwise.
 
 The function errors if `min > max`, consistent with `math.clamp`.
 
-`function int64.band(a: integer, b: integer): integer`
+`function integer.band(a: integer, b: integer): integer`
 
 Performs a bitwise and of `a` and `b`.
 
-`function int64.bor(a: integer, b: integer): integer`
+`function integer.bor(a: integer, b: integer): integer`
 
 Performs a bitwise or of `a` and `b`.
 
-`function int64.bnot(a: integer): integer`
+`function integer.bnot(a: integer): integer`
 
 Returns a bitwise negation of the input number.
 
-`function int64.bxor(a: integer, b: integer): integer`
+`function integer.bxor(a: integer, b: integer): integer`
 
 Performs a bitwise xor (exclusive or) of `a` and `b`.
 
-`function int64.lt(a: integer, b: integer): boolean`
+`function integer.lt(a: integer, b: integer): boolean`
 
 Compares signed less than (<) comparison of `a` and `b`.
 
-`function int64.le(a: integer, b: integer): boolean`
+`function integer.le(a: integer, b: integer): boolean`
 
 Compares signed less than or equal (<=) comparison of `a` and `b`.
 
-`function int64.ult(a: integer, b: integer): boolean`
+`function integer.ult(a: integer, b: integer): boolean`
 
 Compares unsigned less than (<) comparison of `a` and `b`.
 
-`function int64.ule(a: integer, b: integer): boolean`
+`function integer.ule(a: integer, b: integer): boolean`
 
 Compares unsigned less than or equal (<=) comparison of `a` and `b`.
 
-`function int64.lshift(n: integer, i: integer): integer`
+`function integer.lshift(n: integer, i: integer): integer`
 
 Shifts `n` to the left by `i` bits (if `i` is negative, a right shift is performed instead).
 
 When `i` is outside of `[-63..63]` range, returns 0.
 
-`function int64.rshift(n: integer, i: integer): integer`
+`function integer.rshift(n: integer, i: integer): integer`
 
 Shifts `n` to the right by `i` bits (if `i` is negative, a left shift is performed instead).
 
 When `i` is outside of `[-63..63]` range, returns 0.
 
-`function int64.arshift(n: integer, i: integer): integer`
+`function integer.arshift(n: integer, i: integer): integer`
 
 Shifts `n` by `i` bits to the right (if `i` is negative, a left shift is performed instead).
 
@@ -212,19 +212,19 @@ When `i` is larger than 63, returns an integer with all bits set to the sign bit
 
 When `i` is smaller than -63, 0 is returned.
 
-`function int64.lrotate(n: integer, i: integer): integer`
+`function integer.lrotate(n: integer, i: integer): integer`
 
 Rotates `n` to the left by `i` bits (if `i` is negative, a right rotate is performed instead); the bits that are shifted past the bit width are shifted back from the right.
 
 `i` is interpreted modulo 64.
 
-`function int64.rrotate(n: integer, i: integer): integer`
+`function integer.rrotate(n: integer, i: integer): integer`
 
 Rotates `n` to the right by `i` bits (if `i` is negative, a left rotate is performed instead); the bits that are shifted past the bit width are shifted back from the left.
 
 `i` is interpreted modulo 64.
 
-`function int64.extract(n: integer, f: integer, w: integer?): integer`
+`function integer.extract(n: integer, f: integer, w: integer?): integer`
 
 Extracts bits of `n` at position `f` with a width of `w`.
 
@@ -235,7 +235,7 @@ Bits are indexed starting at 0.
 `w` has to be positive (> 0).
 `f + w` must be less than or equal to 64.
 
-`function int64.replace(n: integer, r: integer, f: integer, w: integer?): integer`
+`function integer.replace(n: integer, r: integer, f: integer, w: integer?): integer`
 
 Replaces bits of `n` at position `f` and width `w` with `w` least significant bits of `r`.
 
@@ -246,21 +246,21 @@ Bits are indexed starting at 0.
 `w` has to be positive (> 0).
 `f + w` must be less than or equal to 64.
 
-`function int64.btest(a: integer, b: integer): boolean`
+`function integer.btest(a: integer, b: integer): boolean`
 
 Perform a bitwise and `a` and `b` and returns true iff the result is not 0.
 
-`function int64.countrz(n: integer): integer`
+`function integer.countrz(n: integer): integer`
 
 Returns the number of consecutive zero bits starting from the right-most (least significant) bit.
 Returns 64 if `n` is zero.
 
-`function int64.countlz(n: integer): integer`
+`function integer.countlz(n: integer): integer`
 
 Returns the number of consecutive zero bits starting from the left-most (most significant) bit.
 Returns 64 if `n` is zero.
 
-`function int64.bswap(n: integer): integer`
+`function integer.bswap(n: integer): integer`
 
 Returns `n` with the order of the bytes swapped.
 
@@ -325,9 +325,9 @@ Returns a value of an integer at `narg` or `def` if there is no value.
 
 Throws an error if there is a value but it is not an integer.
 
-`luaopen_int64(lua_State *L)`
+`luaopen_integer(lua_State *L)`
 
-Registers the `int64` library.
+Registers the `integer` library.
 Included in `luaL_openlibs`.
 
 ## Drawbacks
