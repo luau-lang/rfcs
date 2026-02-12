@@ -8,20 +8,20 @@ A builtin 'integer' type to represent 64 bit integer numbers.
 
 Current methods of representing 64-bit integers in Luau with default environment are done with high-low pairs or by splitting them among vectors which leads to poor ergonomics and may not be sufficient for cases where performance is important.
 
-In the case of a high-low pair implementation each individual number takes 16 bytes (or 24) and needs to be be handled together which can be confusing.
+In the case of a high-low pair implementation, each individual number takes 16 bytes (or 24) and needs to be be handled together which can be confusing.
 
 In the case of vector implementations, ergonomics are improved by storing the entire integer in one value however you have the same issues of implementation complexity and lack of integration with the type system.
 
 In both cases, performance is lacking compared to what could be provided by a native implementation.
 
-As Luau grows the restriction to doubles will be an increasing pain point for any use case which involves a 64-bit integer.
+As Luau grows, the restriction to doubles will be an increasing pain point for any use case which involves a 64-bit integer.
 System support for 64-bit integers is ubiquitous and their use is widespread.
 
-While the above solutions, in addition to runtimes being able to define their own userdata do exist, requiring each runtime to reimplement 64 bit integer support with potentially different semantics could prove damaging to libraries that will have to find a common API between any supported runtime or use their own library to use something as simple as an integer.
+Besides the above solutions in userland, runtimes are also able to define their own userdata for 64-bit integers. However, this requires each runtime to reimplement 64-bit integer support themselves, and carries with it the potential of significant differences in their semantics. Such an outcome would harm the ecosystem as a whole, requiring libraries to find a common API across all of their supported runtimes, or otherwise program around differences in their APIs.
 
-Representing 64-bit numbers as heap-allocated userdata is sufficient for correctness but adds a layer of indirection for something that can fit within the existing value size. In cases where the use of these numbers is more common, the performance characteristics of different implementations including userdata could be problematic.
+Further, representing 64-bit numbers as heap-allocated userdata is sufficient for correctness, but also adds a layer of indirection for something that could fit within the existing value size. In domains where the use of these numbers is more common, the performance characteristics of these varying implementation techniques could be problematic or even prohibitive.
 
-Userdata remain the right mechanism for complex or embedder-specific numeric types but 64-bit integers have a sufficiently large problem domain to justify their inclusion as a core value type which may have significant benefits for performance as well as wider interoperability in the overall ecosystem.
+Userdata remain the right mechanism for complex or embedder-specific numeric types, but 64-bit integers have a sufficiently large problem domain to justify their inclusion as a core value type, and bring significant benefits for performance and interoperability in the overall Luau ecosystem.
 
 ## Design
 
@@ -39,11 +39,11 @@ local d = 0b1000_1000i
 
 Integer literal numbers have to be exactly representable, overflow is a parsing error.
 
-Operations performing a string formatting of the an integer should format the number as signed by default.
+Operations performing a string formatting of an integer should format the number as signed by default.
 
 Integer values will have a built-in equality comparison, but will not have any other operators or metamethods defined.
 
-Functions for creating/manipulating this type will exist in a new library called 'int64`.
+Functions for creating and manipulating this type will exist in a new library called 'int64`.
 
 ### Library
 
@@ -51,7 +51,7 @@ Functions for creating/manipulating this type will exist in a new library called
 
 Converts a number to an integer.
 
-If the double number cannot be represented as an integer exactly: has a fractional part, is out of range or is NaN, function returns `nil`.
+Returns `nil` If the double number cannot be represented as an integer exactly, i.e. it has a fractional part, is out of range or is NaN.
 
 This behavior is chosen to closely match `math.tointeger` from Lua 5.4 and can have a relatively efficient implementation.
 
@@ -66,7 +66,7 @@ If base is not specified, number can have a `0x` or `0X` prefix to be converted 
 When base is specified, it has to be in range between 2 and 36 inclusive.
 In base 10 and base 16, number is allowed to have a `0x` or `0X` prefix.
 
-If the string doesn't contain a number, `nil` is returned.
+Returns `nil` if the string doesn't contain a number.
 
 This behavior is chosen to match `tonumber`, but excludes floating-point numbers.
 
