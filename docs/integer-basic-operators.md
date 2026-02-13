@@ -17,15 +17,15 @@ Luau's integer type will be extended with some basic operators, all of which are
 
 - ``integer + integer -> integer``
 
-Returns ``integer.add(a, b)``.
+Returns ``integer.add(a, b)``. Errors if either `a` or `b` are not `integer`s
 
 - ``integer - integer -> integer``
 
-Returns ``integer.sub(a, b)``
+Returns ``integer.sub(a, b)``. Errors if either `a` or `b` are not `integer`s
 
 - ``integer * integer -> integer``
 
-Returns ``integer.mul(a, b)``
+Returns ``integer.mul(a, b)``. Errors if either `a` or `b` are not `integer`s
 
 Most notably, this RFC does not add operators like ``integer / integer`` which depends on signedness and should be covered in a separate RFC. 
 
