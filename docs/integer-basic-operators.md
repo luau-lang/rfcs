@@ -48,8 +48,8 @@ print((a + b) * c - a) -- Prints (123 + 124) * 125 - 123
 
 This RFC is very barebones and may itself be contraversial. Additionally, adding operators to a native type like this increases VM complexity, may worsen performance of existing types (like ``number``) and makes it impossible for embedders to define custom behaviour for these basic integer operators however this shouldn't be required in practice anyways.
 
-Additionally, this RFC does not remove ``integer.add(a, b)`` from the ``integer`` library as doing so would be more complicated and would require changes to be made to an already approved RFC. This means that the ``integer`` standard library may have some "bloat" caused by having both ``a + b`` and ``integer.add(a, b)`` to add integers and vice versa for subtraction and multiplication
+Additionally, this RFC does not remove ``integer.add(a, b)`` from the ``integer`` library as doing so would be more complicated and would require changes to be made to an already approved RFC. This means that the ``integer`` standard library may have some "bloat" caused by having both ``a + b`` and ``integer.add(a, b)`` to add integers and vice versa for subtraction and multiplication. This design of merely adding the operators wholesale while keeping the ``integer.add`` methods was intentionally chosen to make this RFC smaller in scope. Additionally, there may be composability benefits to keeping ``integer.add`` as well.
 
 ## Alternatives
 
-Do nothing. The existing ``integer`` library does implement all of the above operators as functions and could be used instead.
+Do nothing. The existing ``integer`` library does already implement all of the above operators as functions and could be used instead. Additionally, a more comprehensive RFC that implements more integer operators could be merged instead.
