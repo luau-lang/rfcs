@@ -13,7 +13,7 @@ integer RFC to make using ``integer``s easier. The rational for not breaking bac
 
 ## Design
 
-Luau's integer type will be extended with the some basic operators, all of which have a direct analogue in the ``integer`` library. This ensures that the RFC remains minimal in scope. In particular, the below three operators are defined:
+Luau's integer type will be extended with some basic operators, all of which are merely syntactic sugar for functions already present and well-defined in the ``integer`` library, are universal for all integers regardless of signedness and are infallible by nature. This ensures that the RFC remains minimal in scope. In particular, the below three operators are defined:
 
 - ``integer + integer -> integer``
 
