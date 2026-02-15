@@ -63,7 +63,7 @@ end
 
 ## Design
 
-Preferably, the desgin should adhere to the general appearance of Luau.
+Preferably, the design should adhere to the general appearance of Luau.
 Here are two proposed syntaxes:
 ```lua
 type Apple, Banana = typeget(script.Fruits)
