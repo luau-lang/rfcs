@@ -2,11 +2,11 @@
 
 ## Summary
 
-Add type-only imports to Luau, allowing code to import types without creating a runtime dependency. This enables support for importing interfaces, type aliases, and dependency injection.
+Add type-only importing to Luau, allowing code to import types without creating a runtime dependency.
 
 ## Motivation
 
-Assume the creation of a `Computer` and `Mouse` class. Computer uses `Mouse` as a component, and `Keyboard` requires `Computer` as an argument. Typically, the first instinct is to create something like:
+Assume the creation of a `Computer` and `Mouse` class. Computer uses `Mouse` as a component, and `Keyboard` requires `Computer` as an argument. Typically, the first instinct is to use dependency injection:
 ```lua
 -->> computer
 local Mouse = require(script.Mouse)
@@ -23,7 +23,7 @@ local function createMouse(Computer: Computer.Computer)
   return setmetatable({Computer = Computer}, Mouse):: Mouse
 end
 ```
-However, it becomes clear that this is impossible, since this causes a cyclic dependency between `Computer` and `Mouse`. The logical next step would be to create a third container storing the `Computer` type, of which both `Computer` and `Mouse` require from it:
+It becomes clear that retaining intellisense in this situation is impossible, since there is a cyclic dependency between `Computer` and `Mouse`. The logical next step would be to create a third container storing the `Computer` type, of which both `Computer` and `Mouse` require from it:
 ```lua
 -->> computer
 local Mouse = require(script.Mouse)
@@ -41,8 +41,7 @@ local function createMouse(Computer: __types.Computer)
   return setmetatable({Computer = Computer}, Mouse):: __types.Mouse
 end
 ```
-This works, but can become very cumbersome very quickly, especially if `Computer` also depends on other user-generated types, which may or may not generate their own cyclic dependencies.
-Reason being, the current type importing state of Luau is a clear limiting factor when considering pratices like dependency injection.
+This works, and intellisense is restored. Unfortunately, this can become very cumbersome very quickly, especially if `Computer` also depends on other user-generated types, which may or may not generate their own cyclic dependencies. Basically, the current type importing state of Luau is a clear limiting factor when considering pratices like dependency injection.
 
 The above problem can easily be solved if code can directly import types, removing the need to depend on the module containing the types.
 ```lua
