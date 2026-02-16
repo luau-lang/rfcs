@@ -376,10 +376,18 @@ Having different library methods allows the developers to choose the specific op
 
 ### Separate signed and unsigned types
 
-Given that integers are already not expected to be the default value type to be chosen by developers we rejected the idea of introducing distinct signed and unsigned integer types.
+It has been suggested to create two separate types for signed and unsigned integers or have it be a property of the value.
+Having distinct types would provide the typechecker with the ability to highlight mixed operations and a runtime check could throw an error.
+
+As mentioned above, integers are already not expected to be the default value type to be chosen by developers to work with.
+Unsigned integer use is even rarer and other programming languages followed the similar path of only supporting auxiliary operations on them.
+Other languages with unsigned integer support like C++ recommend limiting their use in their guidelines.
+Given this, we have rejected the idea of distinct signed and unsigned integer types.
 
 Having two distinct integer types increases the API and library surface area and implementation complexity significantly for little gain.
 
 In two's complement representation, a single data type with default signed interpretation covers many signed and unsigned operations in an identical way.
 Only a limited subset of operations interpreting data as unsigned is added in this proposal to cover most needs for unsigned integer numbers.
+
 Having library methods instead of operators allows the developer to make an explicit choice of the interpretation required (e.g. `lt` vs `ult`).
+Reinterpretation of a negative value as a positive unsigned value can be made deliberately by the choice of function, and is not as error-prone as using an operator.
