@@ -73,18 +73,37 @@ type { Apple, Banana } = typeget(script.Fruits)
 
 Optionally, inline type extraction:
 ```lua
-type User = require("./UserRepository").User
+type User = typeget("./UserRepository").User
 ```
 
-This feature incidentlly also alleviates Luau's wierd `ModuleName.ModuleType` syntax.
+Alternatively, extend the behavior of `require` to act differently when expecting a type vs. dependency. Using the examples above:
+```lua
+-->> this
+type Apple, Banana = require(script.Fruits)
+
+-->> or this
+type { Apple, Banana } = require(script.Fruits)
+
+-->> and/or this
+type Apple = require(script.Fruits).Apple
+```
+
+This feature incidentlly alleviates Luau's wierd `ModuleName.ModuleType` syntax.
 
 Semantics:
 - Type-only imports are erased at runtime (or used for optimization).
-- No Lua code is emitted, so no runtime require happens.
+- No Luau code is emitted, so no runtime require happens.
 - Regular type imports directly from other code continue to behave as usual.
 
 ## Drawbacks
-More keywords. Possible confusion with type extraction via `require`. `require` essentially becomes a `typeget` and a code emitter combined.
+For the case of `typeget`:
+- More keywords.
+- Possible confusion with type extraction via `require`. `require` essentially becomes a `typeget` and a code emitter combined.
+
+For the case of extending the functionality of `require`:
+- Slightly more ambiguous functionality.
+- Code importing `require` and type importing `require` may not be immediately differentiable at a glance.
+- No longer a function.
 
 ## Alternatives
-As aforementioned, an alternative could be a third, intermediary module. But as explained, could quickly become cumbersome.
+Use a header file for type definitions. Although, this scales poorly and can become cumbersome in larger projects.
