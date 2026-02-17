@@ -23,7 +23,7 @@ local function createMouse(Computer: Computer.Computer)
   return setmetatable({Computer = Computer}, Mouse):: Mouse
 end
 ```
-It becomes clear that retaining intellisense in this situation is impossible, since there is a cyclic dependency between `Computer` and `Mouse`. The logical next step would be to create a third container storing the `Computer` type, of which both `Computer` and `Mouse` require from it:
+Here, a cyclic dependency between `Computer` and `Mouse` makes retaining intellisense impossible. A popular workaround is introducing a third module solely for type definitions; essentially, a header file:
 ```lua
 -->> computer
 local Mouse = require(script.Mouse)
@@ -41,9 +41,9 @@ local function createMouse(Computer: __types.Computer)
   return setmetatable({Computer = Computer}, Mouse):: __types.Mouse
 end
 ```
-This works, and intellisense is restored. Unfortunately, this can become very cumbersome very quickly, especially if `Computer` also depends on other user-generated types, which may or may not generate their own cyclic dependencies. Basically, the current type importing state of Luau is a clear limiting factor when considering pratices like dependency injection.
+While this restores intellisense, it becomes cumbersome as more types and dependencies are added. The header file method works very well for types that can be created without the importing of external types, or put simply, a user-defined type that doesn't depend on other user-defined types.
 
-The above problem can easily be solved if code can directly import types, removing the need to depend on the module containing the types.
+An arguably more elegant solution is to allow code to directly import types, avoiding runtime dependencies:
 ```lua
 -->> computer
 local Mouse = require(script.Mouse)
