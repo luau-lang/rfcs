@@ -106,4 +106,4 @@ For the case of extending the functionality of `require`:
 - No longer a function.
 
 ## Alternatives
-Use a header file for type definitions. Although, this scales poorly and can become cumbersome in larger projects.
+Use a header file for type definitions. Although, this scales poorly and can become cumbersome in larger projects. The current workarounds do not meaningfully solve the cyclic dependency problem, either.
