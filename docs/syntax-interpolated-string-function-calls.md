@@ -46,6 +46,17 @@ log:Info `The double of {a} is {double(a)}`
 
 The template `"The double of {a} is {double(a)}"` serves directly as an aggregation key, and a consumer can extract the expression names `"a"` and `"double(a)"` via the byte offsets.
 
+These template strings are substantially more useful than format strings with opaque `%*` placeholders. Compare these two log call sites:
+
+```luau
+log `{query} returned {result} in {duration}ms`
+log `{endpoint} returned {status} in {duration}ms`
+```
+
+With template strings, these aggregate separately, so operators can distinguish database queries from HTTP requests. With `%*` format strings, both produce `"%* returned %* in %*ms"` and would merge into a single bucket. Call stack metadata (e.g. fingerprints) could be used to disambiguate, but the resulting aggregation keys are opaque and require a source code lookup to interpret.
+
+Template strings also make aggregated log patterns self-documenting. An operator seeing a pattern like `"%*: %* %*:%* -> %*:%* proto=%* bytes=%*"` in a dashboard cannot map the first four `%*` to meaning without a source code lookup. The template `"{rule_id}: {action} {src_ip}:{src_port} -> {dst_ip}:{dst_port} proto={proto} bytes={bytes}"` is immediately interpretable.
+
 Without this feature, developers must either manually construct all arguments (tedious and error-prone) or use a logging library that implements its own template parsing at runtime (duplicating language functionality).
 
 ### SQL escaping
