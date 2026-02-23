@@ -6,15 +6,15 @@ Introduce a built-in method for `Type` objects in Type Function library (e.g., "
 
 ## Motivation
 
-Currently, implementing structural validation in Luau Type Functions requires manually iterating through properties using `Type:properties()`, checking existence via `readproeprty`, and comparing types using `Type:is()`.
+Currently, implementing structural validation in Luau Type Functions requires manually iterating through properties using `Type:properties()`, checking existence via `readproperty`, and comparing types using `Type:is()`.
 
 As shown in my example, validating a simple Interface requires over 20 lines of repetitive imperative code. This is:
-1. Error-prone: Develoeprs must manually handle edge cases like optional fields and indexers.
+1. Error-prone: Developers must manually handle edge cases like optional fields and indexers.
 2. Verbose: Common patterns (like ensuring a table matches an interface) are rewritten constantly.
 3. Inconsistent: Different developers will return different error formats, making library interoperability difficult.
 4. Needs a Luau table to mimic a type definiton and it's fields to check against.
 5. Becomes more complex the bigger your type becomes.
-6. Having the type to be an actual type, not a mimic can still be cruical to have exported, it can be bad when you end up having a mimic and a real type.
+6. Having the type to be an actual type, not a mimic can still be crucial to have exported, it can be bad when you end up having a mimic and a real type.
 
 A built-in utility would allow for "Type-Driven Validation" where the type system itself acts as the schema validator for runtime-adjacent logic.
 
@@ -43,11 +43,11 @@ function Type:matches(target: table, options: ValidationOptions): (boolean, Vali
 Behavior
 
 **target**: The object to be validated against `self` type
-**options.strict**: If `true`, the presence of fields in `target` that are not defined in `slef` (the schema) will trigger an `unexpected` error. If `false` (default), extra fields are ignored.
+**options.strict**: If `true`, the presence of fields in `target` that are not defined in `self` (the schema) will trigger an `unexpected` error. If `false` (default), extra fields are ignored.
 
 Error Mapping
 1. `field-missing`: A property exists in the type definition but is absent in the target.
-2. `type-mismatch` A property exists in both, but `:is()` returns false.
+2. `type-mismatch`: A property exists in both, but `:is()` returns false.
 3. `unexpected`: (Strict mode only) A property exists in the target but not in the definition.
 
 Examples
@@ -112,7 +112,7 @@ local Success, Error = PersonType:matches(Person, { strict = false })
 if not Success then
     if Error.kind == Enum.TypeValidatorErrorKind.Mismatch then
        error(`Person field {Error.field} expected to be {Error.targetType}`)
-    elseif Error.kind = Enum.TypeValidatorErrorKind.FieldMissing then
+    elseif Error.kind == Enum.TypeValidatorErrorKind.FieldMissing then
         error(`Required field {Error.field} is missing!`)
     end
 end
