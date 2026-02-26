@@ -49,13 +49,32 @@ export a, b, c = 1, 2, 3
 export d -- same as export d = nil
 ```
 
-Unlike local variable declarations, exporting a variable with the same identifier twice is a syntax error, regardless of the scope it was declared in.
+Exporting a variable with the same identifier twice is a syntax error, regardless of the scope it was defined in.
 
 ```luau
 export foo = 1
 do
 	export foo = 2 -- syntax error
 end
+```
+
+However, exporting a variable with the same identifier as another non-exported variable is allowed, following conventional lexical scoping and shadowing rules.
+
+```luau
+local function foo() return 1 end
+export function foo() return 2 end -- exported, shadows foo
+
+print(foo()) -- 2
+
+local fruit = "apple"
+export fruit -- exports fruit = nil, not "apple"
+print(fruit) -- nil
+
+export animal = "dog"
+local animal = "cat" -- shadows animal, doesn't change export
+animal = "bird"
+
+print(animal) -- bird
 ```
 
 ### Desugared Form
