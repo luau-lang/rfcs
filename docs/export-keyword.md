@@ -1,4 +1,5 @@
-# Export-by-Value
+
+# Export by Value
 
 ## Summary
 Extend the `export` keyword to support values and functions as syntax sugar for constructing a table and returning it from a module.
@@ -10,12 +11,12 @@ Today, type aliases are able to be exported from a module using the `export` key
 export type Point = {x: number, y: number}
 ```
 
-However, this mechanism is currently limited to types.
+However, this mechanism is currently only supported by types.
 
-Extending  `export`  to support values and functions would provide a consistent way for users to expose a stable API from a module. Furthermore, first-class module exports can provide future static optimization opportunities, such as cross-module inlining and constant folding.
+Extending  `export`  to also support values and functions would provide a consistent way for users to expose a stable API from modules. Furthermore, static exports would allow for many future optimizations, such as cross-module inlining and constant folding.
 
 ## Design
-Allow the `export` contextual keyword anywhere the `local` keyword may be used at the top level of a module, as well as within nested `do end` blocks.
+Allow the `export` contextual keyword anywhere the `local` keyword may be used at the top level of a module, as well as within nested `do end` blocks. Attempting to export a variable outside the module scope will be a parse error.
 
 Exported variables will count towards the local variable limit, as they can be optimized into locals by the compiler.
 
@@ -49,7 +50,7 @@ export a, b, c = 1, 2, 3
 export d -- same as export d = nil
 ```
 
-Exporting a variable with the same identifier twice is a syntax error, regardless of the scope it was defined in.
+Exporting a variable with the same identifier twice is a parse error, regardless of the scope it was defined in.
 
 ```luau
 export foo = 1
@@ -90,7 +91,7 @@ _EXP.a = 1
 return table.freeze(_EXP)
 ```
 
-Exported values can therefore be reassigned within the module after being declared. This allows for conditional exported values and forward declarations.
+Exported variables can therefore be reassigned within the module after being declared. This allows for conditional exports and forward declarations.
 
 ```luau
 export side = "heads"
@@ -125,7 +126,7 @@ end
 return table.freeze(_EXP)
 ```
 
-Once the module ends and the export table is frozen, subsequent reassignments will throw a runtime error, analogous to attempting to assign a key in a frozen table.
+Once the module ends and the export table is frozen, subsequent reassignments will throw a runtime error, analogous to reassigning keys to a frozen table.
 
 ```luau
 export counter = 0
@@ -148,13 +149,50 @@ end
 return table.freeze(_EXP)
 ```
 
+### Typechecking
+Type inference of exported variables will behave exactly the same as local variable inference.
+
+```luau
+-- example behavior subject to change
+-- with local variable inference changes
+
+export foo = 15
+foo = "hello"
+foo = true
+-- foo: number | string | boolean
+
+export bar = nil
+if math.random(0, 1) == 1 then
+	bar = 123
+end
+-- bar: number?
+```
+
+This is in contrast to how typechecking would behave in the desugared form with key assignments.
+
+```luau
+local _EXP = {}
+_EXP.foo = 15
+_EXP.foo = "hello" -- type error
+_EXP.foo = true -- type error
+
+_EXP.bar = nil
+if math.random(0, 1) == 1 then
+	_EXP.bar = 123 -- type error
+end
+
+return table.freeze(_EXP)
+```
+
+This is done to ensure exported variables act exactly the same as local variables and preserve the same ergonomics.
+
 ### Interaction with `return`
 
-A module that contains an export statement is not permitted to also contain a return statement at the module scope, as the two mechanisms are mutually exclusive. If there is both an export statement and return statement, it is a syntax error.
+A module that contains an export statement is not permitted to also contain a return statement at the module scope, as the two mechanisms are mutually exclusive. If there is both an export statement and return statement, it is a parse error.
 
 ```luau
 export a = 1
-return 2 -- syntax error
+return {b = 2} -- syntax error
 ```
 ```luau
 if skip then return end
@@ -165,9 +203,9 @@ This restriction does not apply to modules that only contain type exports for ba
 
 ### Future Optimizations
 
-While static first-class exports primarily provide improvements to user ergonomics, they also open the door for many optimizations that aren't currently possible with dynamic module returns.
+While the primary purpose for extending exports is user ergonomics, static exports also open the door for many optimizations that aren't currently possible with dynamic module returns.
 
-For example, exported variables and functions could be transformed into local variables that are stored in VM registers for fast lookup:
+For example, exported variables and functions can be transformed into local variables that are stored in VM registers for fast lookup:
 
 ```luau
 export tau = math.pi * 2
@@ -179,13 +217,13 @@ print(tau)
 return table.freeze({tau = tau})
 ```
 
-Furthermore, static exports that are never reassigned are capable of being inlined and constant folded across modules, given future static imports.
+Furthermore, static exports that are never reassigned to are capable of being inlined and constant folded across modules, assuming future support for static imports.
 
 ## Drawbacks
 
 This increases compiler complexity in terms of tracking exported tokens and converting them into table assignments.
 
-Since `export` is a contextual keyword, the following statements are valid and might cause confusion. These are solved by current linting and typechecking.
+Since `export` is a contextual keyword, the following statements are valid and might cause confusion. These cases can be solved with current linting and typechecking tools.
 
 ```luau
 export = 1
@@ -201,12 +239,17 @@ export {a, b} = t -- looks like export({a, b}) = t
 export [a] = t -- looks like export[a] = t
 ```
 
+Uninitialized exported variables may also cause confusion due to looking like "shorthand exports" that export previously defined variables. For example, the following does not export the function `foo` but instead declares an exported variable that shadows it. This can be solved by implementing a lint that warns about uninitialized exports that are never assigned to.
+
+```luau
+local function foo(x) return x * 2 end
+export foo -- exports nil, shadows foo
+```
+
 ## Alternatives
 
-As always, do nothing and leave users to construct their own module return tables. This would forfeit providing a consistent way for users to expose a public API and would not allow for future cross-module optimizations.
+As always, do nothing and leave users to construct their own module return tables. This would forfeit providing a consistent way for users to expose public APIs and would not allow for future cross-module optimizations.
 
-Exporting in `do end` blocks under the module scope can be scrapped, but this would prevent users from lexically scoping exported variables and doesn't make much sense not to support. It is also possible to initially not support this and then add it back in later.
+Permitting exports in `do end` blocks can be scraped, but this would prevent users from scoping exported variables and doesn't make much sense not to support. It is also possible to initially not support this and then add it back in later.
 
-Exported variables could be treated as unassignable after initialization (like `const` variables in JavaScript), but this would make useful patterns such as exporting mutually dependent functions hard to pull off. Furthermore, introducing const-ness to the language would not provide any further optimization opportunities, as the compiler can already determine if a variable is constant if it is never reassigned to.
-
-So-called "shorthand exports" could also be introduced to allow exporting local variables after they've been declared. This only makes sense under the model that exports are unassignable and introduces confusing semantics regarding variable aliasing.
+Exported variables could be treated as unassignable after declaration (like `const` variables in JavaScript), but this would make useful patterns such as exporting mutually dependent functions hard to pull off. Furthermore, introducing const-ness to the language would not provide any further optimization opportunities, as the compiler can already determine if a variable is constant if it is never reassigned to.
