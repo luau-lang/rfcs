@@ -23,7 +23,7 @@ Developers are forced to store the difference in a local variable because `vecto
 
 ```luau
 local range = 100
-if vector.sqrmagnitude(vec - vec2) < range^2 then
+if vector.sqrmagnitude(vec1 - vec2) < range^2 then
     --Within the range.
 end
 ```
