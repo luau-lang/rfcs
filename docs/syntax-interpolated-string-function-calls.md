@@ -2,7 +2,13 @@
 
 ## Summary
 
-Allow calling functions with interpolated string literals without parentheses. The call is desugared into a function call with two arguments: the original template string (with interpolation expressions intact) and a table of the evaluated values. Two new core library functions are also introduced: one for extracting the stringified interpolation expressions from a template, and one for rendering a template with values. These reuse the same code as normal string interpolation. Together, this enables domain-specific language patterns like structured logging, SQL escaping, and HTML templating.
+Allow calling functions with interpolated string literals without parentheses
+
+The call is desugared into a function call with a table argument.  This table contains an array of string literal segments and the evaluated values from the substitution tokens.
+
+A new core library function is also introduced for performing typical default string interpolation.
+
+This enables domain-specific language patterns like SQL escaping, and HTML templating.
 
 ## Motivation
 
@@ -24,40 +30,41 @@ The [string interpolation RFC](https://github.com/luau-lang/rfcs/blob/master/doc
 
 This proposal lifts that restriction with semantics that decompose the interpolated string into its constituent parts, passing them to the called function. This enables the function to process the template and values however it sees fit, and to recover expression metadata via core library functions.
 
-### Structured logging
+### AST rewrites
 
-The primary motivating use case is structured logging. Production log consumption systems have two key requirements:
+[lute](https://lute.luau.org/) includes a powerful query system for searching and making procedural edits to Luau code.
 
-1. **Human-readable template strings** for aggregation. Logs need to be grouped by message pattern so that operators can see, for example, "200 instances/minute of '{foo} occurred after {bar}'" rather than an opaque format string or fingerprint.
-
-2. **Key-value structured data** for search and filtering. Given a template like `{user.name} logged in from {ip}`, the consuming system needs both the expression names (`user.name`, `ip`) and their runtime values (`"Alice"`, `"10.0.0.1"`) to enable queries like "show me all logs where user.name = 'Alice'".
-
-This proposal satisfies both requirements. The template string is passed directly as the first argument, and the core library function `string.interpparse` allows consumers to extract expression names and associate them with values:
+For example, a simple rewrite rule that replaces `expr ~= expr` with `math.isnan(expr)` is today written like so:
 
 ```luau
-local a = 1
-local function double(x: number)
-  return x * 2
+local query = require("@std/syntax/query")
+local syntax = require("@std/syntax")
+local syntax_utils = require("@std/syntax/utils")
+
+local function transform(ctx)
+    return query
+        .findallfromroot(ctx.parseresult.root, syntax_utils.isExprBinary)
+        :filter(function(bin)
+            return bin.operator.text == "~="
+                and bin.lhsoperand.tag == "local"
+                and bin.rhsoperand.tag == "local"
+                and bin.lhsoperand.token.text == bin.rhsoperand.token.text
+        end)
+        :replace(function(bin)
+            return `math.isnan({(bin.lhsoperand :: syntax.AstExprLocal).token.text})`
+        end)
 end
 
--- Desugars to: log:Info("The double of {a} is {double(a)}", {a, double(a)})
-log:Info `The double of {a} is {double(a)}`
+return transform
 ```
 
-The template `"The double of {a} is {double(a)}"` serves directly as an aggregation key, and a consumer can extract the expression names `"a"` and `"double(a)"` via `string.interpparse`.
+[https://github.com/luau-lang/lute/blob/primary/examples/query\_transformer.luau\#L15](https://github.com/luau-lang/lute/blob/primary/examples/query_transformer.luau#L15)
 
-These template strings are substantially more useful than format strings with opaque `%*` placeholders. Compare these two log call sites:
+With interpolated string function calls, the replacement expression can be expressed in a much clearer way:
 
-```luau
-log `{query} returned {result} in {duration}ms`
-log `{endpoint} returned {status} in {duration}ms`
 ```
-
-With template strings, these aggregate separately, so operators can distinguish database queries from HTTP requests. With `%*` format strings, both produce `"%* returned %* in %*ms"` and would merge into a single bucket. Call stack metadata (e.g. fingerprints) could be used to disambiguate, but the resulting aggregation keys are opaque and require a source code lookup to interpret.
-
-Template strings also make aggregated log patterns self-documenting. An operator seeing a pattern like `"%*: %* %*:%* -> %*:%* proto=%* bytes=%*"` in a dashboard cannot map the first four `%*` to meaning without a source code lookup. The template `"{rule_id}: {action} {src_ip}:{src_port} -> {dst_ip}:{dst_port} proto={proto} bytes={bytes}"` is immediately interpretable.
-
-Without this feature, developers must either manually construct all arguments (tedious and error-prone) or use a logging library that implements its own template parsing at runtime (duplicating language functionality).
+return ast`math.isnan({bin.lhsoperand})`
+```
 
 ### SQL escaping
 
@@ -67,9 +74,8 @@ Interpolated string calls enable safe, ergonomic SQL query construction where th
 local sqlite = require("luau_sqlite")
 
 local function takeUserInput(db: sqlite.DB, user: string, comment: string)
-  -- Auto-escape inputs to guard against SQL injection
-  db:Exec `INSERT INTO user_inputs (user, comment) VALUES ({user}, {comment})`
-  -- Desugars to: db:Exec("INSERT INTO user_inputs (user, comment) VALUES ({user}, {comment})", {user, comment})
+    -- Auto-escape inputs to guard against SQL injection
+    db:Exec `INSERT INTO user_inputs (user, comment) VALUES ({user}, {comment})`
 end
 ```
 
@@ -81,10 +87,12 @@ Similarly, HTML renderers can automatically escape interpolated values to preven
 local tmpl = require("luau_html_renderer")
 
 local function renderPage(r: tmpl.Renderer, userinput: string)
-  -- Automatic XSS protection through escaping
-  return tmpl.HTML `The user asked about {userinput}`
-  -- Desugars to: tmpl.HTML("The user asked about {userinput}", {userinput})
+    -- Automatic XSS protection through escaping
+    return tmpl.HTML `The user asked about {userinput}`
 end
+
+local bookName = "Pride & Prejudice"
+local para = tmpl.HTML `<p>Book name: {bookName}</p>` -- <p>Book name: Pride &amp; Prejudice</p>
 ```
 
 ## Design
@@ -100,71 +108,72 @@ args ::= '(' [explist] ')' | tableconstructor | LiteralString | stringinterp
 
 ### Semantics
 
-When a function is called with an interpolated string literal in this style, the compiler desugars the call into a function call with two arguments:
-
-1. **Template string**: The original template with interpolation expressions intact, e.g. `"The double of {a} is {double(a)}"`
-2. **Values table**: A sequential table of the evaluated interpolation values, e.g. `{a, double(a)}`
-
-The template string is determined at compile time. The values table is evaluated at runtime.
-
-For method calls (`:` syntax), `self` is passed first as usual, followed by these two arguments.
-
-If the interpolated string contains no interpolation expressions, the call passes a single string argument (the literal string), identical to a regular string literal call.
-
-### Core library functions
-
-Two new functions are added to the `string` library to support consumers of interpolated string calls. Both reuse the same code as the compiler's normal string interpolation implementation.
-
-#### `string.interpparse`
+When a function is called with an interpolated string literal in this style, the compiler will desugar the expression to a function call of the following form:
 
 ```luau
-string.interpparse(template: string) -> {string}
+f `Template string {expr1} content {expr2} ...`
+
+-- to
+
+f(
+    string.interpolatedstring.create(
+        {"Template string ", " content ", " ..."},
+        {expr1, expr2},
+    )
+)
 ```
 
-Parses an interpolation template and returns a sequential table of the stringified interpolation expressions.
+The function is passed a table with two keys:
+
+1. `strings` – an array containing all of the string literal sections of the template string, and
+2. `expressions` – An array containing the values to be substituted in
+
+To handle the case that any interior `expression` may be `nil`, the desugaring ensures that `#strings` is always one greater than `#expressions`.  If the template string starts or ends with an expression, the first or last elements of `strings` will be the empty string.
 
 ```luau
-string.interpparse("Hello {name}")          -- returns {"name"}
-string.interpparse("{a} + {b} = {a + b}")   -- returns {"a", "b", "a + b"}
-string.interpparse("No interpolations")     -- returns {}
+f `{expr1} {expr2}` --> f(string.interpolatedstring.create({"", " ", ""}, {expr1, expr2})
 ```
 
-#### `string.interp`
+The table `string.interpolatedstring` is added to the standard `string` library.  Its contents are roughly
 
 ```luau
-string.interp(template: string, values: {any}) -> string
+string.interpolatedstring = table.freeze({
+    __tostring=...,
+    __concat=...,
+    __len=...,
+    create=function (strings, expressions)
+        return setmetatable({strings=strings, expressions=expressions}, string.interpolatedstring)
+    end
+})
 ```
 
-Renders an interpolation template by replacing each `{expression}` with the `tostring` of the corresponding value from the values table, matching the behavior of normal string interpolation. The values table may be either sequential (positional matching) or associative with string keys (matching by expression name):
+Where each of the metafunctions acts to make the interpolated string value behave somewhat like an ordinary string.
+
+## Core library functions
+
+A new function `string.interpolate` is added to afford easy access to the default interpolation algorithm.
 
 ```luau
--- Sequential: values matched positionally to expressions
-string.interp("Hello {name}", {"Alice"})          -- returns "Hello Alice"
-string.interp("{a} + {b} = {a + b}", {1, 2, 3})   -- returns "1 + 2 = 3"
-
--- Associative: values matched by expression name
-string.interp("Hello {name}", {name = "Alice"})   -- returns "Hello Alice"
-```
-
-Supporting both sequential and associative tables enables a single function to serve as both a parentheses-free interpolated string call target and a conventional function accepting a template with a named context object:
-
-```luau
-function log_info(self, template, values)
-    local exprs = string.interpparse(template)
-    local rendered = string.interp(template, values)
-    -- exprs[i] is the expression name, values[i] is the runtime value
-    -- rendered is the fully formatted string
+function string.interpolate(t: {strings: {string}, expressions: {unknown}})
+    local n = #t.strings - 1
+    local result = ""
+    for i = 1, n do
+        result ..= t.strings[i] .. tostring(t.expressions[i])
+    end
+    result ..= t.strings[#strings]
+    return result
 end
-
--- Paren-free: compiler fills in values positionally from local variables
-log:Info `Hello {name}`
--- Desugars to: log:Info("Hello {name}", {"Alice"})
-
--- Parenthesized: caller provides a named context object
-log:Info("Hello {name}", {name = "Alice"})
 ```
 
-Note that calling `string.interpparse` at runtime means the template is parsed twice: once by the compiler when desugaring the interpolated string call (to identify expressions and evaluate them), and a second time by the library function. This is a minor cost, as template strings are typically short. The implementation of `string.interpparse` can also cache results internally, since template strings are compile-time constants and strings are interned in Luau, making repeated calls with the same template effectively free.
+This function renders an interpolation template by replacing each `expression` with the `tostring` of the corresponding expression, matching the behavior of normal string interpolation.
+
+```luau
+local world = 'World'
+local s = string.interpolate `Hello {world}!`
+assert("Hello World!" == tostring(s))
+```
+
+This will be useful for any application that wants to augment the default string interpolation logic rather than replacing it.
 
 ### Examples
 
@@ -174,131 +183,54 @@ local user = {name = "Alice"}
 
 -- Simple identifier
 log:Info `Processing item {id}`
--- Desugars to: log:Info("Processing item {id}", {42})
 
 -- Member expression
 log:Info `User {user.name} logged in`
--- Desugars to: log:Info("User {user.name} logged in", {"Alice"})
 
 -- Multiple expressions
 log:Info `{user.name} is processing item {id}`
--- Desugars to: log:Info("{user.name} is processing item {id}", {"Alice", 42})
 ```
 
 ### No expression restrictions
 
-This design uses positional tables, so **any expression valid in a regular interpolated string is also valid here**, including function and method calls:
+This design uses positional tables, so any expression valid in a regular interpolated string is also valid here, including function and method calls:
 
 ```luau
 -- Function calls are allowed
 log:Info `Result is {compute()}`
--- Desugars to: log:Info("Result is {compute()}", {compute()})
+-- Desugars to: log:Info(string.interpolatedstring.create({"Result is ", ""}, {compute()})
 
 -- Method calls are allowed
 log:Info `Name is {user:getName()}`
--- Desugars to: log:Info("Name is {user:getName()}", {user:getName()})
+-- Desugars to: log:Info(string.interpolatedstring.create({"Name is ", ""}, {user:getName()})
 
 -- Repeated expressions are fine (each is a separate positional entry)
 log:Info `{increment()} and then {increment()}`
--- Desugars to: log:Info("{increment()} and then {increment()}", {increment(), increment()})
+-- Desugars to: log:Info(string.interpolatedstring.create({"", " and then ", ""}, {increment(), increment()}))
 ```
 
 Since values are stored positionally rather than keyed by expression text, there is no ambiguity when the same expression appears multiple times or when expressions have side effects.
 
 ### Behavior with variadic functions
 
-Functions that accept variadic arguments will receive the two desugared arguments. For example, `print` concatenates its arguments with spaces:
-
 ```luau
 local name = "Alice"
 print `Hello {name}`
--- Desugars to: print("Hello {name}", {"Alice"})
--- Output: Hello {name} table: 0x...
+-- Desugars to: print(string.interpolatedstring.create({"Hello ", ""}, {name}))
+-- Output: Hello Alice
 ```
 
-This is likely not the desired output. Developers wanting simple string interpolation should use parentheses:
-
-```luau
-print(`Hello {name}`)  -- Output: Hello Alice
-```
-
-The parentheses-free form is intended for functions specifically designed to receive the expanded arguments.
+This works because the result of `string.interpolatedstring.create` provides the `__tostring` metamethod.  It is not a string, but can easily be used like a string in simple cases.
 
 ### Interaction with existing syntax
 
-This feature does not change the behavior of:
+All existing valid function call syntaxes are unchanged:
 
-- Regular string literals: `print "hello"` continues to pass a single string argument
-- Table literals: `print {1, 2, 3}` continues to pass a single table argument
-- Parenthesized calls: `print(`hello {name}`)` continues to pass a single formatted string
+- Regular string literals: `print "hello"`
+- Table literals: `print {1, 2, 3}`
+- Parenthesized calls: ``print(`hello {name}`)``
 
 The new behavior only applies to calls without parentheses using interpolated strings.
-
-### Passing additional context via currying
-
-Some use cases (e.g. structured logging) benefit from passing additional context alongside the interpolated string. Rather than introducing special syntax for an extra argument, this can be achieved through currying (a function that returns a function):
-
-```luau
--- log accepts the desugared interpolated string arguments and returns
--- a function that accepts additional context
-function log(template, vals)
-  return function(context)
-    local rendered = string.interp(template, vals)
-    emit(rendered, template, vals, context)
-  end
-end
-
--- No parentheses anywhere -- log is called with the desugared
--- interpolated string and returns a function, which is then called
--- with the context table
-log `Hello {name}` {userId = 12345, region = "us-east"}
-
--- Desugars to: log("Hello {name}", {"Alice"})({userId = 12345, region = "us-east"})
-```
-
-This approach requires no special grammar support. It is a natural composition of a parentheses-free interpolated string call (which returns a function) and a parentheses-free table literal call on that returned function.
-
-### Bridging to existing functions with a `Message` type
-
-A `Message` wrapper type can bridge the gap between this calling convention and existing functions like `print` or `warn` that expect string arguments:
-
-```luau
-local Message = {}
-Message.__index = Message
-
-function Message.new(template, vals)
-  return setmetatable({
-    template = template,
-    values = vals,
-  }, Message)
-end
-
-function Message:__tostring()
-  return string.interp(self.template, self.values)
-end
-```
-
-Because `Message` defines `__tostring`, existing functions that convert arguments to strings will produce the expected formatted output:
-
-```luau
--- Message.new receives the desugared arguments and returns a Message object
--- print() calls tostring on it, producing "Hello Alice"
-print(Message.new `Hello {name}`)
-
--- warn works the same way
-warn(Message.new `User {user.name} failed to log in`)
-```
-
-Structured logging APIs can also inspect the Message's fields directly:
-
-```luau
-function structured_log(msg: Message)
-  local exprs = string.interpparse(msg.template)
-  emit(tostring(msg), msg.template, msg.values, exprs)
-end
-```
-
-While not part of this proposal, this pattern also opens the door for existing functions to be updated to special-case a single `Message` argument, extracting structured data for telemetry while preserving their current behavior for all other callers.
 
 ## Drawbacks
 
@@ -306,28 +238,33 @@ While not part of this proposal, this pattern also opens the door for existing f
 
 Adding interpolated strings as a parentheses-free call argument adds complexity to the parser. However, the grammar change is minimal and unambiguous.
 
-### Learning curve
+### Interpolated strings aren't (quite) strings
 
-Developers need to understand that interpolated string calls without parentheses behave differently from parenthesized calls. This could be confusing:
+The value passed to an interpolated string function call behaves a little bit like a string, and can easily be converted into a string, but it isn't actually a string.  It cannot be passed to `string.sub` for instance.
 
-```luau
-log:Info `Hello {name}`        -- passes 2 arguments (template, values)
-log:Info(`Hello {name}`)       -- passes 1 argument (formatted string)
-```
+The static type system can catch this for developers who use it, but it may trip up some users from time to time.
 
-This distinction is intentional and valuable for DSL use cases, but documentation will need to clearly explain the difference.
+### Every call is 3 tables
 
-### Surprising behavior with existing functions
-
-Existing functions that are not designed for this calling convention will receive unexpected arguments if called without parentheses. For example, `print` and `warn` accept variadic arguments and would print the template string and values table rather than producing a formatted message.
-
-Functions designed for parentheses-free interpolated string calls would need to be written (or updated, if possible) to accept the two-argument format. When an existing function cannot be updated in a non-breaking way (for example, because it accepts variadic arguments), a pattern such as the `Message` wrapper type described in the Design section can be used instead to bridge the gap.
-
-### Double parsing of template strings
-
-When a consumer calls `string.interpparse`, the template string is parsed twice: once by the compiler when desugaring the call, and once at runtime by the library function. While this cost is minor for typical template strings, it is inherently redundant. The [three-argument desugaring with byte offsets](#three-argument-desugaring-with-byte-offsets) alternative avoids this by providing expression location data at compile time.
+This isn't the worst thing, but it'll be a tiny bit less efficient than what you'd write if you did things by hand.  The extra enclosing table is worth it because it encapsulates everything into a single value with a useful metatable.
 
 ## Alternatives
+
+### Including the source text in the desugaring
+
+An early motivating use case for this feature was to afford nice syntax to a structured logging API.
+
+We debated this for quite some time, but came to the conclusion that, even if we did offer this, it wouldn't enable quite the kind of structured logging API that we were looking for.
+
+Since there were no other motivating use cases that called for extracting the original substitution tokens, this feature has been dropped from the proposal.
+
+### Three-argument desugaring
+
+A previous iteration we considered was for the call to desugar to a function call accepting two or three arguments: A list of string literals, a list of expressions to be intercalated between, and a list of the stringifications of the expressions.
+
+We chose not to move forward with this design because it interacts very badly with functions that are intended to work with actual strings.  For example, under this design, the statement  `` print `my template string` `` would be completely valid, but would actually print out the memory addresses of two or three tables!
+
+This was deemed unacceptably confusing.
 
 ### Three-argument desugaring with byte offsets
 
@@ -349,7 +286,7 @@ local span = string.sub(template, offsets[i][1], offsets[i][1] + offsets[i][2] -
 local expr = string.sub(template, offsets[i][1] + 1, offsets[i][1] + offsets[i][2] - 2)
 ```
 
-This approach avoids the double-parsing drawback since all expression metadata is provided at compile time. However, it passes a more complex calling convention (three arguments instead of two) and requires every consumer to manually perform byte arithmetic to extract expression names. Additionally, reconstructing the formatted string requires the consumer to implement its own replacement loop using the byte offsets rather than calling a single library function.
+This approach avoids the double-parsing drawback since all expression metadata is provided at compile time. However it requires every consumer to manually perform byte arithmetic to extract expression names.
 
 ### Interpolation metadata object syntax
 
@@ -366,7 +303,7 @@ db:Exec(@`SELECT * FROM users WHERE id = {userId}`)
 
 The `@` prefix before an interpolated string would evaluate to a structured object containing the template, values, and parsed expression names. This object could be passed to any function using normal parenthesized call syntax, stored in variables, placed in data structures, etc.
 
-This approach avoids the learning-curve issue of parenthesized vs. non-parenthesized calls having different semantics for interpolated strings. It also makes the intent explicit at the call site. However, it introduces new syntax (`@` prefix) for a feature that is also achievable through the parentheses-free calling convention, and it loses the concise DSL aesthetic of `log `message`` in favor of `log(@`message`)`.
+This approach avoids the learning-curve issue of parenthesized vs. non-parenthesized calls having different semantics for interpolated strings. It also makes the intent explicit at the call site. However, it introduces new syntax (`@` prefix) for a feature that is also achievable through the parentheses-free calling convention and introduces a new type of value which would need a clearly defined interface.
 
 ### Manual format string with curried values
 
@@ -374,10 +311,10 @@ As noted by reviewers, a similar pattern is already achievable without new synta
 
 ```luau
 local function Log(fmt: string)
-  return function(args: { any })
-    local message = string.format(fmt, table.unpack(args))
-    print("Log:", message, "Format:", fmt)
-  end
+    return function(args: { any })
+        local message = string.format(fmt, table.unpack(args))
+        print("Log:", message, "Format:", fmt)
+    end
 end
 
 local user = "Bottersnike"
@@ -392,17 +329,6 @@ While this works for simple cases, it has significant limitations:
 
 This RFC automates the decomposition that developers would otherwise have to do by hand, while preserving the original template and expression metadata.
 
-### Expressions list instead of byte offsets
-
-Instead of core library functions, the compiler could pass expression source texts directly as a third argument:
-
-```luau
-log:Info `Hello {name}`
--- Would pass: log:Info("Hello {name}", {"Alice"}, {"name"})
-```
-
-This avoids the double-parsing drawback of the core library function approach and is slightly more convenient for consumers who only need expression names. However, it requires the language specification to define normalization rules for source text (whitespace trimming, quote handling for literals, etc.) and adds a third argument to the calling convention. The core library function approach handles normalization in the library implementation without burdening the calling convention.
-
 ### Tagged interpolated strings (JavaScript-style)
 
 JavaScript's tagged template literals pass an array of string parts and the interpolated values as separate arguments:
@@ -412,14 +338,16 @@ tag`Hello ${name}, you have ${count} messages`;
 // Calls: tag(["Hello ", ", you have ", " messages"], name, count)
 ```
 
-A Luau adaptation would pass two tables, string parts and values:
+We considered a Luau adaptation:
 
 ```luau
 tag `Hello {name}, you have {count} messages`
--- Would call: tag({"Hello ", ", you have ", " messages"}, {name, count})
+-- Would call: tag({"Hello ", ", you have ", " messages"}, name, count)
 ```
 
-This was considered and the proposed design shares the same spirit: decomposing the interpolated string into parts that don't require the consumer to parse Luau expressions. The proposed design differs in preserving the original template string (useful as an aggregation key) and providing library functions for flexible extraction of expression metadata.
+This was considered and the proposed design shares the same spirit: decomposing the interpolated string into parts that don't require the consumer to parse Luau expressions. The proposed design allows recovering the original template string (useful as an aggregation key) and providing library functions for flexible extraction of expression metadata.
+
+The current proposal is very much a spiritual extension of this, but with the improvement that the interpolated string is passed as just one value.  This value can be used by any function that naively stringifies its argument (like `print`).  It can also be augmented with more keys later.
 
 ### Interpolation table with named keys
 
@@ -451,4 +379,4 @@ This was rejected because it adds ambiguity to the grammar and is overly specifi
 
 ## References
 
-- [String interpolation RFC](https://github.com/luau-lang/rfcs/blob/master/docs/syntax-string-interpolation.md) - The original RFC that introduced interpolated strings and noted the temporary restriction
+- [String interpolation RFC](https://github.com/luau-lang/rfcs/blob/master/docs/syntax-string-interpolation.md) \- The original RFC that introduced interpolated strings and noted the temporary restriction
