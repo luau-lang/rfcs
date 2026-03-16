@@ -116,7 +116,7 @@ f `Template string {expr1} content {expr2} ...`
 -- to
 
 f(
-    string.interpolatedstring.create(
+    string.interpolated.create(
         {"Template string ", " content ", " ..."},
         {expr1, expr2},
     )
@@ -131,49 +131,23 @@ The function is passed a table with two keys:
 To handle the case that any interior `expression` may be `nil`, the desugaring ensures that `#strings` is always one greater than `#expressions`.  If the template string starts or ends with an expression, the first or last elements of `strings` will be the empty string.
 
 ```luau
-f `{expr1} {expr2}` --> f(string.interpolatedstring.create({"", " ", ""}, {expr1, expr2})
+f `{expr1} {expr2}` --> f(string.interpolated.create({"", " ", ""}, {expr1, expr2})
 ```
 
-The table `string.interpolatedstring` is added to the standard `string` library.  Its contents are roughly
+The table `string.interpolated` is added to the standard `string` library.  Its contents are roughly
 
 ```luau
-string.interpolatedstring = table.freeze({
+string.interpolated = table.freeze({
     __tostring=...,
     __concat=...,
     __len=...,
     create=function (strings, expressions)
-        return setmetatable({strings=strings, expressions=expressions}, string.interpolatedstring)
+        return setmetatable({strings=strings, expressions=expressions}, string.interpolated)
     end
 })
 ```
 
 Where each of the metafunctions acts to make the interpolated string value behave somewhat like an ordinary string.
-
-## Core library functions
-
-A new function `string.interpolate` is added to afford easy access to the default interpolation algorithm.
-
-```luau
-function string.interpolate(t: {strings: {string}, expressions: {unknown}})
-    local n = #t.strings - 1
-    local result = ""
-    for i = 1, n do
-        result ..= t.strings[i] .. tostring(t.expressions[i])
-    end
-    result ..= t.strings[#strings]
-    return result
-end
-```
-
-This function renders an interpolation template by replacing each `expression` with the `tostring` of the corresponding expression, matching the behavior of normal string interpolation.
-
-```luau
-local world = 'World'
-local s = string.interpolate `Hello {world}!`
-assert("Hello World!" == tostring(s))
-```
-
-This will be useful for any application that wants to augment the default string interpolation logic rather than replacing it.
 
 ### Examples
 
@@ -198,15 +172,15 @@ This design uses positional tables, so any expression valid in a regular interpo
 ```luau
 -- Function calls are allowed
 log:Info `Result is {compute()}`
--- Desugars to: log:Info(string.interpolatedstring.create({"Result is ", ""}, {compute()})
+-- Desugars to: log:Info(string.interpolated.create({"Result is ", ""}, {compute()})
 
 -- Method calls are allowed
 log:Info `Name is {user:getName()}`
--- Desugars to: log:Info(string.interpolatedstring.create({"Name is ", ""}, {user:getName()})
+-- Desugars to: log:Info(string.interpolated.create({"Name is ", ""}, {user:getName()})
 
 -- Repeated expressions are fine (each is a separate positional entry)
 log:Info `{increment()} and then {increment()}`
--- Desugars to: log:Info(string.interpolatedstring.create({"", " and then ", ""}, {increment(), increment()}))
+-- Desugars to: log:Info(string.interpolated.create({"", " and then ", ""}, {increment(), increment()}))
 ```
 
 Since values are stored positionally rather than keyed by expression text, there is no ambiguity when the same expression appears multiple times or when expressions have side effects.
@@ -216,11 +190,11 @@ Since values are stored positionally rather than keyed by expression text, there
 ```luau
 local name = "Alice"
 print `Hello {name}`
--- Desugars to: print(string.interpolatedstring.create({"Hello ", ""}, {name}))
+-- Desugars to: print(string.interpolated.create({"Hello ", ""}, {name}))
 -- Output: Hello Alice
 ```
 
-This works because the result of `string.interpolatedstring.create` provides the `__tostring` metamethod.  It is not a string, but can easily be used like a string in simple cases.
+This works because the result of `string.interpolated.create` provides the `__tostring` metamethod.  It is not a string, but can easily be used like a string in simple cases.
 
 ### Interaction with existing syntax
 
