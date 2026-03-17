@@ -42,17 +42,17 @@ Would be equivalent to:
 
 ```luau
 local React = require("@React")
-local createElement, useState, useEffect, useContext, useRef = React.createElement, React.useState, React.useEffect, React.useContext, React.useRef
+const createElement, useState, useEffect, useContext, useRef = React.createElement, React.useState, React.useEffect, React.useContext, React.useRef
 React = nil
 ```
 
-Types could also be imported, which was previously impossible:
+Imported bindings would be constant. Types could also be imported, which was previously impossible:
 
 ```luau
 import myvalue1, type mytype1, type mytype2 from "MyModule"
 ```
 
-At runtime, type imports would be ignored.
+At runtime, type imports would be ignored. If an import statement is only importing types then at runtime it would not load the specified module.
 
 The string after the `from` contextual keyword would be a string literal, and would follow the same rules for module resolution as the `require` function.
 
