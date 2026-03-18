@@ -194,35 +194,35 @@ If there are no arguments, returns `true`.
 
 `function integer.lt(a: integer, b: integer): boolean`
 
-Performes a signed less than (<) comparison of `a` and `b`.
+Performs a signed less-than (<) comparison of `a` and `b`.
 
 `function integer.le(a: integer, b: integer): boolean`
 
-Performes a signed less than or equal (<=) comparison of `a` and `b`.
+Performs a signed less-than or equal (<=) comparison of `a` and `b`.
 
 `function integer.gt(a: integer, b: integer): boolean`
 
-Performes a signed greater than (>) comparison of `a` and `b`.
+Performs a signed greater-than (>) comparison of `a` and `b`.
 
 `function integer.ge(a: integer, b: integer): boolean`
 
-Performes a signed greater than or equal (>=) comparison of `a` and `b`.
+Performs a signed greater-than or equal (>=) comparison of `a` and `b`.
 
 `function integer.ult(a: integer, b: integer): boolean`
 
-Performes a unsigned less than (<) comparison of `a` and `b`.
+Performs a unsigned less-than (<) comparison of `a` and `b`.
 
 `function integer.ule(a: integer, b: integer): boolean`
 
-Performes a unsigned less than or equal (<=) comparison of `a` and `b`.
+Performs a unsigned less-than or equal (<=) comparison of `a` and `b`.
 
 `function integer.ugt(a: integer, b: integer): boolean`
 
-Performes a unsigned greater than (>) comparison of `a` and `b`.
+Performs a unsigned greater-than (>) comparison of `a` and `b`.
 
 `function integer.uge(a: integer, b: integer): boolean`
 
-Performes a unsigned greater than or equal (>=) comparison of `a` and `b`.
+Performs a unsigned greater-than or equal (>=) comparison of `a` and `b`.
 
 `function integer.lshift(n: integer, i: integer): integer`
 
