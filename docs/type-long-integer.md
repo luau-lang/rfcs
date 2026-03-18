@@ -70,7 +70,7 @@ This behavior is chosen to closely match `math.tointeger` from Lua 5.4 and can h
 Converts a string representation of a number into an integer.
 
 The number inside the string has to be an integer.
-The string is allowed to have leading and trailing spaces and teh number can be preceded by a sign.
+The string is allowed to have leading and trailing spaces and the number can be preceded by a sign.
 If base is not specified, the number can have a `0x` or `0X` prefix to be converted in base 16, otherwise base 10 is used.
 
 When base is specified, it has to be in range between 2 and 36 inclusive.
