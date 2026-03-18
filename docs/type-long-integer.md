@@ -80,10 +80,6 @@ Returns `nil` if the string doesn't contain a number.
 
 This behavior is chosen to match `tonumber`, but excludes floating-point numbers.
 
-`function integer.tostring(n: integer): string`
-
-Converts an integer to a string representation in a signed form with no 'i' suffix.
-
 `function integer.tonumber(n: integer): number`
 
 Converts an integer to a double.
