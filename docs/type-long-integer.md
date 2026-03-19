@@ -206,19 +206,19 @@ Performs a signed greater-than or equal (>=) comparison of `a` and `b`.
 
 `function integer.ult(a: integer, b: integer): boolean`
 
-Performs a unsigned less-than (<) comparison of `a` and `b`.
+Performs an unsigned less-than (<) comparison of `a` and `b`.
 
 `function integer.ule(a: integer, b: integer): boolean`
 
-Performs a unsigned less-than or equal (<=) comparison of `a` and `b`.
+Performs an unsigned less-than or equal (<=) comparison of `a` and `b`.
 
 `function integer.ugt(a: integer, b: integer): boolean`
 
-Performs a unsigned greater-than (>) comparison of `a` and `b`.
+Performs an unsigned greater-than (>) comparison of `a` and `b`.
 
 `function integer.uge(a: integer, b: integer): boolean`
 
-Performs a unsigned greater-than or equal (>=) comparison of `a` and `b`.
+Performs an unsigned greater-than or equal (>=) comparison of `a` and `b`.
 
 `function integer.lshift(n: integer, i: integer): integer`
 
