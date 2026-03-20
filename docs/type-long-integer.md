@@ -10,7 +10,7 @@ Current methods of representing 64-bit integers in Luau with the default environ
 
 In the case of a high-low pair implementation, each individual number takes 16 bytes (or 24) and needs to be handled together which can be confusing.
 
-In the case of vector implementations, ergonomics are improved by storing the entire integer in one value. However you have the same issues of implementation complexity and lack of integration with the type system.
+In the case of vector implementations, ergonomics are improved by storing the entire integer in one value. However, you have the same issues of implementation complexity and lack of integration with the type system.
 
 In both cases, performance is lacking compared to what could be provided by a native implementation.
 
@@ -28,7 +28,7 @@ Userdata remains the right mechanism for complex or embedder-specific numeric ty
 This will be implemented with a new type called `integer`.
 
 An additional character may be specified at the end of numeric literals `i` which will signify a 64-bit integer literal.
-64-bit integer literals will support separators, hex, and binary values:
+64-bit integer literals will support separators, hexadecimal, and binary values:
 
 ```luau
 local a = 123i
@@ -38,6 +38,12 @@ local d = 0b1000_1000i
 ```
 
 Integer literal numbers have to be exactly representable, overflow is a parsing error.
+
+Binary and hexadecimal literals can specify the full value including the sign bit:
+```luau
+local a = 0xFFFF_FFFF_FFFF_FFFFi -- -1i
+local b = 0b11111111_11111111_11111111_11111111_11111111_11111111_11111111_11111111i -- -1i
+```
 
 Operations performing a string formatting of an integer should format the integer as signed by default.
 
@@ -70,11 +76,35 @@ This behavior is chosen to closely match `math.tointeger` from Lua 5.4 and can h
 Converts a string representation of a number into an integer.
 
 The number inside the string has to be an integer.
-The string is allowed to have leading and trailing spaces and the number can be preceded by a sign.
+The string is allowed to have leading and trailing spaces and the number can be preceded by a '+' or '-' sign.
 If base is not specified, the number can have a `0x` or `0X` prefix to be converted in base 16, otherwise base 10 is used.
 
-When base is specified, it has to be in range between 2 and 36 inclusive.
+When base is specified, it has to be in the range between 2 and 36 inclusive.
 In base 10 and base 16, numbers are allowed to have a `0x` or `0X` prefix.
+
+```luau
+integer.fromstring("11", 2) -- 3i
+integer.fromstring("-11", 2) -- -3i
+
+integer.fromstring("-1", 10) -- -1i
+integer.fromstring("-11", 10) -- -11i
+
+integer.fromstring("-1", 16) -- -1i
+integer.fromstring("-11", 16) -- -17i
+
+integer.fromstring("-0x1", 10) -- -1i
+integer.fromstring("-0x11", 10) -- -17i
+```
+
+When base of the number is not 10, all integer bits can be specified, including the sign bit:
+
+```luau
+integer.fromstring("0x8000000000000000") -- 0x8000000000000000i
+integer.fromstring("0xFFFFFFFFFFFFFFFF") -- 0xFFFFFFFFFFFFFFFFi or -1i
+integer.fromstring("8000000000000000", 16) -- 0x8000000000000000i
+integer.fromstring("FFFFFFFFFFFFFFFF", 16) -- 0xFFFFFFFFFFFFFFFFi or -1i
+integer.fromstring("1777777777777777777777", 8) -- 0xFFFFFFFFFFFFFFFFi or -1i
+```
 
 Returns `nil` if the string doesn't contain a number.
 
@@ -82,9 +112,9 @@ This behavior is chosen to match `tonumber`, but excludes floating-point numbers
 
 `function integer.tonumber(n: integer): number`
 
-Converts an integer to a double.
+Converts an integer to a double number.
 
-If the value cannot be represented as a double exactly, round to nearest, ties to even rounding mode is used.
+Precision loss can occur if the integer is not exactly representable.
 
 `function integer.neg(a: integer): integer`
 
@@ -332,6 +362,14 @@ Integer value representing -2^63 (`-9_223_372_036_854_775_808i`)
 'o', 'u', 'x' and 'X' format specifiers will format an integer as an unsigned 64-bit integer number.
 
 Other format specifiers like 'e', 'f', 'g', etc will throw an error.
+
+`string.pack` and `string.unpack` are **not** extended to accept integer numbers.
+
+Today, signed and unsigned integer specifications in these functions work with double numbers.
+
+Allowing integers to be accepted would create a disparity between `string.pack` inputs and `string.unpack` results.
+
+New specifiers specific to integer numbers could be introduced in the future if there is a user need.
 
 ### Extensions to the type library (type functions)
 
