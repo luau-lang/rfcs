@@ -320,6 +320,14 @@ Returns 64 if `n` is zero.
 
 Returns `n` with the order of the bytes swapped.
 
+`integer.maxsigned: integer`
+
+Integer value representing 2^63-1 (`9_223_372_036_854_775_807i`)
+
+`integer.minsigned: integer`
+
+Integer value representing -2^63 (`-9_223_372_036_854_775_808i`)
+
 ### Extensions to the base library
 
 `tostring` will convert an integer to a string representation in signed form with no 'i' suffix.
@@ -340,18 +348,6 @@ Reads an integer out of a buffer at the given offset.
 `function buffer.writeinteger(b: buffer, offset: number, value: integer): ()`
 
 Writes an integer to a buffer at the given offset.
-
-### Extensions to the math library
-
-For parity with Lua 5.3+, two additional constants are added to the math library.
-
-`math.maxinteger`
-
-Integer value representing 2^63-1 (`9_223_372_036_854_775_807i`)
-
-`math.mininteger`
-
-Integer value representing -2^63 (`-9_223_372_036_854_775_808i`)
 
 ### Extensions to the string library
 
