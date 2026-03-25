@@ -31,7 +31,8 @@ Some history:
 - Lua 5.3 (2015) introduced integers and the `math.maxinteger` and `math.mininteger` constants alongside them.
 
 Luau currently only supports `math.pi` and `math.huge`.
-Integer types are not supported in Luau, so `math.maxinteger` and `math.mininteger` wouldn't make much sense, but adding other commonly used constants would be an easy value-add for users of the language.
+
+Luau supports similar integer constants through its `integer` library, but other commonly used math constants are an easy value-add for users of the language.
 
 ## Design
 
@@ -44,6 +45,7 @@ In addition to `math.pi` and `math.huge`, we propose adding the following consta
 - `math.phi`: the golden ratio, defined as $\phi = 1.61803398874989484820$.
 - `math.sqrt2`: the square root of `2`, defined as equal to `math.sqrt(2)`.
 - `math.tau`: the mathematical constant $\tau$, defined as equal to `2 * math.pi`.
+
 ## Drawbacks
 
 - The semantics of `math.nan` are unique and somewhat unexpected for users not already familiar with IEEE 754's floating-point arithmetic rules.
