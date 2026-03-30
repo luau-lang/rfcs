@@ -214,3 +214,26 @@ end
 ```
 
 While this reduces repetition, it introduces additional abstraction and may reduce clarity for simple transformations. It may also introduce overhead compared to inline constructs.
+
+
+### Standard library helpers (e.g. `table.map`)
+
+An alternative to new syntax is to provide standard library functions for common
+patterns such as mapping and filtering:
+
+```lua
+local result = table.map(items, function(v)
+    return v * 2
+end)
+```
+
+While a standard library function such as `table.map` could provide a reusable abstraction,
+it would still rely on function calls and callbacks, which may reduce clarity for simple transformations.
+
+Additionally:
+- The transformation logic is nested inside a function, making simple expressions less direct
+- It separates iteration from table construction, rather than expressing both in a single construct
+- It does not naturally support combining mapping and filtering without additional helper functions
+
+While such helpers may still be useful as complementary features, this RFC focuses on providing
+a concise, inline syntax for expressing these patterns directly.
