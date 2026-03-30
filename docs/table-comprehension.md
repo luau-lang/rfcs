@@ -13,12 +13,12 @@ Examples:
 -- Arrays
 local numbers = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10}
 local doubled = {}
-for i, v in ipairs(numbers) do
+for i, v in numbers do
     doubled[i] = v * 2
 end
 
 local evens = {}
-for _, v in ipairs(numbers) do
+for _, v in numbers do
     if v % 2 == 0 then
         table.insert(evens, v)
     end
@@ -26,12 +26,12 @@ end
 
 -- Maps
 local playersByName = {}
-for _, player in ipairs(game.Players:GetPlayers()) do
+for _, player in game.Players:GetPlayers() do
     playersByName[player.Name] = player
 end
 
 local alivePlayers = {}
-for _, player in ipairs(game.Players:GetPlayers()) do
+for _, player in game.Players:GetPlayers() do
     if player.Health > 0 then
         alivePlayers[player.UserId] = player
     end
@@ -62,8 +62,8 @@ Two forms of table comprehension are proposed.
 Examples:
 
 ```lua
-local doubled = {v * 2 for i, v in ipairs(numbers)}
-local evens = {v for _, v in ipairs(numbers) if v % 2 == 0}
+local doubled = {v * 2 for i, v in numbers}
+local evens = {v for _, v in numbers if v % 2 == 0}
 ```
 
 #### Map-style
@@ -74,11 +74,11 @@ Examples:
 ```lua
 local playersByName = {
     [player.Name] = player
-    for _, player in ipairs(game.Players:GetPlayers())
+    for _, player in game.Players:GetPlayers()
 }
 local alivePlayers = {
     [player.UserId] = player
-    for _, player in ipairs(game.Players:GetPlayers())
+    for _, player in game.Players:GetPlayers()
     if player.Health > 0
 }
 ```
@@ -188,7 +188,7 @@ Continue using `for` loops to construct tables:
 
 ```lua
 local result = {}
-for _, v in ipairs(items) do
+for _, v in items do
     if v > 1 then
         table.insert(result, v * 2)
     end
@@ -204,7 +204,7 @@ Users may define utility functions for common patterns such as mapping or filter
 ```lua
 local function map(t, fn)
     local result = {}
-    for i, v in ipairs(t) do
+    for i, v in t do
         result[i] = fn(v)
     end
     return result
