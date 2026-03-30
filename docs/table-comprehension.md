@@ -2,7 +2,7 @@
 
 ## Summary
 
-Table comprehension is a specific type of syntax which allows you to construct tables using inline iteration and optional filtering expressions.
+Add table comprehension syntax for constructing tables using inline iteration and optional filtering expressions.
 
 ## Motivation
 
