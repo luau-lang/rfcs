@@ -172,6 +172,8 @@ end
 
 The `namelist in explist` portion follows the same semantics as Luau `for` loops, supporting all valid iterator forms including `ipairs`, `pairs`, and custom iterators.
 
+### Grammar
+
 ## Drawbacks
 
 Table comprehension introduces new syntax to the language, increasing overall language complexity. While the feature is designed to be minimal and consistent with existing `for` loop semantics, it adds another way to express iteration and table construction, which may impact readability for developers unfamiliar with the syntax.
