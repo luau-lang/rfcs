@@ -47,8 +47,8 @@ However, this approach has the following drawbacks:
 - Increases the likelihood of indexing or insertion mistakes
 - Lacks a concise expression form for common transformation patterns
 
-Additionally, these patterns are difficult for the compiler to recognize as a single transformation, which limits opportunities for optimization.
-A table comprehension syntax allows these operations to be expressed as a single construct. While it does not inherently change runtime behavior, it provides the compiler with a clearer representation of the programmer’s intent, which may enable future optimizations such as preallocation or loop specialization.
+Additionally, these patterns are expressed using general-purpose loops, which may make it harder for the compiler to consistently identify them as table transformations.
+A table comprehension syntax allows these operations to be expressed as a single construct. While it does not inherently change runtime behavior, it provides a more explicit representation of the programmer’s intent, which may enable future optimizations such as preallocation or loop specialization.
 
 ## Design
 
