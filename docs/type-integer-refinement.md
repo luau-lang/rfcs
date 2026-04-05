@@ -59,15 +59,22 @@ integer.lt(u, u)  -- Type Error: Expected signed, got unsigned
 Functions can be written to accept the base `integer` type and refine it internally, or specify the refinement to constrain the input.
 
 ```luau
+-- Expects only the 'unsigned' integer subtype
 local function processUnsigned(val: unsigned)
     print(integer.ult(val, 100i))
 end
 
-local a: integer = 10i
-local b: signed = -10i
+-- Accepts 'integer' and its subtypes
+local function processInteger(val: integer)
+    -- Type errors if val was passed as 'signed' integer subtype 
+    print(integer.ult(val, 100i)) -- 'integer' refines to 'unsigned'
+end
 
-processUnsigned(a) -- Valid
-processUnsigned(b) -- Type Error: Expected unsigned, got signed
+local a: integer = 10i
+local b: integer = -10i
+
+processUnsigned(a)    -- Type Error: Expected unsigned, got integer
+processInteger(b)     -- Valid ('integer' refines to 'unsigned')
 ```
 
 ## Drawbacks
