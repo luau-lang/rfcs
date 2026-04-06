@@ -32,7 +32,11 @@ print(`Check out my cool point: {p}  length = {p:length()}`)
 
 * People write object-oriented code.  We should afford it in a polished way.
 * Accurate type inference of `setmetatable` has proven to be very difficult to get right.  Because of this, the quality of our autocomplete isn't what it could be.
-* A construct with a fixed shape and a completely locked-down metatable will open up optimization opportunities that could improve performance.
+* A construct with a fixed shape and a completely locked-down metatable will open up optimization opportunities that could improve performance:
+    * If a value is known to be an instance of a particular class, the bytecode compiler should be able to skip the whole `__index` metamethod process and generate code to directly call the correct method.
+    * By the same token, method calls can be inlined more aggressively.  Particularly self-method calls eg `self:SomeOtherMethod()`
+    * Field accesses can compile to a simple integral table offset so that the VM doesn't need to do a hashtable lookup as the program runs.
+    * Since every instance of a class has the same set of properties, we can split the hash table: The set of fields can be associated with the class and instances only need to carry the values of those fields.  We think this can improve performance by improving cache locality.
 
 ## Design
 
@@ -54,13 +58,13 @@ If a method accepts no arguments, or if its first argument is not named `self`, 
 
 To create a new instance of a class, invoke it as if it were a function.  It accepts one argument: A table that describes the initial values of all its properties.  If more customization is desired, static factory functions (frequently named `new()` or `create()`) are an easy, familiar way to accomplish this.
 
-Classes can define familiar Luau metamethods like `__add` and `__sub`.  They will work as one would expect.  `__index` and `__newindex` may not be defined.
+Classes can define familiar Luau metamethods like `__add` and `__sub`.  They will work as one would expect.  `__index`, `__newindex`, `__mode` and `__metatable` may not be defined.  Attempting to do so is a syntax error.
 
 #### Class Instances
 
 Class instances are a new type of value in the VM.  They are similar but not quite the same as tables.  They have no array part, for instance.
 
-`pairs`, `ipairs` , `getmetatable`, and `setmetatable` do not work on class instances.  They also cannot be iterated over with the generic `for` loop.
+`pairs`, `ipairs` , `getmetatable`, and `setmetatable` do not work on class instances.  They also cannot be iterated over with the generic `for` loop. (unless the class implements `__iter`)
 
 We introduce a new global function `instanceof(a, Class)` which returns `true` if the object `a` is an instance of `Class`.  `instanceof` raises an exception if the second argument is not a class object.  If the first argument is not a class instance, `instanceof` returns false.  (eg `instanceof(5, MyClass)`)
 
@@ -102,6 +106,16 @@ Unlike tables, which are structurally typed, class types are nominal.  Two diffe
 Inferring the types of class fields is fraught with difficulty, so un-annotated fields are given the type `any`.
 
 The type introduced by a class definition is available anywhere in the source file.
+
+The `instanceof` function participates in refinement:
+
+```luau
+function foo(p: unknown)
+    if instanceof(p, Point) then
+        return {p.x, p.y} -- no error here
+    end
+end
+```
 
 ### Semantics
 
