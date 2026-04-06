@@ -200,7 +200,7 @@ We also considered using no keyword at all and judged that to be unacceptable in
 
 So there must be a keyword and it cannot be `local`.  Other keywords we considered were `var`, `let`, and `field`.
 
-```
+```luau
 class Test
     local foo
 
