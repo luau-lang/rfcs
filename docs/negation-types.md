@@ -37,11 +37,7 @@ The basis set we want to perform set exclusion on is `unknown`, _not_ `any`. Thi
 
 The parser change for this is trivial, so this is of no concern.
 
-Most of the real work would be spent on revising the type system to handle negation types of non-testable types, e.g.
-
-- implement normalization and simplification rules involving negation types with non-testable types
-- implement subtyping rules on negation of non-testables
-- allow `types.negationof` to be applied on function types and table types
+Most of the real work would be spent on revising the type system to handle negation types of non-testable types in normalization, simplification, and subtyping rules, as well as adjusting `types.negationof` to allow function types and table types.
 
 ## Drawbacks
 
