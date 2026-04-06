@@ -31,7 +31,7 @@ local s = useState(foo) -- no type errors here
 
 This program passes the type checker like nothing is wrong, but it's clear that `S` in this case is intended to be the _residual_ of whatever the unifier of `() -> S` is, and a residual is a complement, so the correct signature for `useState` requires negation types: `<S: ~(...unknown) -> ...unknown>(state: (() -> S) | S, ...) -> (S, Dispatcher<BasicStateAction<S>>)`.
 
-...which is perfectly valid use case of negation types. By allowing negation types on non-testable types, the intersection `S & function` becomes absurd from the bound `S: ~(...unknown) -> ...unknown`, so `S & function` normalizes to `never`, leaving `s` with the type `() -> S` in the then branch, and in the else branch, `s` is of type `S`, and we can reject code that has no unifiers for `() -> S` and `S: ~(...unknown) -> ...unknown` like `useState(foo)`.
+...which is perfectly valid use case of negation types. By allowing negation types on non-testable types, the intersection `S & function` becomes absurd from the bound `S: ~(...unknown) -> ...unknown`, so `S & function` normalizes to `never`, leaving `state` with the type `() -> S` in the then branch, and the type `S` in the else branch. We can also now reject code that has no unifiers for `() -> S` and `S: ~(...unknown) -> ...unknown` like `useState(foo)`, and type inference behaves as expected for these overloaded polymorphic functions where you are expected to pass in either a function of the signature `() -> T` _or_ a value of type `T` and nothing in-between.
 
 ## Design
 
