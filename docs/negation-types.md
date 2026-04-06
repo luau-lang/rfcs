@@ -6,9 +6,32 @@ A type that represents the complement of the type being negated, which is a unio
 
 ## Motivation
 
-Type refinements will produce negation types to get the complementation. For the most part, users will never need to write these negation types themselves, except for when they want to _maintain_ some invariants beyond the scope of the branch.
+Type refinements will produce negation types to get the complementation. For the most part, users will never need to write these negation types themselves, except for when they want to _maintain_ some invariants beyond the scope of the branch, or if the user has overloaded a specific type in a forall quantifier. For example, React has a function called `useState` whose signature is `<S>(state: (() -> S) | S, ...) -> (S, Dispatcher<BasicStateAction<S>>)`. The problem here is that both `S` and `() -> S` are valid unifiers for the function `() -> T`, so you end up with this monstrosity:
 
-A [cofinite set](https://en.wikipedia.org/wiki/Cofiniteness) arises when you have some negated `X` in conjunction with some supertype of `X`. For example, `string & ~"a"` is a cofinite string set that accepts any `string` excluding `"a"`. This happens often with type refinements where `typeof(x) == "string" and x ~= "a"` gives rise to the type `string & ~"a"`.
+```
+((() -> (() -> T) | T) | (() -> T) | T) -> ((() -> T) | T, Dispatcher<BasicStateAction<(() -> T) | T>>)
+```
+
+Another consequence of this signature: functions whose arity does not satisfy the expected arity of `() -> S` will go into `S` which defeats the whole point. This is why when you write `if typeof(state) == "function" then s() else s`, you get a type error at `s()`: ``Cannot call a value of type `S & function` in union: `(() -> S) | (S & function)` ``. The current workaround is `(s :: () -> S)()` which is unsound. The counterexample:
+
+```luau
+local function useState<S>(s: (() -> S) | S): S
+  return if typeof(s) == "function"
+    then (s :: () -> S)()
+    else s
+end
+
+local function foo(x: number)
+  return x + 1
+end
+
+-- s: ((x: number) -> number) | number
+local s = useState(foo) -- no type errors here
+```
+
+This program passes the type checker like nothing is wrong, but it's clear that `S` in this case is intended to be the _residual_ of whatever the unifier of `() -> S` is, and a residual is a complement, so the correct signature for `useState` requires negation types: `<S: ~(...unknown) -> ...unknown>(state: (() -> S) | S, ...) -> (S, Dispatcher<BasicStateAction<S>>)`.
+
+...which is perfectly valid use case of negation types. By allowing negation types on non-testable types, the intersection `S & function` becomes absurd from the bound `S: ~(...unknown) -> ...unknown`, so `S & function` normalizes to `never`, leaving `s` with the type `() -> S` in the then branch, and in the else branch, `s` is of type `S`, and we can reject code that has no unifiers for `() -> S` and `S: ~(...unknown) -> ...unknown` like `useState(foo)`.
 
 ## Design
 
@@ -32,6 +55,8 @@ ty ::= `~` ty
 ### Semantics
 
 The basis set we want to perform set exclusion on is `unknown`, _not_ `any`. This means given the type `~"a"`, it is equivalent to the type `unknown & ~"a"`.
+
+A [cofinite set](https://en.wikipedia.org/wiki/Cofiniteness) arises when you have some negated `X` in conjunction with some supertype of `X`. For example, `string & ~"a"` is a cofinite string set that accepts any `string` excluding `"a"`. This happens often with type refinements where `typeof(x) == "string" and x ~= "a"` gives rise to the type `string & ~"a"`.
 
 ### Implementation
 
