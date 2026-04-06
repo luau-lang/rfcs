@@ -16,7 +16,7 @@ Another consequence of this signature: functions whose arity does not satisfy th
 
 ```luau
 local function useState<S>(state: (() -> S) | S): S
-  return if typeof(s) == "function"
+  return if typeof(state) == "function"
     then (state :: () -> S)()
     else state
 end
