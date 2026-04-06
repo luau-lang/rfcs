@@ -9,16 +9,16 @@ A type that represents the complement of the type being negated, which is a unio
 Type refinements will produce negation types to get the complementation. For the most part, users will never need to write these negation types themselves, except for when they want to _maintain_ some invariants beyond the scope of the branch, or if the user has overloaded a specific type in a forall quantifier. For example, React has a function called `useState` whose signature is `<S>(state: (() -> S) | S, ...) -> (S, Dispatcher<BasicStateAction<S>>)`. The problem here is that both `S` and `() -> S` are valid unifiers for the function `() -> T`, so you end up with this monstrosity:
 
 ```
-((() -> (() -> T) | T) | (() -> T) | T) -> ((() -> T) | T, Dispatcher<BasicStateAction<(() -> T) | T>>)
+(state: (() -> (() -> T) | T) | (() -> T) | T) -> ((() -> T) | T, Dispatcher<BasicStateAction<(() -> T) | T>>)
 ```
 
-Another consequence of this signature: functions whose arity does not satisfy the expected arity of `() -> S` will go into `S` which defeats the whole point. This is why when you write `if typeof(state) == "function" then s() else s`, you get a type error at `s()`: ``Cannot call a value of type `S & function` in union: `(() -> S) | (S & function)` ``. The current workaround is `(s :: () -> S)()` which is unsound. The counterexample:
+Another consequence of this signature: functions whose arity does not satisfy the expected arity of `() -> S` will go into `S` which defeats the whole point. This is why when you write `if typeof(state) == "function" then state() else state`, you get a type error at `state()`: ``Cannot call a value of type `S & function` in union: `(() -> S) | (S & function)` ``. The current workaround is `(state :: () -> S)()` which is unsound. The counterexample:
 
 ```luau
-local function useState<S>(s: (() -> S) | S): S
+local function useState<S>(state: (() -> S) | S): S
   return if typeof(s) == "function"
-    then (s :: () -> S)()
-    else s
+    then (state :: () -> S)()
+    else state
 end
 
 local function foo(x: number)
