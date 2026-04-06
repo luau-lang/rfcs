@@ -33,31 +33,15 @@ ty ::= `~` ty
 
 The basis set we want to perform set exclusion on is `unknown`, _not_ `any`. This means given the type `~"a"`, it is equivalent to the type `unknown & ~"a"`.
 
-Choosing `unknown` as the basis makes a lot of things fall in place properly, including the property we wish to maintain where `~~T` is equivalent to `T`. It's crucial that we handle negation of error types properly, otherwise double negations won't actually be consistent. It'd allow error suppression to be improperly suppressed! See below, where `~~any` ends up as `unknown` instead of `any`.
-
-1. `~~any`
-2. `~~(unknown | *error*)`
-3. `~(~unknown & ~*error*)`
-4. `~(never & unknown)`
-5. `~never`
-6. `unknown` (not equivalent to `any`!)
-
-As you can see, since through the series of rewrites `~~any` did not produce a type equivalent to `any`, our basis set must be `unknown`, and negation of an error suppression is still an error suppressing type. Therefore `~*error*` is `*error*`. This fixes the double-negation inconsistency:
-
-1. `~~any`
-2. `~~(unknown | *error*)`
-3. `~(~unknown & ~*error*)`
-4. `~(never & *error*)`
-5. `~never | ~*error*`
-6. `unknown | *error*` (`any` is an alias to `unknown | *error*`, so equivalence is achieved)
-
 ### Implementation
 
-Most of the implementation of negation types are already in place. The one thing missing is:
-
-1. the syntax.
-
 The parser change for this is trivial, so this is of no concern.
+
+Most of the real work would be spent on revising the type system to handle negation types of non-testable types, e.g.
+
+- implement normalization and simplification rules involving negation types with non-testable types
+- implement subtyping rules on negation of non-testables
+- allow `types.negationof` to be applied on function types and table types
 
 ## Drawbacks
 
@@ -67,6 +51,6 @@ Language design has a concept called weirdness budget. It's a fine line to balan
 
 We could provide a set of type aliases for some common use cases, e.g. `not_nil` for `~nil` and `not_string` for `~string` and so on. But this is limited, i.e. no way to negate for a specific string singleton except by a `typeof` hack.
 
-Alternatively, provide a type family `not<T>`, which can be generalized to any type, so long as they obey the restrictions above! This alternative proposal is essentially the above proposal, sans syntax.
+Alternatively, provide a type family `not<T>`, which can be generalized to any type! This alternative proposal is essentially the same as the proposal, sans syntax. Unless we rename it to `negate`, this still requires changing the parser anyway since `not` is a keyword.
 
 We could also use the set exclusion syntax `T \ U` which does provide an advantage of an explicit set to exclude a subset of, but there are downsides with this, e.g. it is neither commutative nor associative, which makes for the implementation more annoying since you cannot fold over them as easily.
