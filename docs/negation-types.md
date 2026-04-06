@@ -51,27 +51,13 @@ As you can see, since through the series of rewrites `~~any` did not produce a t
 5. `~never | ~*error*`
 6. `unknown | *error*` (`any` is an alias to `unknown | *error*`, so equivalence is achieved)
 
-### Restrictions
-
-We currently only support negation of _testable_ types. Intuitively, a testable type is one that can be tested by type refinements at runtime. This includes singleton types, primitive types, and classes. Of course, unions and intersections can be negated as well if and only if all of its constituent types are also testable types, due to the distributivity property of unions and intersections.
-
-Since types like `{ p: P }` and `(T) -> U` are structural types and the runtime offers no way to test for them, they cannot be negated. An attempt to negate this will just turn the negation type into an error suppressed type. This means `~{ p: P }` and `~(T) -> U` are nonsensical. In the event that you negate some non-testable type, you get a type error.
-
-Another restriction is that negation types cannot negate generic types. So `<T>(T) -> ~T` is also not legible.
-
 ### Implementation
 
-Most of the implementation of negation types are already in place. The three things missing are:
+Most of the implementation of negation types are already in place. The one thing missing is:
 
-1. the syntax,
-2. some guarantee that no negation types survive if it negates non-testables, and
-3. a type error if it negates a non-testable type in any way, shape, or form.
+1. the syntax.
 
 The parser change for this is trivial, so this is of no concern.
-
-We can use type families to have this guarantee. Add a `negate<T>` type family which would be internal to the type inference engine, and have the syntax `~T` produce that type family, not a `NegationType`.
-
-As for the type error, we can just consider `negate<{ p: P }>` to be an uninhabited type family, and resolve that as an error type.
 
 ## Drawbacks
 
