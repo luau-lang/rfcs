@@ -35,17 +35,17 @@ function baz(const, const x) end       -- const is not constant variable name --
 ## Backward Compatibility
 
 ```luau
-    for const in x do -- const is not constant variable name --overwrite const keyword -- If you used it this way before, there is no change.
-    end
+for const in x do -- const is not constant variable name --overwrite const keyword -- If you used it this way before, there is no change.
+end
     
-    for const const in x do -- const is constant variable name --overwrite const keyword
-    end
+for const const in x do -- const is constant variable name --overwrite const keyword
+end
 
-    function foo(const) do -- const is not constant variable name --overwrite const keyword -- If you used it this way before, there is no change.
-    end
+function foo(const) do -- const is not constant variable name --overwrite const keyword -- If you used it this way before, there is no change.
+end
 
-    function foo(const const) do -- const is constant variable name --overwrite const keyword
-    end
+function foo(const const) do -- const is constant variable name --overwrite const keyword
+end
 ```
 
 Rule: `const` is treated as a keyword **only when** the next token is a `Name` (and, in the `for` statement first-binding position, the token after that is not `=`))
