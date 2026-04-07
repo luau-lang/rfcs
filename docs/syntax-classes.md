@@ -69,29 +69,6 @@ The following metaproperties are forbidden.  Any attempt to define them is a syn
 * `__metatable`
 * `__type`
 
-#### Class Instances
-
-Class instances are a new type of value in the VM.  They are similar but not quite the same as tables.  They have no array part, for instance.
-
-`pairs`, `ipairs` , `getmetatable`, and `setmetatable` do not work on class instances.  They also cannot be iterated over with the generic `for` loop. (unless the class implements `__iter`)
-
-We introduce a new global function `instanceof(a, Class)` which returns `true` if the object `a` is an instance of `Class`.  `instanceof` raises an exception if the second argument is not a class object.  If the first argument is not a class instance, `instanceof` returns false.  (eg `instanceof(5, MyClass)`)
-
-Reading or writing a nonexistent class property raises an exception.  This makes it easy to disambiguate between a nonexistent property and a property whose value is nil.
-
-The builtin `type()` and `typeof()` functions return `"object"` for any class instance.  We chose this over having them return the class name because class names do not have to be globally unique (they must only unique within a single module) and because we do not want to make it possible for classes to impersonate other types.
-
-```luau
-class Cls end
-local inst = Cls {}
-
-type(Cls) == 'object' -- Class objects themselves behave like class instances
-typeof(Cls) == 'object'
-
-type(inst) == 'object'
-typeof(inst) == 'object'
-```
-
 #### Class Objects
 
 The action of evaluating a class definition statement introduces a *class object* in the module scope.  A class object is a value that serves as a factory for instances of the class and as a namespace for any functions that are defined on the class.
@@ -106,6 +83,44 @@ local n = pcall(SomeClass.getName, someClassInstance)
 
 To construct an instance of a class, call the class object as though it were a function.  It accepts a single argument: a table that contains initial values for all the fields.
 
+The top type of all class objects is named `classobject`.  `type()` and `typeof()` return `"classobject"` when passed a class object.
+
+#### Class Instances
+
+Class instances are a new type of value in the VM.  They are similar but not quite the same as tables.  They have no array part, for instance.
+
+`pairs`, `ipairs` , `getmetatable`, and `setmetatable` do not work on class instances.  They also cannot be iterated over with the generic `for` loop. (unless the class implements `__iter`)
+
+Reading or writing a nonexistent class property raises an exception.  This makes it easy to disambiguate between a nonexistent property and a property whose value is nil.
+
+The builtin `type()` and `typeof()` functions return `"object"` for any class instance.  We chose this over having them return the class name because class names do not have to be globally unique (they must only unique within a single module) and because we do not want to make it possible for classes to impersonate other types.
+
+```luau
+class Cls end
+local inst = Cls {}
+
+type(Cls) == "classobject"
+typeof(Cls) == "classobject"
+
+type(inst) == "object"
+typeof(inst) == "object"
+```
+
+#### The `class` library
+
+We introduce a new global library `class`.  Its contents are
+
+```luau
+local class: {
+    isinstance: (o: unknown, C: classobject) -> boolean,
+    classof: (o: unknown) -> classobject?,
+}
+```
+
+This library also serves as an obvious extension point for future features like reflection.
+
+The function `class.isinstance(o, Class)` returns `true` if the object `o` is an instance of `Class`.  At runtime, it raises an exception if the second argument is not a class object.  If the first argument is not a class instance, `class.isinstance` returns false.  (eg `class.isinstance(5, MyClass)`)
+
 ### Type System
 
 Class definitions also introduce a new type to the type environment.
@@ -116,15 +131,17 @@ Inferring the types of class fields is fraught with difficulty, so un-annotated 
 
 The type introduced by a class definition is available anywhere in the source file.
 
-The `instanceof` function participates in refinement:
+The `class.isinstance` function participates in refinement:
 
 ```luau
 function foo(p: unknown)
-    if instanceof(p, Point) then
+    if class.isinstance(p, Point) then
         return {p.x, p.y} -- no error here
     end
 end
 ```
+
+Each class object is a singleton instance of an unnamed type.  If needed, it is easy to access via `typeof(TheClass)`.  Class object types are all subtypes of the top `classobject` type.  We choose this name to make it clear that it is not the top type of class instances.
 
 ### Semantics
 
@@ -201,9 +218,15 @@ Lastly, Luau easily supports interface inheritance through its structural type s
 
 This is a really big feature that has lots of moving parts!
 
-We need to introduce multiple new contextual keywords: `class` and `public` to start and `private` later.
+We need to introduce multiple new contextual keywords: `class` and `public` to start and `private` later.  We also introduce at least one new top type `classobject`. (we probably also need a corresponding `object` top type for class instances)
 
 Allowing `ClassObject.someprop` seems risky because it opens the doorway to a lot of difficult-to-optimize dynamism, but it also makes a bunch of nice things like `pcall` work exactly the way developers expect.  We're making the bet here that this does not materially affect our ability to optimize more mundane attribute access or method calls.
+
+The word `class` is doing double duty under this RFC: It is a contextual keyword and the name of a top-level library.  There's a lot of potential for confusion here.
+
+`classobject` is an awkward type name.
+
+Object oriented codebases tend to have far more cyclic dependencies between modules because every piece of data is also coupled to a whole bunch of functions that operate on that data.  We are probably going to have to work out a way to relax the restrictions on cyclic module imports.
 
 ## Alternatives
 
