@@ -33,6 +33,7 @@ print(`Check out my cool point: {p}  length = {p:length()}`)
 * People write object-oriented code.  We should afford it in a polished way.
 * Accurate type inference of `setmetatable` has proven to be very difficult to get right.  Because of this, the quality of our autocomplete isn't what it could be.
 * A construct with a fixed shape and a completely locked-down metatable will open up optimization opportunities that could improve performance:
+    * If classes can only be declared at the top scope, then we know that each method of each class has exactly one instance.  This makes it simple for the compiler to know the exact function that will be invoked for any method call expression.
     * If a value is known to be an instance of a particular class, the bytecode compiler should be able optimize method calls to skip the whole `__index` metamethod process and instead generate code to directly call the correct method.
     * By the same token, method calls can be inlined more aggressively.  Particularly self-method calls eg `self:SomeOtherMethod()`
     * Field accesses can compile to a simple integral table offset so that the VM doesn't need to do a hashtable lookup as the program runs.
@@ -48,7 +49,7 @@ Defining two classes with the same name in the same module is forbidden.
 
 Within a class block, two declarations are allowed: Fields and methods.
 
-Fields are introduced with the new `public` keyword.
+Fields are introduced with the new `public` keyword.  We also plan to eventually offer `private`, but is sufficiently complex that it merits its own RFC.
 
 Methods are introduced with the familiar `function` keyword.  `public function f()` is also permitted.
 
@@ -58,7 +59,15 @@ If a method accepts no arguments, or if its first argument is not named `self`, 
 
 To create a new instance of a class, invoke it as if it were a function.  It accepts one argument: A table that describes the initial values of all its properties.  If more customization is desired, static factory functions (frequently named `new()` or `create()`) are an easy, familiar way to accomplish this.
 
-Classes can define familiar Luau metamethods like `__add` and `__sub`.  They will work as one would expect.  `__index`, `__newindex`, `__mode` and `__metatable` may not be defined.  Attempting to do so is a syntax error.
+Classes can define familiar Luau metamethods like `__add` and `__sub`.  They will work as one would expect.
+
+The following metaproperties are forbidden.  Any attempt to define them is a syntax error:
+
+* `__index`
+* `__newindex`
+* `__mode`
+* `__metatable`
+* `__type`
 
 #### Class Instances
 
@@ -192,7 +201,7 @@ Lastly, Luau easily supports interface inheritance through its structural type s
 
 This is a really big feature that has lots of moving parts!
 
-We need to introduce multiple new keywords: `class` and `public` to start and `private` later.
+We need to introduce multiple new contextual keywords: `class` and `public` to start and `private` later.
 
 Allowing `ClassObject.someprop` seems risky because it opens the doorway to a lot of difficult-to-optimize dynamism, but it also makes a bunch of nice things like `pcall` work exactly the way developers expect.  We're making the bet here that this does not materially affect our ability to optimize more mundane attribute access or method calls.
 
