@@ -55,7 +55,7 @@ Methods are introduced with the familiar `function` keyword.  `public function f
 
 If a method's first argument is named `self`, it can be invoked with the familiar `instance:method()` call syntax.  Type annotations on the `self` parameter are not allowed.
 
-If a method accepts no arguments, or if its first argument is not named `self`, it can be invoked via `ClassDef.method()` syntax.  This is the same as "static methods" from other languages.
+If a method accepts no arguments, or if its first argument is not named `self`, it can be invoked via `Class.method()` syntax.  This is the same as "static methods" from other languages.
 
 To create a new instance of a class, invoke it as if it were a function.  It accepts one argument: A table that describes the initial values of all its properties.  If more customization is desired, static factory functions (frequently named `new()` or `create()`) are an easy, familiar way to accomplish this.
 
@@ -83,7 +83,7 @@ local n = pcall(SomeClass.getName, someClassInstance)
 
 To construct an instance of a class, call the class object as though it were a function.  It accepts a single argument: a table that contains initial values for all the fields.
 
-The top type of all class objects is named `classdef`.  `type()` and `typeof()` return `"classdef"` when passed a class object.
+The top type of all class objects is named `class`.  `type()` and `typeof()` return `"class"` when passed a class object.
 
 #### Class Instances
 
@@ -99,12 +99,14 @@ The builtin `type()` and `typeof()` functions return `"object"` for any class in
 class Cls end
 local inst = Cls {}
 
-type(Cls) == "classdef"
-typeof(Cls) == "classdef"
+type(Cls) == "class"
+typeof(Cls) == "class"
 
 type(inst) == "object"
 typeof(inst) == "object"
 ```
+
+Comparisons between object instances is the same as with tables: If `__eq` is not defined, object comparisons use physical (pointer) equality.  `__eq` is only invoked if both operands are the same type.
 
 #### The `class` library
 
@@ -112,8 +114,8 @@ We introduce a new global library `class`.  Its contents are
 
 ```luau
 local class: {
-    isinstance: (o: unknown, C: classdef) -> boolean,
-    classof: (o: unknown) -> classdef?,
+    isinstance: (o: unknown, C: class) -> boolean,
+    classof: (o: unknown) -> class?,
 }
 ```
 
@@ -141,7 +143,7 @@ function foo(p: unknown)
 end
 ```
 
-Each class object is a singleton instance of an unnamed type.  If needed, it is easy to access via `typeof(TheClass)`.  Class object types are all subtypes of the top `classdef` type.  We choose this name to make it clear that it is not the top type of class instances.
+Each class object is a singleton instance of an unnamed type.  If needed, it is easy to access via `typeof(TheClass)`.  Class object types are all subtypes of the top `class` type.  We choose this name to make it clear that it is not the top type of class instances.
 
 ### Semantics
 
@@ -218,13 +220,13 @@ Lastly, Luau easily supports interface inheritance through its structural type s
 
 This is a really big feature that has lots of moving parts!
 
-We need to introduce multiple new contextual keywords: `class` and `public` to start and `private` later.  We also introduce at least one new top type `classdef`. (we probably also need a corresponding `object` top type for class instances)
+We need to introduce multiple new contextual keywords: `class` and `public` to start and `private` later.  We also introduce at least one new top type `class`. (we probably also need a corresponding `object` top type for class instances)
 
 Allowing code to grab unbound method references (ie `local m = o.someMethod`) seems risky because it opens the doorway to a lot of difficult-to-optimize dynamism, but it also makes a bunch of nice things like `pcall` work exactly the way developers expect.  We're making the bet here that this does not materially affect our ability to optimize more mundane attribute access or method calls.
 
 The word `class` is doing double duty under this RFC: It is a contextual keyword and the name of a top-level library.  There's a lot of potential for confusion here.
 
-`classdef` is somewhat awkward as a type name.
+`class` is somewhat awkward as a type name.
 
 Object oriented codebases tend to have far more cyclic dependencies between modules because every piece of data is also coupled to a whole bunch of functions that operate on that data.  We are probably going to have to work out a way to relax the restrictions on cyclic module imports.
 
