@@ -224,7 +224,7 @@ We need to introduce multiple new contextual keywords: `class` and `public` to s
 
 Allowing code to grab unbound method references (ie `local m = o.someMethod`) seems risky because it opens the doorway to a lot of difficult-to-optimize dynamism, but it also makes a bunch of nice things like `pcall` work exactly the way developers expect.  We're making the bet here that this does not materially affect our ability to optimize more mundane attribute access or method calls.
 
-The word `class` is doing double duty under this RFC: It is a contextual keyword and the name of a top-level library.  There's a lot of potential for confusion here.
+The word `class` is doing triple duty under this RFC: It is a contextual keyword, the name of a top-level library, and the name of the top type for class objects.
 
 `class` is somewhat awkward as a type name.
 
