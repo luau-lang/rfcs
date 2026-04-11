@@ -84,5 +84,6 @@ processInteger(b)     -- Valid ('integer' refines to 'unsigned')
 
 ## Alternatives
 - **Separate Primitive Types:** We could introduce `uint` and `int` as entirely separate types. However, this would be too rigid, as it would break the existing `integer` primitive and force users to constantly cast between the two for basic arithmetic.
+- **More Verbose Subtype Naming:** `signedinteger`/`unsignedinteger` avoids ambiguity, but would result in the longest type names in Luau. Casting would look like `(value :: signedinteger)`, and it should be considered that `signed`/`unsigned` would co-exist in proximity of `integer` library usage.
 - **Runtime Validation:** We could add runtime checks to every `integer` library function. This would catch errors but would introduce a performance penalty to the very library designed for high-performance integer operations.
 - **Do Nothing:** Maintain the current state. The impact would be a continued risk of signed/unsigned mismatch bugs and a lack of type-level clarity in the Luau ecosystem.
