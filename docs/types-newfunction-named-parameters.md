@@ -2,7 +2,11 @@
 ## Summary
 Add the ability to specify parameter names when dynamically constructing function types using `types.newfunction` and `setparameters`. This will improve code readability and the overall developer experience when working with dynamically generated function types.
 ## Motivation
-Luau already supports named function type arguments in static type annotations, as established by the [Named function type arguments RFC](https://rfcs.luau.org/syntax-named-function-type-args.html). Parameter names are stored inside function type descriptions and are surfaced in tooltips and signature help:
+Luau already supports named function type arguments in static type annotations, as established by the [Named function type arguments RFC](https://rfcs.luau.org/syntax-named-function-type-args.html).
+### Prior Art
+
+- [Function Parameter Names in User-Defined Type Functions](https://github.com/luau-lang/luau/pull/2001)
+Parameter names are stored inside function type descriptions and are surfaced in tooltips and signature help:
 ```luau
 type MyFunc = (PlayerName: string, IsAdmin: boolean) -> number
 -- tooltip shows: (PlayerName: string, IsAdmin: boolean) -> number
