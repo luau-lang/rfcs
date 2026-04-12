@@ -6,6 +6,7 @@ Luau already supports named function type arguments in static type annotations, 
 ### Prior Art
 
 - [Function Parameter Names in User-Defined Type Functions](https://github.com/luau-lang/luau/pull/2001)
+
 Parameter names are stored inside function type descriptions and are surfaced in tooltips and signature help:
 ```luau
 type MyFunc = (PlayerName: string, IsAdmin: boolean) -> number
