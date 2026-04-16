@@ -93,7 +93,7 @@ Class instances are a new type of value in the VM.  They are similar but not qui
 
 Reading or writing a nonexistent class property raises an exception.  This makes it easy to disambiguate between a nonexistent property and a property whose value is nil.
 
-The builtin `type()` and `typeof()` functions return `"object"` for any class instance.  We chose this over having them return the class name because class names do not have to be globally unique (they must only unique within a single module) and because we do not want to make it possible for classes to impersonate other types.
+We introduce a new top type for class instances: `object`.  The builtin `type()` and `typeof()` functions return `"object"` for any class instance.  We chose this over having them return the class name because class names do not have to be globally unique (they must only unique within a single module) and because we do not want to make it possible for classes to impersonate other types.
 
 ```luau
 class Cls end
@@ -143,7 +143,7 @@ function foo(p: unknown)
 end
 ```
 
-Each class object is a singleton instance of an unnamed type.  If needed, it is easy to access via `typeof(TheClass)`.  Class object types are all subtypes of the top `class` type.  We choose this name to make it clear that it is not the top type of class instances.
+Each class object is a singleton instance of an unnamed type.  If needed, it is easy to access via `typeof(TheClass)`.  Class object types are all subtypes of the top `class` type.
 
 ### Semantics
 
@@ -220,7 +220,7 @@ Lastly, Luau easily supports interface inheritance through its structural type s
 
 This is a really big feature that has lots of moving parts!
 
-We need to introduce multiple new contextual keywords: `class` and `public` to start and `private` later.  We also introduce at least one new top type `class`. (we probably also need a corresponding `object` top type for class instances)
+We need to introduce multiple new contextual keywords: `class` and `public` to start and `private` later.  We also introduce two new top types `object` and `class`.
 
 Allowing code to grab unbound method references (ie `local m = o.someMethod`) seems risky because it opens the doorway to a lot of difficult-to-optimize dynamism, but it also makes a bunch of nice things like `pcall` work exactly the way developers expect.  We're making the bet here that this does not materially affect our ability to optimize more mundane attribute access or method calls.
 
