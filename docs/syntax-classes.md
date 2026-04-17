@@ -114,8 +114,8 @@ We introduce a new global library `class`.  Its contents are
 
 ```luau
 local class: {
-    isinstance: (o: unknown, C: class) -> boolean,
-    classof: (o: unknown) -> class?,
+    isinstance: (o: object, C: class) -> boolean,
+    classof: (o: object) -> class?,
 }
 ```
 
