@@ -53,9 +53,11 @@ Fields are introduced with the new `public` keyword.  We also plan to eventually
 
 Methods are introduced with the familiar `function` keyword.  `public function f()` is also permitted.
 
-If a method's first argument is named `self`, it can be invoked with the familiar `instance:method()` call syntax.  Type annotations on the `self` parameter are not allowed.
+Methods defined on class objects can be accessed either via `Class.method()` or `instance:method()` syntax.
 
-If a method accepts no arguments, or if its first argument is not named `self`, it can be invoked via `Class.method()` syntax.  This is the same as "static methods" from other languages.
+If a method's first argument is named `self`, it should be invoked with the familiar `instance:method()` call syntax.  This is not strictly required, but the compiler and optimizers may deoptimize code that doesn't.  Type annotations on the `self` parameter are not allowed.
+
+If a method accepts no arguments or if its first argument is not named `self`, it should be invoked via `Class.method()` syntax.  This is the same as "static methods" from other languages.
 
 To create a new instance of a class, invoke it as if it were a function.  It accepts one argument: A table that describes the initial values of all its properties.  If more customization is desired, static factory functions (frequently named `new()` or `create()`) are an easy, familiar way to accomplish this.
 
