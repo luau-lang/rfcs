@@ -59,15 +59,27 @@ If a method accepts no arguments, or if its first argument is not named `self`, 
 
 To create a new instance of a class, invoke it as if it were a function.  It accepts one argument: A table that describes the initial values of all its properties.  If more customization is desired, static factory functions (frequently named `new()` or `create()`) are an easy, familiar way to accomplish this.
 
-Classes can define familiar Luau metamethods like `__add` and `__sub`.  They will work as one would expect.
+Classes can define the following Luau metamethods.  They all work just like they do on a metatable:
 
-The following metaproperties are forbidden.  Any attempt to define them is a syntax error:
+* `__call`
+* `__concat`
+* `__unm`
+* `__add`
+* `__sub`
+* `__mul`
+* `__div`
+* `__mod`
+* `__pow`
+* `__tostring`
+* `__eq`
+* `__lt`
+* `__le`
+* `__iter`
+* `__len`
+* `__idiv`
 
-* `__index`
-* `__newindex`
-* `__mode`
-* `__metatable`
-* `__type`
+For forward-compatibility, it is a syntax error to define any other method whose
+name starts with two underscores.
 
 #### Class Objects
 
