@@ -214,7 +214,7 @@ Method inlining is something we'd like to try that is greatly complicated by inh
 
 Also, frankly, its worth as a programming technique is controversial: the [Fragile Base Class Problem](https://en.wikipedia.org/wiki/Fragile_base_class) can cause significant harm to a project.
 
-Lastly, Luau easily supports interface inheritance through its structural type system, so inheritance is judged to be lower priority.
+Lastly, while Luau doesn't quite properly afford interface inheritance through its structural type system, this shortfall is relatively easy to fix.  Because of this, implementation inheritance is judged to be lower priority.
 
 ## Drawbacks
 
