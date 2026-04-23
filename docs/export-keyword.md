@@ -198,6 +198,15 @@ export local a = 1 -- syntax error
 
 This restriction does not apply to modules that only contain type exports for backwards compatibility.
 
+### Annotations
+Function annotations are also supported for exported functions and can go before the export keyword.
+
+```luau
+@native
+export function foo()
+end
+```
+
 ### Future Optimizations
 
 While the primary purpose for extending exports is user ergonomics, first-class exports also open the door to many optimizations that aren't currently possible with dynamic module returns.
