@@ -198,8 +198,8 @@ export local a = 1 -- syntax error
 
 This restriction does not apply to modules that only contain type exports for backwards compatibility.
 
-### Annotations
-Function annotations are also supported for exported functions and can go before the export keyword.
+### Attributes
+Function attributes are also supported for exported functions and can go before the export keyword.
 
 ```luau
 @native
