@@ -30,7 +30,15 @@ Each `writef32` or `readf32` performs an individual `memcpy`, and temporarily co
 
 ## Design
 
-Adding four new methods would fill this performance gap.
+Adding the following four new methods would fill this performance gap.
+
+```luau
+buffer.writevector2(buf : buffer, offset : number, vec : vector) : ()
+buffer.readvector2(buf : buffer, offset : number) : vector
+
+buffer.writevector3(buf : buffer, offset : number, vec : vector) : ()
+buffer.readvector3(buf : buffer, offset : number) : vector
+```
 
 Like all buffer read/write operations, byte order is little-endian. An error is thrown if the read or write would exceed the buffer's bounds.
 
@@ -54,6 +62,11 @@ Like all buffer read/write operations, byte order is little-endian. An error is 
 - equivalent to `vector.create(buffer.readf32(buf, offset), buffer.readf32(buf, offset + 4), buffer.readf32(buf, offset + 8))`
 
 When `LUA_VECTOR_SIZE` is defined to be `4`, two additional methods are defined:
+
+```luau
+buffer.writevector4(buf : buffer, offset : number, vec : vector) : ()
+buffer.readvector4(buf : buffer, offset : number) : vector
+```
 
 `buffer.writevector4(buf : buffer, offset : number, vec : vector) : ()`
 - Writes `vec.x`, `vec.y`, `vec.z`, and `vec.w` as four contiguous 32-bit floats into `buf`, starting at `offset`.
