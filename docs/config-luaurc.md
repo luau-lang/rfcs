@@ -36,7 +36,7 @@ Example of a valid .luaurc file:
 	"lint": { "*": true, "LocalUnused": false },
 	"lintErrors": true,
 	"globals": ["expect"], // TestEZ
-	"globalDefinitions" = "./embed.d.luau",
+	"globalDefinitions" = "./embed.d.luau"
 }
 ```
 
