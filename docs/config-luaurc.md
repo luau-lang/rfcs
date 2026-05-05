@@ -26,6 +26,7 @@ applied. When multiple files are used, the file closer to the .lua file override
 - `"lintErrors"`: a boolean that controls whether lint issues are reported as errors or warnings (off by default)
 - `"typeErrors"`: a boolean that controls whether type issues are reported as errors or warnings (on by default)
 - `"globals"`: extra global values; points to an array of strings where each string names a global that the type checker and linter must assume is valid and of type `any`
+- `"globalDefinitions"`: string path to a local filename. This is a file in the same luau-like language embedded inside `Analysis/src/EmbeddedBuiltinDefinitions.cpp`, and provides additional global definitions to the typechecker and linter. 
 
 Example of a valid .luaurc file:
 
@@ -34,7 +35,8 @@ Example of a valid .luaurc file:
 	"languageMode": "nonstrict",
 	"lint": { "*": true, "LocalUnused": false },
 	"lintErrors": true,
-	"globals": ["expect"] // TestEZ
+	"globals": ["expect"], // TestEZ
+	"globalDefinitions" = "./embed.d.luau",
 }
 ```
 
