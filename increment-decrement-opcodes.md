@@ -53,7 +53,7 @@ i = i + 1
 ```
 Conceptually lowers into:
 ```luau
-ADDK R0 R0 K0
+ADDK R0 K0
 ```
 This still requires:
 
@@ -101,8 +101,8 @@ DEC Rx
 ```
 instead of:
 ```luau
-ADDK Rx Rx K0
-SUBK Rx Rx K0
+ADDK Rn K0
+SUBK Rn K0
 ```
 This proposal intentionally does not introduce:
 
