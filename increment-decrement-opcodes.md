@@ -96,8 +96,8 @@ x = x - 1
 ```
 may lower into:
 ```luau
-INC Rx
-DEC Rx
+INC Rn
+DEC Rn
 ```
 instead of:
 ```luau
