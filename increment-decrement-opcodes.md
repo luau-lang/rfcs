@@ -37,11 +37,11 @@ i = i + 1
 typically lowers into something conceptually similar to:
 ```luau
 LOADN   R1 1
-ADD     R0 R0 R1
+ADD     R0 R1
 ```
 or:
 ```luau
-ADDK    R0 R0 K0
+ADDK    R0 K0
 ```
 depending on compiler optimization path.
 
