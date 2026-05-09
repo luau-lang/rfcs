@@ -49,6 +49,8 @@ as the union of `Items` is not narrowed from `{ string } | { integer }`.
 
 Certain runtimes may expose platform-level APIs that use enumerations that are represented as `number`s.
 
+Programmers may want to annotate that a table only has a certain limited set of valid number indices.
+
 ## Design
 
 Integral numeric literals valid in the value language (`0`, `0xF2`, `0b11001`, etc) will be made valid for use in the type language, similar to literals
