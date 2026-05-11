@@ -16,7 +16,7 @@ This problem becomes much more difficult to deal with when classes are added to 
 
 Without cyclic requires, the following program cannot be evaluated.
 
-```
+```luau
 -- A.luau
 
 local B = require("./B")
@@ -76,7 +76,7 @@ Step 6 covers an important edge case: In this design, the `require` function som
 
 The new metatable `CyclicDependencyError` can roughly be defined as follows:
 
-```
+```luau
 local CyclicDependencyError = {
     __index = function(self, prop)
         error(`Cannot access the exported field {prop} because it has a cyclic dependency on its requiring module`)
@@ -89,7 +89,7 @@ local CyclicDependencyError = {
 
 In the absence of `export`, a script must be updated to support cyclic requires by making a small edit: Instead of creating an export table directly with `{}`, the script should accept it from `...` like so:
 
-```
+```luau
 local exports = ...
 
 function exports.foo() end
@@ -112,7 +112,7 @@ If necessary, a module could be crafted to work with or without support for cycl
 
 #### Reentrant Accesses
 
-```
+```luau
 --- A.luau
 
 local B = require("B")
@@ -152,7 +152,7 @@ The order of operations in this program is:
 
 #### Improper Reentrant Mutation
 
-```
+```luau
 --- A.luau
 
 local B = require("B")
@@ -202,7 +202,7 @@ The restrictions on how cyclic imports can be used are subtle\!  If two mutually
 
 For instance, the following code will fail:
 
-```
+```luau
 --- A.luau
 
 local B = require("B")
