@@ -130,12 +130,24 @@ type MyNumber = (x: number)
 type Func = () -> (x: number, y: number, z: number)
 ```
 
+In the event where an annotation already has a name. The name would get overwritten if...
+```luau
+type Foo<T...> = (args: T...) -> ()
+type Bar<T> = (arg: T) -> ()
+
+type A = Foo<(number, number)> -- nothing changes
+type B = Foo<(x: number, y: number)> -- "args" would be gone if something substituted a generic
+type C = Foo<(x: number)> -- same here for "arg
+```
 
 
 
 ## Drawbacks
 
 - Most likely none, other than the implementation.
+
+- We have to ask ourselves what would happen to this
+
 
 
 ## Alternatives
