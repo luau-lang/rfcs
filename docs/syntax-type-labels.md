@@ -112,8 +112,8 @@ type C = Bar<[x: number, y: number]> -- Error: More than one type!
 ```
 
 <br/>
-### Usage:
 
+### Usage:
 ```luau
 type WrappedSignal<T...> = {
 	FireToFoo: (self: WrappedSignal<T...>, targetFoo: Foo, T...) -> (),
