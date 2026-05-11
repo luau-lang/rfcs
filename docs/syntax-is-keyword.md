@@ -89,19 +89,17 @@ Vector3`, as is currently the case with type ascription.
 The EBNF for this expression is very small.
 
 ```diff
-- exp ::= simpleexp { binop exp }
+  exp ::= simpleexp { binop exp }
 -       | unop exp { binop exp }
--       | ascriptionexp { binop exp }
-+ exp ::= simpleexp { binop exp }
 +       | unaryexp { binop exp }
 +       | isexp { binop exp }
-+       | ascriptionexp { binop exp }
+        | ascriptionexp { binop exp }
 
 + unaryexp ::= unop exp
-
++
 + complexexp ::= unop complexexp
 +              | simpleexp
-
++
 + isexp ::= complexexp `is` [`not`] typename
 + typename ::= `nil`
 +            | `function`
