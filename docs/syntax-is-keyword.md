@@ -152,8 +152,8 @@ disambiguation mechanism.
 
 ### Value namespace vs typename namespace
 
-One of the suggestion in the classes RFC was to allow `class.isinstance` to work
-with certain primitives that have a built-in global library, e.g.
+One suggestion in the `class` RFC was to allow `class.isinstance` to work with
+certain primitives that have a built-in global library, e.g.
 
 ```luau
 function is_string(x: unknown)
@@ -551,15 +551,27 @@ type guards anyhow, e.g. `typeof(x) == "nill"` will silently do nothing and
 always returns `false` (unless by chance its `__type` is `nill`...). Dynamically
 typed programming languages are already full of this class of bugs, e.g. field
 projections, mistyped locals resolves to a global, etc. The type system can be
-used to rescue users from typos, but the status quo remain no worse than before.
+used to rescue users from typos, but the status quo remains no worse than
+before.
 
-This also requires the host to populate the `typename` registry to participate
-in the `is` keyword with all possible types from their environment. A solution
-that could alleviate this pain is to provide a hook for when the `typename` is
-not found in the registry, so that populating the registry can be done on-demand
-and keep the startup time and memory cost as small as possible. Nevertheless,
-this is one more thing that the host now has to do _if_ they want to cooperate
-with the `is` keyword.
+This also requires the host to populate the `typename` registry so types from
+their environment can participate in the `is` keyword with all possible types
+from their environment. A solution that could alleviate this pain is to provide
+a hook for when the `typename` is not found in the registry, so that populating
+the registry can be done on-demand and keep the startup time and memory cost as
+small as possible. Nevertheless, this is one more thing that the host now has to
+do _if_ they want to cooperate with the `is` keyword.
+
+We also can't integrate host-owned `userdata` with `__type` to cooperate with
+the `is` keyword by default, since you might have nontrivial predicates e.g.
+`part is BasePart`. If `part` has some `__type = "Part"`, then this predicate
+immediately fails. Ditto that `__type` does not necessarily need to be a fully
+qualified typename, e.g. `Enum.LuauTypeCheckMode.Strict` does not contain the
+qualified prefix path `Enum`. It's also possible that certain typenames are
+inherently structural beyond the `userdata` itself, e.g. `Character` might be a
+`Model` that contains a child instance named `Head`, some `Humanoid`, etc. So
+the current RFC design is generalized to support that at the cost of
+boilerplate.
 
 ## Alternatives
 
@@ -586,3 +598,7 @@ with the `is` keyword.
    write a predicate that assumes `polarity == true` and the VM negates the
    result on their behalf. This removes the `polarity` parameter from the
    calling convention.
+
+5. Instead of a registry, `userdata` could have `__is` metamethod for `userdata`
+   to participate in (locked in the same way `__namecall` and `__type` is), but
+   that loses out on various optimization opportunities, since `__is` is opaque.
