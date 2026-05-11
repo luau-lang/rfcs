@@ -102,9 +102,8 @@ type Bar<T> = (T) -> ()
 
 type A = Foo<(a: number, number, label: number)> -- allowed
 type B = Foo<(x: number), (y: number)> -- not valid
-type B = Foo<(x: number, y: number)> -- valid
+type C = Foo<(x: number, y: number)> -- valid
 
-type C = Bar<(x: number, y: number)> -- Error: More than one type!
 type D = (num: number) -> () -- Already works in Luau, no changes!
 ```
 
@@ -150,6 +149,10 @@ We can't rename ``T`` here
 ```luau
 type Foo<T> = (arg: T) -> ()
 type A = Foo<(x: number)> -- (x: number), does not count as a type pack
+
+-- Not possible!
+type Bar<T,U> = (T,U) -> ()
+local e: Bar<(x: number, y: number)>
 ```
 
 
