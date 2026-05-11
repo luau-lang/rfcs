@@ -553,9 +553,13 @@ typed programming languages are already full of this class of bugs, e.g. field
 projections, mistyped locals resolves to a global, etc. The type system can be
 used to rescue users from typos, but the status quo remain no worse than before.
 
-
-
-TODO.
+This also requires the host to populate the `typename` registry to participate
+in the `is` keyword with all possible types from their environment. A solution
+that could alleviate this pain is to provide a hook for when the `typename` is
+not found in the registry, so that populating the registry can be done on-demand
+and keep the startup time and memory cost as small as possible. Nevertheless,
+this is one more thing that the host now has to do _if_ they want to cooperate
+with the `is` keyword.
 
 ## Alternatives
 
