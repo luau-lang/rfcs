@@ -135,7 +135,7 @@ In the event where an annotation already has a name. The name would get overwrit
 type Foo<T...> = (args: T...) -> ()
 type Foo_2<T> = (arg: T) -> ()
 
-type A = Foo<(number, number)> -- nothing changes
+type A = Foo<(number, number)> -- nothing changes about "args"
 type A = Foo<(x: number, y: number)> -- "args" would be gone if something substituted a generic
 type C = Foo_2<(x: number)> -- same here for "arg"
 ```
