@@ -63,7 +63,7 @@ But when generic types are used, this information is no longer available
 type Callback<T...> = (T...) -> ()
 ```
 
-``T...`` will only emit over types but not labels.
+``T...`` will only emit over types but not any names/labels.
 
 And currently, there isn't even syntax to provide a label when using ``Callback<T...>``
 
