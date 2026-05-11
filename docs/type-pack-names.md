@@ -1,9 +1,9 @@
-# Syntax Type Labels
+# Names in Type Packs
 
 ## Summary
 
-Syntax type labels intended for generic types, allowing users to attach parameter names to types for use in argument types.
-This is to improve IntelliSense and autocomplete, and allows custom callbacks to show you argument names instead of just the type.
+Allowing users to always provide names within type packs, such as ``(x: number)`` syntax, would allow users to attach parameter names to a within a type pack.
+This improves IntelliSense and autocomplete, and allows custom callbacks to show you argument names instead of just the type.
 
 ## Motivation
 
@@ -73,42 +73,35 @@ Why are we doing this? What use cases does it support? What is the expected outc
 
 ## Design
 
-**Syntax Type Labels**, allowing users to provide semantics onto types,
-useful for IntelliSense and autocomplete, even for debug tooling within the internals of the language itself.
-_(a bit similar to TypeScript)_
+This syntax here ``(number)`` is a type pack.
 
-Labels are only metadata:
-- Labels are NOT enforced in any type checking way
+And the idea is to allow to provide names in any type pack syntax.
+
+e.g. allowing you to do ``(x: number)`` without being exclusively restricted to function annotations anymore.
+
+Names/Labels are only metadata:
+- Names/Labels are NOT enforced in any type checking way
 - They don't affect the type itself
 - They only improve front-end hints
 
 
-Type Labels are intended to be used while providing types into generics.
+### Example:
+
 ```luau
 type Callback<T...> = (T...) -> ()
 
-function Foo(cb: Callback<[targetBar: Bar]> end
+function Foo(cb: Callback<(targetBar: Bar)> end
 -- cb shows (targetBar: Bar) -> ()
 ```
 
-### Syntax:
-- Type Label Syntax is wrapped around these brackets ``[]``.
-- They can contain a label through ``[label: type]``, but is optional
-- ``[number]`` would just be ``number``
-- ``[x: number]`` would just be ``number``, with a label ``"x"``
-- Multiple types can appear in it by separating with ``,``
-  - ``[x: number, y: number]
-  - but this is also fine ``[x: number], [y: number]``
-
-Multiple types can only appear if multiple types are even allowed to be provided.
 ```luau
 type Foo<T...> = (T...) -> ()
 type Bar<T> = (T) -> ()
 
-type A = Foo<[a: number, number, label: number]> -- allowed
-type B = Foo<[x: number], [y: number]> -- allowed
+type A = Foo<(a: number, number, label: number)> -- allowed
+type B = Foo<(x: number), (y: number)> -- allowed
 
-type C = Bar<[x: number, y: number]> -- Error: More than one type!
+type C = Bar<(x: number, y: number)> -- Error: More than one type!
 ```
 
 <br/>
@@ -119,7 +112,7 @@ type WrappedSignal<T...> = {
 	FireToFoo: (self: WrappedSignal<T...>, targetFoo: Foo, T...) -> (),
 }
 
-type MySignal = WrappedSignal<[amount: number, message: string]>
+type MySignal = WrappedSignal<(amount: number, message: string)>
 
 --[[
   MySignal.FireToFoo would become
@@ -132,21 +125,22 @@ Nothing changes about the types own identity, it just gets associated with metad
 <br/>
 
 
-In TypeScript you can do
-```ts
-type Position = [x: number, y: number, z: number]
+```luau
+type MyNumber = (x: number)
+type Func = () -> (x: number, y: number, z: number)
 ```
-Luau does NOT support typing tuples in this context, so doing the above in Luau, would error.
+
 
 
 
 ## Drawbacks
 
-- A new syntax has to be introduced. Another question would be whether "labels" will be the only thing, or whether there will be more.
-- Whether syntax should be ``[x: number, y: number, z: number]`` or ``[x: number], [y: number], [z: number]``
-- ``[]`` are used by table keys and indexing, or _"arrays"_ in other languages.
+- Most likely none, other than the implementation.
+
 
 ## Alternatives
+
+- A new syntax where it would be ``[x: number, y: number, z: number]`` or ``[x: number], [y: number], [z: number]``
 
 Type functions could expose modifying argument names, but that would only work for function annotations, not on a type alone.
 There wouldn't be a way to attach a label to a type.
