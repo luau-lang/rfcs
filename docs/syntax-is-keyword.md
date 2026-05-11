@@ -281,11 +281,16 @@ type Pred = (L: lua_State, x: unknown, polarity: boolean) -> boolean
 ```
 
 The `polarity: boolean` parameter is purely for the host to have an opportunity
-to coax the C/C++ compiler to generate a short-circuiting logic in the case that
-the host has authored a predicate as a series of logical conjunctions for when
-`polarity == false`. This `polarity` is load-bearing, and requires the lawful
-`pred(L, x, true) == not pred(L, x, false)`, which is trivial by writing
-`polarity == (x and y)`.
+to coax the C/C++ compiler to generate a short-circuiting logic for when
+`polarity == false` in the case that the host has authored a predicate as a
+series of logical conjunctions. This `polarity` is load-bearing, and the host is
+required to write a lawful predicate function satisfying:
+
+```
+pred(L, x, true) == not pred(L, x, false)
+```
+
+This is trivial by writing `polarity == (x and y)`.
 
 The typename registry resolver has the type:
 
@@ -477,3 +482,8 @@ TODO.
    module to fail to initialize, as opposed to matching the behavior of `x is
    SomeLocal` where `SomeLocal` is `nil` or some non-class which throws an error
    only when the expression `x is SomeLocal` is being executed.
+
+4. Instead of giving the `polarity` to the predicate functions, the host always
+   write a predicate that assumes `polarity == true` and the VM negates the
+   result on their behalf. This removes the `polarity` parameter from the
+   calling convention.
