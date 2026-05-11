@@ -22,7 +22,7 @@ local cb: Callback = function()
 end
 ```
 
-But here in this case, a developer would immediately know what each of these type _represents_. In this case ``x``, ``y`` and ``z``.
+But in the IntelliSense case, a developer would immediately know what each of these type _represents_. In this case ``x``, ``y`` and ``z``.
 
 Luau and any embedder internally within the implementation are able to define argument names in some way or another to types _procedurally_.
 But a developer is not able to replicate everything from the implementation itself.
