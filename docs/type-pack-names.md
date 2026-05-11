@@ -105,6 +105,7 @@ type B = Foo<(x: number), (y: number)> -- not valid
 type C = Foo<(x: number, y: number)> -- valid
 
 type D = (num: number) -> () -- Already works in Luau, no changes!
+type E = Bar<(num: number)> -- not valid because no type pack here!
 ```
 
 <br/>
