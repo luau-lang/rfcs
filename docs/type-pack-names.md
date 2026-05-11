@@ -145,7 +145,7 @@ type C = Foo_2<(x: number)> -- same here for "arg"
 ## Drawbacks
 
 - Most likely none, other than the implementation.
-- Whether argument names
+- Whether ``(arg: T)`` should have ``"arg"`` replaced or not, if substituted by ``(x: number)``.
 
 
 ## Alternatives
