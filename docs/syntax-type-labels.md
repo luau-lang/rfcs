@@ -157,3 +157,8 @@ type MySignal = WrappedSignal<(label1: number, label2: string) -> ()>
 ```
 And this would also mean that ``WrappedSignal`` needs to implement a type function now, that takes out the argument names and transforms ``.FireToFoo``.
 And that sounds too complicated.
+
+You don't want it to be
+
+You don't want it to be ``(targetFoo: Foo: Player, (label1: number, label2: string) -> ()) -> ()``
+you want ``(targetFoo: Foo: Player, label1: number, label2: string) -> ()``.
