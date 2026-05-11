@@ -305,8 +305,7 @@ again, as per the [partial evaluation optimization](#partial-evaluation).
 If the user has written a qualified typename which is not found in the registry,
 then the resolver returns a predicate function that always throws an error. This
 matches the behavior of `x is MyMod.MyNonexistentClass` which only throws an
-error if the control flow enters through this expression. The type system can be
-used to rescue users from typos.
+error if the control flow enters through this expression.
 
 ### Optimization ideas
 
@@ -458,7 +457,18 @@ here.
 
 ## Drawbacks
 
-This requires teaching programmers the typename namespace rules.
+This requires teaching programmers to not blindly treat the thing on the right
+of `is` as an expression.
+
+Any `typename` typos are silent until the control flow reaches through the `is`
+expression, which then throws an error. This is already a problem with existing
+type guards anyhow, e.g. `typeof(x) == "nill"` will silently do nothing and
+always returns `false` (unless by chance its `__type` is `nill`...). Dynamically
+typed programming languages are already full of this class of bugs, e.g. field
+projections, mistyped locals resolves to a global, etc. The type system can be
+used to rescue users from typos, but the status quo remain no worse than before.
+
+
 
 TODO.
 
