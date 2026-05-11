@@ -94,12 +94,15 @@ function Foo(cb: Callback<(targetBar: Bar)> end
 -- cb shows (targetBar: Bar) -> ()
 ```
 
+
+
 ```luau
 type Foo<T...> = (T...) -> ()
 type Bar<T> = (T) -> ()
 
 type A = Foo<(a: number, number, label: number)> -- allowed
-type B = Foo<(x: number), (y: number)> -- allowed
+type B = Foo<(x: number), (y: number)> -- not valid
+type B = Foo<(x: number, y: number)> -- valid
 
 type C = Bar<(x: number, y: number)> -- Error: More than one type!
 type D = (num: number) -> () -- Already works in Luau, no changes!
@@ -141,6 +144,7 @@ type A = Foo<(x: number)> -- "arg" stays.
 type Foo<T> = (T) -> ()
 type A = Foo<(x: number)> -- "T" had no name, so it gets given one!
 ```
+
 
 
 
