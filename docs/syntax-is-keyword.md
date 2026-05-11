@@ -455,6 +455,91 @@ backward compatible with `x :: <type> is <typename>` due to the ambiguous parse.
 This is probably fine and not a problem, but it's better to be conservative
 here.
 
+### A different lens on the `typename` namespace
+
+Note that this is purely pedagogical. The compiler does not literally have this
+exact same operational model, i.e. no thunks are materialized, no `setfenv`
+calls are made, none of that.
+
+This construct is equivalent to the combination of things that Lua/Luau
+programmers already understand, if they know how `setfenv` works, they can
+internalize why the `typename`s are in scope only on the right side of `is` and
+not in scope as an ordinary expression.
+
+One way to internalize the intuition of the `typename` namespace is to treat the
+`is` expression as a macro.
+
+```luau
+x is <typename> -> is(x, function() return <typename> end)
+```
+
+By extracting the `typename` into a thunk and then treating it as an ordinary
+expression, we can then pass the thunk into the `is` function, and the `is`
+function is simply defined as:
+
+```luau
+const function is(x: unknown, t: () -> (class | (unknown) -> boolean)): boolean
+  -- If `pred` is a `function`, that can only be from the typename registry, so
+  -- the error message only reports an error if the user had some expression
+  -- that did not evaluate to a `class`.
+
+  local f = setfenv(t, typename_registry)
+  local pred = f()
+  return if typeof(pred) == "function" then pred(x)
+    else if typeof(pred) == "class" then class.instanceof(x, pred)
+    else error(`expected a \`class\`, got \`{typeof(pred)}\``)
+end
+```
+
+Now it's immediately obvious to us that the built-in global scope is completely
+inaccessible to the thunk, and the `typename_registry` is now set as the global
+scope in the thunk. The `typename_registry` just looks like this in the barebone
+environment:
+
+```luau
+const typename_registry = {
+  boolean = function(x) return type(x) == "boolean" end,
+  buffer = function(x) return type(x) == "buffer" end,
+  ["function"] = function(x) return type(x) == "function" end,
+  integer = function(x) return type(x) == "integer" end,
+  ["nil"] = function(x) return type(x) == "nil" end,
+  number = function(x) return type(x) == "number" end,
+  string = function(x) return type(x) == "string" end,
+  table = function(x) return type(x) == "table" end,
+  thread = function(x) return type(x) == "thread" end,
+  userdata = function(x) return type(x) == "userdata" end,
+  vector = function(x) return type(x) == "vector" end,
+  object = function(x) return type(x) == "object" end,
+  class = function(x) return type(x) == "class" end,
+}
+```
+
+And then the host-defined typenames are able to extend this registry:
+
+```luau
+const typename_registry = {
+  ... everything as before ...,
+
+  -- Roblox env
+  Instance = function(x) return typeof(x) == "Instance" end,
+  Part = function(x) return typeof(x) == "Instance" and x:IsA("Part") end,
+  Folder = function(x) return typeof(x) == "Instance" and x:IsA("Folder") end,
+
+  -- Enumerations
+  Enum = {
+    LuauTypeCheckMode = function(x)
+      return typeof(x) == "EnumItem" and x:IsA("LuauTypeCheckMode")
+    end,
+  },
+}
+```
+
+Now, `x is boolean` becomes `is(x, function() return boolean end)` under this
+lens, and that resolves to `typename_registry["boolean"]`, which then returns
+`function(x) return type(x) == "boolean" end`, and likewise `x is MyClass`
+becomes `is(x, function() return MyClass end)`, which simply delegates to
+`class.isinstance(x, MyClass)`.
+
 ## Drawbacks
 
 This requires teaching programmers to not blindly treat the thing on the right
