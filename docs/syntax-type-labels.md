@@ -160,5 +160,5 @@ And that sounds too complicated.
 
 You don't want it to be
 
-You don't want it to be ``( targetFoo: Foo: Player, (label1: number, label2: string) -> () ) -> ()``
+You want it to be ``( targetFoo: Foo: Player, (label1: number, label2: string) -> () ) -> ()``
 you want ``(targetFoo: Foo: Player, label1: number, label2: string) -> ()``.
