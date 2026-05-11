@@ -140,16 +140,15 @@ the typename registry, under the following constraints:
 
 1. It must not overwrite any built-in `typename`s.
 2. It cannot overwrite any `typename`s that have already been registered.
-3. It cannot register any new `typename`s once execution starts.
-4. No registered `typename`s can be retracted from the registry.
-5. The `typename` registry lives in the `global_State`, so no module-specific
+3. No registered `typename`s can be retracted from the registry.
+4. The `typename` registry lives in the `global_State`, so no module-specific
    host-defined `typename`s exist.
 
 The expectation is that `typename`s are globally stable and consistent, and no
-new `typename`s can show up or be invalidated at any arbitrary point in time. If
-the host environment has two different types of the same name, that's a design
-issue and the responsibility does not rest with us. Qualified paths are
-available as a disambiguation mechanism.
+`typename`s can be invalidated at any arbitrary point in time. If the host
+environment has two different types of the same name, that's a design issue and
+the responsibility does not rest with us. Qualified paths are available as a
+disambiguation mechanism.
 
 ### Value namespace vs typename namespace
 
