@@ -136,14 +136,6 @@ function Func2(): (a: number, b: number, c: number)
 end
 ```
 
-In the event where an annotation already has a name, we will keep the name if possible.
-```luau
-type Foo<T> = (arg: T) -> ()
-type A = Foo<(x: number)> -- "arg" stays.
-
-type Foo<T> = (T) -> ()
-type A = Foo<(x: number)> -- "T" had no name, so it gets given one!
-```
 
 
 
@@ -152,6 +144,13 @@ type A = Foo<(x: number)> -- "T" had no name, so it gets given one!
 
 - Most likely none, other than the implementation.
 - Whether ``(arg: T)`` should have ``"arg"`` replaced or not, if substituted by ``(x: number)``.
+
+
+We can't rename ``T`` here
+```luau
+type Foo<T> = (arg: T) -> ()
+type A = Foo<(x: number)> -- (x: number), does not count as a type pack
+```
 
 
 ## Alternatives
