@@ -141,8 +141,9 @@ type Func = () -> (x: number, y: number, z: number)
 ## Alternatives
 
 - A new syntax where it would be ``[x: number, y: number, z: number]`` or ``[x: number], [y: number], [z: number]``
+<br/>
 
-Type functions could expose modifying argument names, but that would only work for function annotations, not on a type alone.
+- Type functions could expose modifying argument names, but that would only work for function annotations, not on a type alone.
 There wouldn't be a way to attach a label to a type.
 
 ```luau
@@ -152,7 +153,7 @@ type MySignal = WrappedSignal<(label1: number, label2: string) -> ()>
 And this would also mean that ``WrappedSignal`` needs to implement a type function now, that takes out the argument names and transforms ``.FireToFoo``.
 And that sounds too complicated.
 
-You don't want it to be
 
-You want it to be ``( targetFoo: Foo: Player, (label1: number, label2: string) -> () ) -> ()``
-you want ``(targetFoo: Foo: Player, label1: number, label2: string) -> ()``.
+You don't want it to be ``( targetFoo: Foo: Player, (label1: number, label2: string) -> () ) -> ()``
+
+You want ``(targetFoo: Foo: Player, label1: number, label2: string) -> ()``.
