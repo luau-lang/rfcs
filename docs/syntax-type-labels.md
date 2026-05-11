@@ -3,7 +3,7 @@
 ## Summary
 
 Syntax type labels intended for generic types, allowing users to attach parameter names to types for use in argument types.
-This is to improve IntelliSense and autocomplete, and allows custom callbacks to show you argument names, instead of just the type.
+This is to improve IntelliSense and autocomplete, and allows custom callbacks to show you argument names instead of just the type.
 
 ## Motivation
 
@@ -14,15 +14,17 @@ type Callback = (x: number, y: number, z: number) -> ()
 
 local cb: Callback = function()
   --[[
-    IntelliSense shows you  cb: (x: number, y: number, z: number) -> ().
-    Luau Playground just shows cb: (number, number, number) -> ()
+    IntelliSense shows you
+		cb: (x: number, y: number, z: number) -> ().
+    Luau Playground just shows
+		cb: (number, number, number) -> ()
   --]]
 end
 ```
 
 But here in this case, a developer would immediately know what each of these type _represents_. In this case ``x``, ``y`` and ``z``.
 
-Luau and any embedder internally in the implementation, is able to define argument names in some way or another.
+Luau and any embedder internally within the implementation are able to define argument names in some way or another to types _procedurally_.
 But a developer is not able to replicate everything from the implementation itself.
 
 <br/>
