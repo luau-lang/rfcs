@@ -102,6 +102,7 @@ type A = Foo<(a: number, number, label: number)> -- allowed
 type B = Foo<(x: number), (y: number)> -- allowed
 
 type C = Bar<(x: number, y: number)> -- Error: More than one type!
+type D = (num: number) -> () -- Already works in Luau, no changes!
 ```
 
 <br/>
