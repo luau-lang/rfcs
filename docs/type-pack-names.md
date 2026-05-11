@@ -85,7 +85,7 @@ Names/Labels are only metadata:
 - They only improve front-end hints
 
 
-### Example:
+### Usage and Examples:
 
 ```luau
 type Callback<T...> = (T...) -> ()
@@ -107,7 +107,6 @@ type D = (num: number) -> () -- Already works in Luau, no changes!
 
 <br/>
 
-### Usage:
 ```luau
 type WrappedSignal<T...> = {
 	FireToFoo: (self: WrappedSignal<T...>, targetFoo: Foo, T...) -> (),
@@ -129,6 +128,9 @@ Nothing changes about the types own identity, it just gets associated with metad
 ```luau
 type MyNumber = (x: number)
 type Func = () -> (x: number, y: number, z: number)
+function Func2(): (a: number, b: number, c: number)
+  return 1,2,3
+end
 ```
 
 In the event where an annotation already has a name. The name would get overwritten if...
