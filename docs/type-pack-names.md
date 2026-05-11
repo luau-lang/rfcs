@@ -133,14 +133,13 @@ function Func2(): (a: number, b: number, c: number)
 end
 ```
 
-In the event where an annotation already has a name. The name would get overwritten if...
+In the event where an annotation already has a name, we will keep the name if possible.
 ```luau
-type Foo<T...> = (args: T...) -> ()
-type Foo_2<T> = (arg: T) -> ()
+type Foo<T> = (arg: T) -> ()
+type A = Foo<(x: number)> -- "arg" stays.
 
-type A = Foo<(number, number)> -- nothing changes about "args"
-type A = Foo<(x: number, y: number)> -- "args" would be gone if something substituted a generic
-type C = Foo_2<(x: number)> -- same here for "arg"
+type Foo<T> = (T) -> ()
+type A = Foo<(x: number)> -- "T" had no name, so it gets given one!
 ```
 
 
