@@ -68,11 +68,10 @@ And currently, there isn't a way to provide a name/label when using ``Callback<T
 
 ## Design
 
-This syntax here ``(number)`` is a type pack.
 
-And the idea is to allow to provide names in any type pack syntax.
+The idea is to allow to describe names in any valid type pack context.
 
-e.g. allowing you to do ``(x: number)`` without being exclusively restricted to function annotations anymore.
+e.g. allowing you to do ``Type<(x: number)>`` if ``Type<T...>`` without being exclusively restricted to function annotations anymore.
 
 Names/Labels are only metadata:
 - Names/Labels are NOT enforced in any type checking way
