@@ -4,7 +4,7 @@
 
 ## Summary
 
-This proposal suggests adding new methods to write & read `vector`s to/from `buffer`s.
+This proposal suggests adding new methods to write & read `vector`s to/from `buffer`s, and a `vector.width` field for querying the environment's vector width.
 
 ## Motivation
 
@@ -30,7 +30,22 @@ Each `writef32` or `readf32` performs an individual `memcpy`, and temporarily co
 
 ## Design
 
-Adding the following four new methods would fill this performance gap.
+### `vector.width`
+
+`LUA_VECTOR_SIZE` is a compile-time option on the Luau VM that determines whether the native `vector` type has 3 or 4 components. Luau does not currently expose the configured value to Luau code, which makes it difficult to write portable code that behaves correctly under both configurations (e.g. deciding how many floats to read back from a buffer).
+
+This proposal adds a new `vector.width` field:
+
+```luau
+vector.width : number
+```
+
+- Evaluates to `3` when `LUA_VECTOR_SIZE` is `3`, and `4` when `LUA_VECTOR_SIZE` is `4`.
+- Exposed as a field (not a function) because the value is constant for the lifetime of the VM, mirroring how `math.pi` and `math.huge` are exposed.
+
+### `buffer.writevector*` and `buffer.readvector*`
+
+Adding the following four new methods would fill the performance gap described above.
 
 ```luau
 buffer.writevector2(buf : buffer, offset : number, vec : vector) : ()
@@ -82,6 +97,8 @@ This proposal does not add any brand-new functionality. It increases the API sur
 
 ## Alternatives
 
-Given there is only one `vector` type, we considered proposing just two methods: `readvector`/`writevector`, that read/write 3 or 4 elements depending on `LUA_VECTOR_SIZE`. But given the existence of 2-element constructors, partial-construction might be popular.
+Given there is only one `vector` type, we considered proposing just two methods: `readvector`/`writevector`, that read/write 3 or 4 elements depending on `LUA_VECTOR_SIZE`. With `vector.width` exposed, such methods would be usable portably – a reader could advance its cursor by `vector.width * 4` bytes. However, this only works when the reading and writing VMs share the same `LUA_VECTOR_SIZE`; serializing across environments with different widths would still require the width to be recorded out-of-band. The explicit `readvector2`/`readvector3`/`readvector4` spelling avoids this ambiguity and preserves partial-construction, which we expect to be popular given the existence of 2-element constructors.
+
+For `vector.width`, we considered a function (`vector.width()`) or a boolean (`vector.isvector4`) instead of a field. A field is preferred because the value is constant for the VM's lifetime and because it generalizes cleanly if a future `LUA_VECTOR_SIZE` value is ever added.
 
 Another alternative is to expose simd operations on `buffer` itself – this might still be a useful extension for non-floating-point operations, but it would result in many more methods.
