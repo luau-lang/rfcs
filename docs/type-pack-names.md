@@ -105,6 +105,12 @@ type D = (num: number) -> () -- already works in Luau, no changes!
 type E = () -> (num: number) -- valid!
 ```
 
+```luau
+type Foo_2<A, T...> = (A, T...) -> ()
+type B = Foo_2<string, (x: number, y: number)> -- valid, T... is a type pack, A is not
+type B = Foo_2<(text: string), (x: number, y: number)> -- not valid "A", is not a type pack
+```
+
 <br/>
 
 ```luau
