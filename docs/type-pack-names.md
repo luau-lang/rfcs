@@ -2,7 +2,7 @@
 
 ## Summary
 
-Allowing users to always provide names within type packs, such as ``(x: number)`` syntax, would allow users to attach parameter names to a within a type pack.
+Allowing users to always provide names within type packs ``(T...)``, so that parameter names can be attached to types.
 This improves IntelliSense and autocomplete, and allows custom callbacks to show you argument names instead of just the type.
 
 ## Motivation
@@ -51,25 +51,20 @@ But you can see that ``targetFoo: Foo`` is present, but only because function an
 
 <br/>
 
-Luau already allows you to provide parameter names.
-
+Luau already allows you to provide parameter names within function annotations.
 ```luau
 (x: number) -> ()
 ```
 
-But when generic types are used, this information is no longer available
-
+But when generic type packs are used, this information is no longer available.
 ```luau
 type Callback<T...> = (T...) -> ()
 ```
 
 ``T...`` will only emit over types but not any names/labels.
 
-And currently, there isn't even syntax to provide a label when using ``Callback<T...>``
+And currently, there isn't a way to provide a name/label when using ``Callback<T...>``
 
-
-
-Why are we doing this? What use cases does it support? What is the expected outcome?
 
 ## Design
 
