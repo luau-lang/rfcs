@@ -71,13 +71,12 @@ And currently, there isn't a way to provide a name/label when using ``Callback<T
 
 The idea is to allow to describe names in any valid type pack context.
 
-e.g. allowing you to do ``Type<(x: number)>`` if ``Type<T...>`` without being exclusively restricted to function annotations anymore.
+Allowing you to do ``Type<(x: number)>`` if the base is ``Type<T...>`` without being exclusively restricted to function annotations anymore.
 
 Names/Labels are only metadata:
 - Names/Labels are NOT enforced in any type checking way
 - They don't affect the type itself
 - They only improve front-end hints
-
 
 ### Usage and Examples:
 
@@ -88,18 +87,22 @@ function Foo(cb: Callback<(targetBar: Bar)> end
 -- cb shows (targetBar: Bar) -> ()
 ```
 
+```luau
+type Bar<T> = (T) -> ()
+type A = Bar<(num: number)> -- not valid (T) is not a type pack!
+type MyNumber = (num: number) -- not valid not a type pack!
+```
 
 
 ```luau
 type Foo<T...> = (T...) -> ()
-type Bar<T> = (T) -> ()
 
 type A = Foo<(a: number, number, label: number)> -- allowed
 type B = Foo<(x: number), (y: number)> -- not valid
 type C = Foo<(x: number, y: number)> -- valid
 
-type D = (num: number) -> () -- Already works in Luau, no changes!
-type E = Bar<(num: number)> -- not valid because no type pack here!
+type D = (num: number) -> () -- already works in Luau, no changes!
+type E = () -> (num: number) -- valid!
 ```
 
 <br/>
@@ -123,7 +126,6 @@ Nothing changes about the types own identity, it just gets associated with metad
 
 
 ```luau
-type MyNumber = (x: number)
 type Func = () -> (x: number, y: number, z: number)
 function Func2(): (a: number, b: number, c: number)
   return 1,2,3
