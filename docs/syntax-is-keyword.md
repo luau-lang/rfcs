@@ -90,13 +90,10 @@ The EBNF for this expression is very small.
 
 ```diff
   exp ::= simpleexp { binop exp }
--       | unop exp { binop exp }
-+       | unaryexp { binop exp }
+        | unop exp { binop exp }
 +       | isexp { binop exp }
         | ascriptionexp { binop exp }
 
-+ unaryexp ::= unop exp
-+
 + complexexp ::= unop complexexp
 +              | simpleexp
 +
