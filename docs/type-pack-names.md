@@ -145,7 +145,6 @@ end
 ## Drawbacks
 
 - Most likely none, other than the implementation.
-- Whether ``(arg: T)`` should have ``"arg"`` replaced or not, if substituted by ``(x: number)``.
 
 
 We can't rename ``T`` here
