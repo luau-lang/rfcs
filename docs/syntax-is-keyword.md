@@ -1,5 +1,29 @@
 # `is` keyword
 
+## Table of contents
+
+- [Summary](#summary)
+- [Motivation](#motivation)
+- [Design](#design)
+  - [Syntax](#syntax)
+    - [Associativity of `is`](#associativity-of-is)
+    - [Precedence of `is`](#precedence-of-is)
+    - [Negation of `is`](#negation-of-is)
+    - [Grammar limitation](#grammar-limitation)
+  - [`typename`s](#typenames)
+    - [Built-in `typename`s](#built-in-typenames)
+    - [Host-defined `typename`s](#host-defined-typenames)
+    - [`typename` namespace](#typename-namespace)
+    - [Name resolution of `typename`](#name-resolution-of-typename)
+    - [A different lens on the `typename` namespace][diff-lens]
+  - [Calling conventions](#calling-conventions)
+  - [Optimization ideas](#optimization-ideas)
+    - [Partial evaluation](#partial-evaluation)
+    - [Prefix-sharing](#prefix-sharing)
+    - [Decision tree](#decision-tree)
+  - [Drawbacks](#drawbacks)
+  - [Alternatives](#alternatives)
+
 ## Summary
 
 Add a new expression of the form: `<expr> is not? <typename>`, describes what
@@ -109,7 +133,122 @@ less tightly than unary operators, and binds more tightly than binary operators,
 sharing no common production rules with `ascriptionexp`. So `not x is boolean`
 is `(not x) is boolean`, ditto `-v is Vector3` is `(-v) is Vector3` and so on.
 
-### Built-in `typename`s
+#### Associativity of `is`
+
+The `is` keyword is neither left nor right associative, just like `::`.
+
+So you cannot mix `::` and `is` without parentheses. The associativity of
+`::` and `is` is confusing, so they are mutually exclusive and requires
+parentheses.
+
+Consider `x is M.A :: T` for some arbitrary `T`. Is this:
+
+1. `x is (M.A :: typeof(MyClass))`, or
+2. `(x is M.A) :: boolean`?
+
+Obviously the first example cannot be parsed (as per the first grammar
+limitation), but recall that if the root name is a local, then it's plausible
+that `M.A :: typeof(MyClass)` is valid as one interpretation of the above
+expression. But trying to cast the typename is by definition nonsensical if the
+root name is a global, since in effect, you're trying to cast that typename to
+some other class type when it is already statically known.
+
+Not to mention that you literally have `MyClass` available to you already. Just
+write `x is MyClass`.
+
+The second parse is pointless since `is` always has type `boolean`, unless we
+prove `x <: T`, then its type is `true`, and dually `x </: T` => `false`, but if
+that were so, we can raise a lint warning that this check is redundant.
+
+Also consider `x :: a is number`. If Luau decides to implement user-defined type
+guards and the syntax for that is `x is number`, then the expression is not
+backward compatible with `x :: <type> is <typename>` due to the ambiguous parse.
+This is probably fine and not a problem, but it's better to be conservative
+here.
+
+#### Precedence of `is`
+
+To put the EBNF in concrete terms, the `is` keyword binds less tightly than all
+unary operators, and more tightly than any binary operators. Some examples:
+
+- `not x is boolean` -> `(not x) is boolean`
+- `-v is vector` -> `(-v) is vector`
+- `b and x is string` -> `b and (x is string)`
+- `x is string and b is boolean` -> `(x is string) and (b is boolean)`
+- `b == x is string` == `b == (x is string)`
+
+#### Negation of `is`
+
+The `not` keyword is allowed to come after the `is` keyword for ergonomic
+reasons, but also to disambiguate between these two possible parse trees:
+
+1. `(not b) is boolean`, and
+2. `not (b is boolean)`.
+
+This way, we get to define the expression `not b is boolean` to be the first,
+and the expression `b is not boolean` to be the second.
+
+#### Grammar limitation
+
+To make this unambiguous to parse, you cannot use parentheses in the right side
+of `is`/`is not`.
+
+```luau
+local is_boolean = b is (boolean)
+```
+
+This is already parsed as two distinct statements:
+
+```luau
+local is_boolean = b
+is(boolean)
+```
+
+This is intentional. It is almost assured that in real world code, people will
+want to write the typename on the right of `is` with a name as the first token,
+so we're taking advantage of that grammar, even if it's strictly less flexible
+as a grammar, e.g. Python allows `b is (bool if b else bool)`.
+
+We don't expect anyone to want to write `x is not if b then A else B`. In the
+unlikely event that someone did, the clearer form `if b then x is not A else x
+is not B` is available.
+
+### `typename`s
+
+One suggestion in the `class` RFC was to allow `class.isinstance` to work with
+certain primitives that have a built-in global library. That _technically_ works
+from the operational semantics point of view, but when you try to apply type
+system logic to that, it catastrophically falls apart in a rapid fashion.
+
+```luau
+function is_string(x: unknown)
+  return class.isinstance(x, string)
+end
+```
+
+Now, consider what happens if you want to check if it's `table` or `userdata` or
+`object`:
+
+```luau
+function is_shapelike(x: unknown): boolean
+  return class.isinstance(x, table)
+      or class.isinstance(x, ???) -- no userdata library
+      or class.isinstance(x, ???) -- no object library
+end
+```
+
+As you can see, this doesn't generalize. That's what `typename`s are intended to
+replace by generalizing it to work with `nil`, `function`, `boolean`, `number`,
+`userdata`, and any possible host-defined `typename`s, as well as any future VM
+primitives that come up with no global library associated. Not to mention that
+`coroutine` library creates a value called `thread`, which is a name mismatch.
+
+For those reasons, the `typename` on the right of `is`/`is not` does not have
+the usual name resolution logic that ordinary identifiers have. This is crucial
+as it allows various primitive types and host-defined `typename`s to be testable
+without a real value to rely on.
+
+#### Built-in `typename`s
 
 In a barebone environment, the default set of typenames are all the following
 built-in Luau VM primitives:
@@ -128,7 +267,7 @@ built-in Luau VM primitives:
 - `object`, and
 - `class`.
 
-### Host-defined `typename`s
+#### Host-defined `typename`s
 
 A host with its own environment is allowed to register additional `typename`s to
 the typename registry, under the following constraints:
@@ -145,50 +284,19 @@ environment has two different types of the same name, that's a design issue and
 the responsibility does not rest with us. Qualified paths are available as a
 disambiguation mechanism.
 
-### Value namespace vs typename namespace
-
-One suggestion in the `class` RFC was to allow `class.isinstance` to work with
-certain primitives that have a built-in global library, e.g.
-
-```luau
-function is_string(x: unknown)
-  return class.isinstance(x, string)
-end
-```
-
-But consider what happens if you want to check if it's `table` or `userdata` or
-`object`:
-
-```luau
-function is_shapelike(x: unknown): boolean
-  return class.isinstance(x, table)
-      or class.isinstance(x, ???) -- no userdata library
-      or class.isinstance(x, ???) -- no object library
-end
-```
-
-This RFC replaces that idea altogether by generalizing it to work with `nil`,
-`function`, `boolean`, `number`, `userdata`, and any possible host-defined
-`typename`s, as well as any future VM primitives that come up with no global
-library associated. Not to mention that `coroutine` library creates a value
-called `thread`, which is a name mismatch. That _technically_ works from the
-operational semantics point of view, but when you try to apply type system logic
-to that, it catastrophically falls apart in a rapid fashion.
-
-For that reason alone, the `typename` on the right of `is`/`is not` does not
-have the usual name resolution logic that ordinary identifiers have. This is
-crucial as it allows various primitive types and host-defined `typename`s to be
-testable without a real value to rely on.
+#### `typename` namespace
 
 Ordinarily, names are resolved through the "value namespace," but as evident by
-the fact that no value exists for certain primitives, `typename`s have to live
-in a different namespace, called the "typename namespace."
+the fact that no value exists for certain primitives, or the fact that `thread`
+is created by a library named `coroutine`, `typename`s have to live in a
+different namespace.
 
-The value namespace is the union of the local scope and the global scope,
-whereas the typename namespace is the union of the local scope and the typename
-registry, never interacting with the global scope.
+The `typename` namespace is the union of the local scope and the typename
+registry, whereas the value namespace is the union of the local scope and the
+global scope. This means `typename` namespace never interacts with the global
+scope.
 
-### Name resolution of `typename`
+#### Name resolution of `typename`
 
 Whether the typename resolves to the local scope or the typename registry
 depends on the _root_ name of the qualified path to the typename. The root name
@@ -251,16 +359,91 @@ function is_luau_typecheck_mode(x: unknown): boolean
 end
 ```
 
-### Negation of `is`
+#### A different lens on the `typename` namespace
+[diff-lens]: #a-different-lens-on-the-typename-namespace
 
-The `not` keyword is allowed to come after the `is` keyword for ergonomic
-reasons, but also to disambiguate between these two possible parse trees:
+Note that this is purely pedagogical. The compiler does not literally have this
+exact same operational model, i.e. no thunks are materialized, no `setfenv`
+calls are made, none of that.
 
-1. `(not b) is boolean`, and
-2. `not (b is boolean)`.
+This construct is equivalent to the combination of things that Lua/Luau
+programmers already understand, if they know how `setfenv` works, they can
+internalize why the `typename`s are in scope only on the right side of `is` and
+not in scope as an ordinary expression.
 
-This way, we get to define the expression `not b is boolean` to be the first,
-and the expression `b is not boolean` to be the second.
+One way to internalize the intuition of the `typename` namespace is to treat the
+`is` expression as a macro.
+
+```luau
+x is <typename> -> is(x, function() return <typename> end)
+```
+
+By extracting the `typename` into a thunk and then treating it as an ordinary
+expression, we can then pass the thunk into the `is` function, and the `is`
+function is simply defined as:
+
+```luau
+const function is(x: unknown, t: () -> (class | (unknown) -> boolean)): boolean
+  -- If `pred` is a `function`, that can only be from the typename registry, so
+  -- the error message only reports an error if the user had some expression
+  -- that did not evaluate to a `class`.
+
+  local f = setfenv(t, typename_registry)
+  local pred = f()
+  return if typeof(pred) == "function" then pred(x)
+    else if typeof(pred) == "class" then class.instanceof(x, pred)
+    else error(`expected a \`class\`, got \`{typeof(pred)}\``)
+end
+```
+
+Now it's immediately obvious to us that the built-in global scope is completely
+inaccessible to the thunk, and the `typename_registry` is now set as the global
+scope in the thunk. The `typename_registry` just looks like this in the barebone
+environment:
+
+```luau
+const typename_registry = {
+  boolean = function(x) return type(x) == "boolean" end,
+  buffer = function(x) return type(x) == "buffer" end,
+  ["function"] = function(x) return type(x) == "function" end,
+  integer = function(x) return type(x) == "integer" end,
+  ["nil"] = function(x) return type(x) == "nil" end,
+  number = function(x) return type(x) == "number" end,
+  string = function(x) return type(x) == "string" end,
+  table = function(x) return type(x) == "table" end,
+  thread = function(x) return type(x) == "thread" end,
+  userdata = function(x) return type(x) == "userdata" end,
+  vector = function(x) return type(x) == "vector" end,
+  object = function(x) return type(x) == "object" end,
+  class = function(x) return type(x) == "class" end,
+}
+```
+
+And then the host-defined typenames are able to extend this registry:
+
+```luau
+const typename_registry = {
+  ... everything as before ...,
+
+  -- Roblox env
+  Instance = function(x) return typeof(x) == "Instance" end,
+  Part = function(x) return typeof(x) == "Instance" and x:IsA("Part") end,
+  Folder = function(x) return typeof(x) == "Instance" and x:IsA("Folder") end,
+
+  -- Enumerations
+  Enum = {
+    LuauTypeCheckMode = function(x)
+      return typeof(x) == "EnumItem" and x:IsA("LuauTypeCheckMode")
+    end,
+  },
+}
+```
+
+Now, `x is boolean` becomes `is(x, function() return boolean end)` under this
+lens, and that resolves to `typename_registry["boolean"]`, which then returns
+`function(x) return type(x) == "boolean" end`, and likewise `x is MyClass`
+becomes `is(x, function() return MyClass end)`, which simply delegates to
+`class.isinstance(x, MyClass)`.
 
 ### Calling conventions
 
@@ -398,143 +581,6 @@ problem with prefix-sharing.
 
 [maranget]: https://dl.acm.org/doi/epdf/10.1145/1411304.1411311
 
-### Grammar limitations
-
-You cannot use parentheses in the right side of `is`/`is not`.
-
-```luau
-local is_boolean = b is (boolean)
-```
-
-This is already parsed as two distinct statements:
-
-```luau
-local is_boolean = b
-is(boolean)
-```
-
-This is intentional. It is almost assured that in real world code, people will
-want to write the typename on the right of `is` with a name as the first token,
-so we're taking advantage of that grammar, even if it's strictly less flexible
-as a grammar, e.g. Python allows `b is (bool if b else bool)`.
-
-We don't expect anyone to want to write `x is not if b then A else B`. In the
-unlikely event that someone did, the clearer form `if b then x is not A else x
-is not B` is available.
-
-You cannot mix `::` and `is` without parentheses. The associativity of `::` and
-`is` is confusing, so they are mutually exclusive and requires parentheses.
-
-Consider `x is M.A :: T` for some arbitrary `T`. Is this:
-
-1. `x is (M.A :: typeof(MyClass))`, or
-2. `(x is M.A) :: boolean`?
-
-Obviously the first example cannot be parsed (as per the first grammar
-limitation), but recall that if the root name is a local, then it's plausible
-that `M.A :: typeof(MyClass)` is valid as one interpretation of the above
-expression. But trying to cast the typename is by definition nonsensical if the
-root name is a global, since in effect, you're trying to cast that typename to
-some other class type when it is already statically known.
-
-Not to mention that you literally have `MyClass` available to you already. Just
-write `x is MyClass`.
-
-The second parse is pointless since `is` always has type `boolean`, unless we
-prove `x <: T`, then its type is `true`, and dually `x </: T` => `false`, but if
-that were so, we can raise a lint warning that this check is redundant.
-
-Also consider `x :: a is number`. If Luau decides to implement user-defined type
-guards and the syntax for that is `x is number`, then the expression is not
-backward compatible with `x :: <type> is <typename>` due to the ambiguous parse.
-This is probably fine and not a problem, but it's better to be conservative
-here.
-
-### A different lens on the `typename` namespace
-
-Note that this is purely pedagogical. The compiler does not literally have this
-exact same operational model, i.e. no thunks are materialized, no `setfenv`
-calls are made, none of that.
-
-This construct is equivalent to the combination of things that Lua/Luau
-programmers already understand, if they know how `setfenv` works, they can
-internalize why the `typename`s are in scope only on the right side of `is` and
-not in scope as an ordinary expression.
-
-One way to internalize the intuition of the `typename` namespace is to treat the
-`is` expression as a macro.
-
-```luau
-x is <typename> -> is(x, function() return <typename> end)
-```
-
-By extracting the `typename` into a thunk and then treating it as an ordinary
-expression, we can then pass the thunk into the `is` function, and the `is`
-function is simply defined as:
-
-```luau
-const function is(x: unknown, t: () -> (class | (unknown) -> boolean)): boolean
-  -- If `pred` is a `function`, that can only be from the typename registry, so
-  -- the error message only reports an error if the user had some expression
-  -- that did not evaluate to a `class`.
-
-  local f = setfenv(t, typename_registry)
-  local pred = f()
-  return if typeof(pred) == "function" then pred(x)
-    else if typeof(pred) == "class" then class.instanceof(x, pred)
-    else error(`expected a \`class\`, got \`{typeof(pred)}\``)
-end
-```
-
-Now it's immediately obvious to us that the built-in global scope is completely
-inaccessible to the thunk, and the `typename_registry` is now set as the global
-scope in the thunk. The `typename_registry` just looks like this in the barebone
-environment:
-
-```luau
-const typename_registry = {
-  boolean = function(x) return type(x) == "boolean" end,
-  buffer = function(x) return type(x) == "buffer" end,
-  ["function"] = function(x) return type(x) == "function" end,
-  integer = function(x) return type(x) == "integer" end,
-  ["nil"] = function(x) return type(x) == "nil" end,
-  number = function(x) return type(x) == "number" end,
-  string = function(x) return type(x) == "string" end,
-  table = function(x) return type(x) == "table" end,
-  thread = function(x) return type(x) == "thread" end,
-  userdata = function(x) return type(x) == "userdata" end,
-  vector = function(x) return type(x) == "vector" end,
-  object = function(x) return type(x) == "object" end,
-  class = function(x) return type(x) == "class" end,
-}
-```
-
-And then the host-defined typenames are able to extend this registry:
-
-```luau
-const typename_registry = {
-  ... everything as before ...,
-
-  -- Roblox env
-  Instance = function(x) return typeof(x) == "Instance" end,
-  Part = function(x) return typeof(x) == "Instance" and x:IsA("Part") end,
-  Folder = function(x) return typeof(x) == "Instance" and x:IsA("Folder") end,
-
-  -- Enumerations
-  Enum = {
-    LuauTypeCheckMode = function(x)
-      return typeof(x) == "EnumItem" and x:IsA("LuauTypeCheckMode")
-    end,
-  },
-}
-```
-
-Now, `x is boolean` becomes `is(x, function() return boolean end)` under this
-lens, and that resolves to `typename_registry["boolean"]`, which then returns
-`function(x) return type(x) == "boolean" end`, and likewise `x is MyClass`
-becomes `is(x, function() return MyClass end)`, which simply delegates to
-`class.isinstance(x, MyClass)`.
-
 ## Drawbacks
 
 This requires teaching programmers to not blindly treat the thing on the right
@@ -590,7 +636,7 @@ boilerplate.
    only when the expression `x is SomeLocal` is being executed.
 
 4. Instead of giving the `polarity` to the predicate functions, the host always
-   write a predicate that assumes `polarity == true` and the VM negates the
+   writes a predicate that assumes `polarity == true` and the VM negates the
    result on their behalf. This removes the `polarity` parameter from the
    calling convention.
 
