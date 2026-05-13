@@ -657,6 +657,17 @@ boilerplate.
    result on their behalf. This removes the `polarity` parameter from the
    calling convention.
 
+   Given that the registry is populated dynamically by the host, this escapes
+   the C/C++ compiler's analysis, and implies that the negation of the
+   predicates cannot be inlined. For predicates written as conjunctions, this
+   loses the short-circuit-on-false optimization that De Morgan law enables.
+   On that basis, removing this parameter would also mean there is no escape
+   hatch for predicates that are expensive to compute.
+
+   Although the performance gain is meager, the calling convention is also
+   modest and hosts that don't care about the optimization can satisfy the law
+   trivially with one line, so the authoring cost is negligible.
+
 5. Instead of a registry, `userdata` could have `__is` metamethod for `userdata`
    to participate in (locked in the same way `__namecall` and `__type` is), but
    that loses out on various optimization opportunities, since `__is` is opaque.
