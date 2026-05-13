@@ -21,8 +21,8 @@
     - [Partial evaluation](#partial-evaluation)
     - [Prefix-sharing](#prefix-sharing)
     - [Decision tree](#decision-tree)
-  - [Drawbacks](#drawbacks)
-  - [Alternatives](#alternatives)
+- [Drawbacks](#drawbacks)
+- [Alternatives](#alternatives)
 
 ## Summary
 
