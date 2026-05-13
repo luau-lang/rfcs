@@ -671,3 +671,43 @@ boilerplate.
 5. Instead of a registry, `userdata` could have `__is` metamethod for `userdata`
    to participate in (locked in the same way `__namecall` and `__type` is), but
    that loses out on various optimization opportunities, since `__is` is opaque.
+
+6. Instead of the `is` keyword, add a new built-in function `is(x, t)` where
+   `is` has the signature `(x: unknown, t: string | class) -> boolean`. The
+   tradeoff that's implicit in this is:
+
+   - occupies a fastcall slot
+   - requires pattern matching on `is(x, t)` for type refinements to trigger
+   - requires pessimistic codegen if the global scope was monkeypatched around
+   - optimization potentials are lost, e.g. partial evaluation, prefix sharing,
+     and decision tree is no longer possible.
+   - requires splitting on `.` in the string `t` to resolve qualified typenames
+
+7. We could make `typename`s a first-class citizen. For example, the expression
+   `typename buffer` can produce a value of type `typename`, and since it's a
+   first-class citizen, it can be stored in a local or be passed around like
+   it's nothing. This would turn the names that come after `typename` into plain
+   strings that gets resolved into a real `typename` before bytecode execution,
+   similar to function protos, and `x is buffer_t` for some `local buffer_t =
+   typename buffer` is equivalent to `x is typename buffer` under this alternate
+   design, or `x is buffer` under this RFC's current design.
+
+   This would require the type system to track which `typename`s are which,
+   which means `typename`s needs unique identifiers, e.g. `typename<"buffer">`
+   and `typename<"boolean">` et al, and any instantiations of `typename`s are
+   subtype of the top `typename` type called `typename`. But on principle, this
+   is doable and can be reasoned about statically.
+
+   This would also work as a disambiguation mechanism between the local `buffer`
+   and the global `buffer` and the typename `buffer` since the `typename`
+   expression doesn't care about the value namespace.
+
+   ```luau
+   function is_buffer(x: unknown): boolean
+     return x is typename buffer
+   end
+   ```
+
+   The tradeoff there is that we now have to teach users the difference between
+   `type`s and `typename`s. The `is` expression is also that much more verbose
+   when case-splitting on the type of a value.
