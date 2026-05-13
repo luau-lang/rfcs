@@ -458,17 +458,19 @@ The predicate function has the type:
 type Pred = (L: lua_State, x: unknown, polarity: boolean) -> boolean
 ```
 
+All predicate functions must satisfy the following law:
+
+- De Morgan: `pred(L, x, true) == not pred(L, x, false)`
+
+This is trivially discharged by `polarity == property` for some `property`,
+including logical conjunctions `propA and propB and propC`.
+
 The `polarity: boolean` parameter is purely for the host to have an opportunity
 to coax the C/C++ compiler to generate a short-circuiting logic for when
 `polarity == false` in the case that the host has authored a predicate as a
-series of logical conjunctions. This `polarity` is load-bearing, and the host is
-required to write a lawful predicate function satisfying:
-
-```
-pred(L, x, true) == not pred(L, x, false)
-```
-
-This is trivial by writing `polarity == (x and y)`.
+series of logical conjunctions, e.g. `not (a and b and c)` is equivalent to the
+condition `not a or not b or not c`, which short-circuits on the first satisfied
+disjunct.
 
 The typename registry resolver has the type:
 
