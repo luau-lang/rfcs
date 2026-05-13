@@ -1,8 +1,10 @@
 
-# Integral `number` singletons
+# Integral `number` singletons and heterogeneous arrays
 
 ## Summary
 Allow for singletons of the `number` primitive, similar to `boolean` (`true`/`false`).
+
+Allow for them to be used like table properties to form heterogeneous arrays.
 
 ## Motivation
 Programmers may want to use numeric constants as enumerations. Consider:
@@ -51,6 +53,8 @@ Certain runtimes may expose platform-level APIs that use enumerations that are r
 
 Programmers may want to annotate that a table only has a certain limited set of valid number indices.
 
+They may want to annotate that elements at different indices of a table have different types, opting for arrays instead of dictionaries for performance.
+
 ## Design
 
 Integral numeric literals valid in the value language (`0`, `0xF2`, `0b11001`, etc) will be made valid for use in the type language, similar to literals
@@ -69,23 +73,41 @@ if x == 1 or x == 2 then
 end
 ```
 
-They will be valid in the table indexer position:
+They may be used to define a dependent type similar to table properties:
 
 ```luau
 type T = {
-    [1 | 2]: string
+    [1]: string,
+    [2]: vector
 }
 
-local t: T = {...}
-print(t[1]) -- Ok, 1 <: 1 | 2
-print(t[3]) -- Type error, 3 </: 1 | 2
+local x: T = { "hello", vector.zero }
+local y = x[1] --> string
+local z = x[2] --> vector
+
+local a: 1 | 2 = getIndex()
+local w = x[a] --> string | vector
 ```
 
-Heterogeneous arrays are out of the scope of this RFC.
+They intersect like table properties:
+
+```luau
+type T = {
+    [1]: boolean
+}
+
+type U = {
+    [2]: buffer
+}
+
+type V = T & U --> { [1]: boolean, [2]: buffer }
+```
 
 ## Drawbacks
 * Increases complexity of the type system
 
 ## Alternatives
-* Allow for decimals instead of restricting to integers
-* Implement singletons for `integer`s
+* Allow for decimals
+* Singletons for `integer`s
+* Intervals/bounds
+* A type for NaN
