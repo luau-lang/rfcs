@@ -597,6 +597,21 @@ projections, mistyped locals resolves to a global, etc. The type system can be
 used to rescue users from typos, but the status quo remains no worse than
 before.
 
+While on the subject of namespace footguns, `typename`s can be shadowed by names
+in the local scope. This is no different from the locals-vs-global libraries
+though, for instance you could write `local buffer = buffer.create(8)`, and
+that's fine. But you now have a problem: you are unable to interact with this
+`buffer` via the `buffer` library unless you have a different name for the
+global library, or you rename the local, or you pass it off to a different
+subroutine that doesn't shadow `buffer`. This is a class of problems that Luau
+already has, and the type system can also be used to rescue users from this
+footgun:
+
+```luau
+local buffer = buffer.create(8)
+print(buffer is buffer) -- type error: `buffer` is not a valid typename.
+```
+
 This also requires the host to populate the `typename` registry so types from
 their environment can participate in the `is` keyword with all possible types
 from their environment. A solution that could alleviate this pain is to provide
