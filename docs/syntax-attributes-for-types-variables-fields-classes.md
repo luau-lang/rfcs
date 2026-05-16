@@ -138,7 +138,7 @@ local puppy = Puppy {
 }
 ```
 
-Class fields work the same as [Table Fields](#table-fields). Attributes placed before a `public` field declaration are attached to that class member.
+Class fields work the same as [Table Fields](#table-fields). Attributes placed before a `public` field declaration are attached to that class member:
 
 ```luau
 class PetSounds
