@@ -102,11 +102,12 @@ type Foo<T...> = (T...) -> ()
 
 -- Names are optional
 type A = Foo<(a: number, number, label: number)> -- allowed
-type B = Foo<(x: number), (y: number)> -- not valid
+
+type B = Foo<(x: number), (y: number)> -- not valid, they're not type packs
 type C = Foo<(x: number, y: number)> -- valid
 
 type D = (num: number) -> () -- already works in Luau, no changes!
-type E = () -> (num: number) -- valid!
+type E = () -> (num: number) -- valid
 ```
 
 ```luau
@@ -123,7 +124,6 @@ type WrappedSignal<T...> = {
 }
 
 type MySignal = WrappedSignal<(amount: number, message: string)>
-
 --[[
   MySignal.FireToFoo would become
     (self: WrappedSignal<T...>, targetFoo: Foo, amount: number, message: string) -> ()
