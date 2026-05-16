@@ -78,7 +78,7 @@ Names/Labels are only metadata:
 - They don't affect the type itself
 - They only improve front-end hints
 - Nothing changes about the types own identity, it just gets associated with a name.
-- The name is NOT forced.
+- The name is NOT forced and are completely optional.
 - Names propagate through type aliases.
 
 ### Usage and Examples:
