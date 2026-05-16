@@ -66,6 +66,7 @@ module.parrot = "cracker, now"
 return table.freeze(pet_sounds)
 ```
 
+#### Table Fields
 If the value of a field has attributes, those will be merged with the attributes defined on the field.
 With the attributes on the field having priority over the attributes on the value.
 For example: if both the value and the field have a `@deprecated` attribute, the `@deprecated` attribute on the value will be ignored.
@@ -137,7 +138,7 @@ local puppy = Puppy {
 }
 ```
 
-Class fields work the same as [Table Fields](#tables). Attributes placed before a `public` field declaration are attached to that class member.
+Class fields work the same as [Table Fields](#table-fields). Attributes placed before a `public` field declaration are attached to that class member.
 
 ```luau
 class PetSounds
