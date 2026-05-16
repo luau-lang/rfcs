@@ -92,7 +92,7 @@ function Foo(cb: Callback<(targetBar: Bar)> end
 
 ```luau
 type Bar<T> = (T) -> ()
-type A = Bar<(num: number)> -- not valid (T) is not a type pack!
+type A = Bar<(num: number)> -- not valid, '(T)' is not a type pack!
 type MyNumber = (num: number) -- not valid not a type pack!
 ```
 
