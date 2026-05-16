@@ -97,6 +97,7 @@ type MyNumber = (num: number) -- not valid not a type pack!
 ```luau
 type Foo<T...> = (T...) -> ()
 
+-- Names are optional
 type A = Foo<(a: number, number, label: number)> -- allowed
 type B = Foo<(x: number), (y: number)> -- not valid
 type C = Foo<(x: number, y: number)> -- valid
