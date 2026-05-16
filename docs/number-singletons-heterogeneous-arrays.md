@@ -103,6 +103,8 @@ type U = {
 type V = T & U --> { [1]: boolean, [2]: buffer }
 ```
 
+As syntactic sugar, `{ T, U }` as a table type will be evaluated as `{ [1]: T, [2]: U }`.
+
 ## Drawbacks
 * Increases complexity of the type system
 
