@@ -77,6 +77,9 @@ Names/Labels are only metadata:
 - Names/Labels are NOT enforced in any type checking way
 - They don't affect the type itself
 - They only improve front-end hints
+- Nothing changes about the types own identity, it just gets associated with a name.
+- The name is NOT forced.
+- Names propagate through type aliases.
 
 ### Usage and Examples:
 
@@ -107,9 +110,9 @@ type E = () -> (num: number) -- valid!
 ```
 
 ```luau
-type Foo_2<A, T...> = (A, T...) -> ()
-type B = Foo_2<string, (x: number, y: number)> -- valid, T... is a type pack, A is not
-type B = Foo_2<(text: string), (x: number, y: number)> -- not valid "A", is not a type pack
+type Mixed<A, T...> = (A, T...) -> ()
+type B = Mixed<string, (x: number, y: number)> -- valid, T... is a type pack, A is not
+type B = Mixed<(text: string), (x: number, y: number)> -- not valid "A", is not a type pack
 ```
 
 <br/>
@@ -127,7 +130,7 @@ type MySignal = WrappedSignal<(amount: number, message: string)>
 ]]
 ```
 
-Nothing changes about the types own identity, it just gets associated with metadata.
+
 
 <br/>
 
@@ -146,9 +149,10 @@ end
 ## Drawbacks
 
 - Most likely none, other than the implementation.
+- Union or intersections may keep a random name.
 
 
-We can't rename ``T`` here
+This RFC doesn't solve that we can't rename ``T`` here.
 ```luau
 type Foo<T> = (arg: T) -> ()
 type A = Foo<(x: number)> -- (x: number), does not count as a type pack
@@ -161,7 +165,7 @@ local e: Bar<(x: number, y: number)>
 
 ## Alternatives
 
-- A new syntax where it would be ``[x: number, y: number, z: number]`` or ``[x: number], [y: number], [z: number]``
+- A new syntax where it would be ``[x: number, y: number, z: number]`` or ``[x: number], [y: number], [z: number]``, that can be applied into types directly, other than within the type pack.
 <br/>
 
 - Type functions could expose modifying argument names, but that would only work for function annotations, not on a type alone.
