@@ -1,26 +1,26 @@
-# Allow attributes to be used on types, variables, and table fields
+# Allow attributes to be used on types, variables, fields, and classes
 
 ## Summary
 
-Allows [Attributes](./syntax-attributes-functions.md) to be applied to types, variables, and table fields in Luau.
+Allows [Attributes](./syntax-attributes-functions.md) to be applied to types, variables, table fields, classes, and class fields in Luau.
 
 ## Motivation
 
 Currently attributes can only be applied to functions, this means types cannot be marked as [`@deprecated`](./syntax-attribute-functions-deprecated.md).
-Nor can variables or table fields be marked as [`@deprecated`](./syntax-attribute-functions-deprecated.md).
+Nor can variables, table fields, classes, or class fields be marked as [`@deprecated`](./syntax-attribute-functions-deprecated.md).
 
 ## Design
 
-Note: With this RFC the internals for attributes will be able to state they can be applied to only certain bits of syntax, so one can't apply [`@native`](./syntax-attribute-functions-native.md) to a type or variable and have it work. Although this RFC does not state how this would be done in luaus internals.
+Note: With this RFC the internals for attributes will be able to state they can be applied to only certain bits of syntax, so one can't apply [`@native`](./syntax-attribute-functions-native.md) to a type, variable, class, or field and have it work. Although this RFC does not state how this would be done in Luau's internals.
 
-The following list proposes how attributes should be attached to each bit of syntax in luau (except functions and comments):
+The following list proposes how attributes should be attached to each bit of syntax in Luau (except functions and comments):
 
 ### Variables
 
 This exists as it could be useful for if for instance a constant is defined as a local variable and then exported:
 
 ```luau
-@[deprecated { use = "dog"}]
+@deprecated { use = "dog"}
 local puppy = "whimper"
 
 return table.freeze({
@@ -72,7 +72,7 @@ For example: if both the value and the field have a `@deprecated` attribute, the
 With the `@deprecated` attribute on the field being used instead.
 
 ```luau
-@[deprecated { reason = "cat is a more modern API"}]
+@deprecated { reason = "cat is a more modern API"}
 local function get_cat_sound()
 	return "meow"
 end
@@ -85,7 +85,7 @@ local bad_module = table.freeze({
 -- No lint occurs, because the @deprecated attribute of the 'get_cat_sound' function has been overridden
 -- by the @deprecated attribute of the field 'get_cat_sound'.
 local module = table.freeze({
-	@[deprecated{ use = "cat" }] get_cat_sound = get_cat_sound,
+	@deprecated { use = "cat" } get_cat_sound = get_cat_sound,
 	cat = "meow"
 })
 
@@ -111,7 +111,7 @@ type CanineSounds = {
 -- by the @deprecated attribute of the field 'puppy'.
 type PetSounds = {
 	-- Just like with tables, entries have their attributes merged with the values attributes.
-	@deprecated{ use = "dog" } puppy: Puppy,
+	@deprecated { use = "dog" } puppy: Puppy,
 	dog: "bark",
 	cat: "mrrp",
 }
@@ -119,6 +119,43 @@ type PetSounds = {
 
 Although type declarations can also have attributes directly after the `=`,
 
+### Classes
+
+```luau
+@deprecated { use = "Dog" }
+class Puppy
+	public sound: string
+end
+
+class Dog
+	public sound: string
+end
+
+-- DeprecatedApi: Class 'Puppy' is deprecated, use 'Dog' instead Luau(22)
+local puppy = Puppy {
+	sound = "whimper",
+}
+```
+
+Class fields work the same as [Table Fields](#tables). Attributes placed before a `public` field declaration are attached to that class member.
+
+```luau
+class PetSounds
+	@deprecated { use = "dog" }
+	public puppy: string
+
+	public dog: string
+end
+
+local sounds = PetSounds {
+	puppy = "whimper",
+	dog = "woof",
+}
+
+-- DeprecatedApi: Member 'puppy' is deprecated, use 'dog' instead Luau(22)
+print(sounds.puppy)
+```
+
 ## Drawbacks
 
-Allowing attributes to be on types, variables, and table fields, would be added complexity to the language. Although would be more inline with what a user would expect/want, as its odd from the perspective of a user that currently types can't be marked as deprecated.
+Allowing attributes to be on types, variables, table fields, classes, and class fields, would be added complexity to the language. Although would be more inline with what a user would expect/want, as its odd from the perspective of a user that currently types can't be marked as deprecated.
