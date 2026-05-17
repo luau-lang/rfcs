@@ -45,7 +45,9 @@ But in this case, the result of ``MySignal.FireToFoo`` would show up as:
 -- or
 (self: WrappedSignal<T...>, targetFoo: Foo, number, string)
 ```
-without any context or indication on what these provided types ``(number, string)`` are meant to represent.
+There is no context or indication on what these provided types ``(number, string)`` are meant to represent.
+You don't want to use a function annotation to fill in ``T...`` because we want ``(self: WrappedSignal<T...>, targetFoo: Foo, number, string)``
+and not ``(self: WrappedSignal<T...>, targetFoo: Foo, (number, string) -> ())``.
 
 But you can see that ``targetFoo: Foo`` is present, but only because function annotations specifically let you describe argument names, which APIs can pick-up on.
 
