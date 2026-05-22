@@ -61,18 +61,20 @@ There are subtle edge cases to consider here:
 
 `require()` will be adjusted to do the following:
 
-1. First, augment the module of the current script's export table with a new `CyclicDependencyError` metatable.  This metatable prohibits reads and writes to the table by raising an exception with a clear error message.
+1. First, save the current export table's metatable away, and replace it with a new `CyclicDependencyError` metatable.  This metatable prohibits reads and writes to the table by raising an exception with a clear error message.
 2. Look up the requested module in the cache to see if it has already been loaded or begun loading
-3. If a module is in the cache, return it immediately. Otherwise,
-4. Populate the cache with an empty table.
-5. Pass this new table to the target script as its sole argument and evaluate it.  This table can be accessed within the script via `...` at the top level.
-6. Once the module has been evaluated and returned a value, test to see if that value is the same as the table that was passed in.  If they are not the same, set `CyclicDependencyError` as the metatable on the original export table. (the one that wound up not being used)  The table will also be frozen for good measure.
-7. Replace the module cache result with the result of the module
-8. Strip `CyclicDependencyError` from the current script's export table.
+3. If a module is already present in the cache, return it immediately. Otherwise,
+    a. Populate the cache with a fresh table.
+    b. Pass this new table to the target script as its sole argument and evaluate it.  This table can be accessed within the script via `...` at the top level.
+    c. Once the module has been evaluated and returned a value, test to see if that value is the same as the table that was passed in.  If they are not the same, set `CyclicDependencyError` as the metatable on the original export table. (the one that wound up not being used)  The table will also be frozen for good measure.
+    d. Replace the module cache result with the result of the module
+4. Restore the current export table's metatable.
 
 This approach handles many cases, but has an important limitation:  A module that participates in a cycle can freely access imported symbols within function bodies, but not at the top level.  This is because those imported symbols cannot be guaranteed to have been evaluated yet.
 
-Step 6 covers an important edge case: In this design, the `require` function sometimes speculatively returns a table with the expectation that it will eventually become the export surface of the requested module.  If it is not, then we have a problem: We have already provided that table to other requesting modules\!  Luckily, this can only happen when we encounter a cycle between modules that do not accept the export table, so all we need to do is to mark that speculative export table as something that cannot be used.
+Step 3c covers an important edge case: In this design, the `require` function sometimes speculatively returns a table with the expectation that it will eventually become the export surface of the requested module.  If it is not, then we have a problem: We have already provided that table to other requesting modules\!  Luckily, this can only happen when we encounter a cycle between modules that do not accept the export table, so all we need to do is to mark that speculative export table as something that cannot be used.
+
+In almost all reasonable cases, we expect the current module's export table to have no metatable.  We specify that steps 1 and 4 save and restore it just to handle the odd case where someone is adding a metatable to the exports.  We do not consider this to be good style at all, but this adjustment is very easy.
 
 The new metatable `CyclicDependencyError` can roughly be defined as follows:
 
@@ -188,7 +190,7 @@ Today, typechecking is driven by a class called `Frontend`.  It accepts a set of
 
 We will augment this class to instead work on one strongly-connected component\* at a time.  All modules within an SCC use the same arena and are typechecked together in a single pass through the solver.
 
-\* A "strongly connected component" is a set of modules that all mutually `require()` one another.
+\* A "strongly connected component" is a set of 2 or more modules that all mutually `require()` one another. (eg if you had a require chain of `A -> B -> C -> A`, the SCC would consist of `A`, `B`, and `C`)
 
 A problem that a developer might run into is that, if their application consists of a very large SCC (their whole application, perhaps\!), their incremental typechecking performance will be very bad: Luau will have to recheck all files whenever any file in the SCC has changed.
 
