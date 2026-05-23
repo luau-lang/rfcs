@@ -37,7 +37,7 @@ function merge<T: number | vector>(a: T, b: T): {T}
     return {a, b}
 end
 ```
-### Roblox Instances
+### Preserving Subtypes
 Roblox Instances are especially prone to losing subtype information.
 ```luau
 local meshPart1: MeshPart, meshPart2: MeshPart
