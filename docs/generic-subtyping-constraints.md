@@ -23,7 +23,7 @@ merge(1, 1) -- ok!
 merge(vector.zero, vector.one) -- ok!
 merge(1, vector.zero) -- allowed in type checking, but not intended!
 ```
-Even with generics, we're unable to constrain which types of variables are able to be passed into `merge`.
+Even with generics, we are unable to constrain which types of variables are able to be passed into `merge`.
 ```luau
 function merge<T>(a: T, b: T): {T}
     return {a, b}
