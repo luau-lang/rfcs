@@ -29,7 +29,7 @@ end
 
 merge(1, 1) -- ok!
 merge(vector.zero, vector.one) -- ok!
-merge(1, vector.zero) -- allowed in type checking, but not intended!
+merge(1, vector.zero) -- allowed in type checking, but not intended.
 ```
 
 Even with generics, we are unable to constrain which types of variables are able to be passed into `merge`.
@@ -65,7 +65,7 @@ function transformParts(...: BasePart): {BasePart}
     return parts
 end
 
-local parts = transformParts(meshPart1, meshPart2) -- returns {BasePart}
+local parts = transformParts(meshPart1, meshPart2) -- returns '{BasePart}'
 ```
 
 This is a really common footgun. Whenever a more refined type gets passed in, the array becomes unrefined. Changing this into a generic constraint would look like:
@@ -75,7 +75,7 @@ function transformParts<T: BasePart>(...: T): {T}
     ...
 end
 
-local parts = transformParts(meshPart1, meshPart2) -- stays as {MeshPart}
+local parts = transformParts(meshPart1, meshPart2) -- stays as '{MeshPart}'
 ```
 
 ## Design
@@ -93,8 +93,8 @@ function merge<T: number | vector>(a: T, b: T): {T}
     return {a, b}
 end
 
-merge(1, 2) -- ok (T = number)
-merge(vector.zero, vector.one) -- ok (T = vector)
+merge(1, 2) -- ok, T is 'number'
+merge(vector.zero, vector.one) -- ok T is 'vector'
 merge(1, vector.zero) -- not ok, no single T can satisfy both args
 ```
 
@@ -113,7 +113,7 @@ local part: Part
 local meshPart: MeshPart
 local basePart: BasePart
 
-transform(part, meshPart) -- not ok. generic constraints will not infer BasePart (the common supertype), nor will it infer Part | MeshPart
+transform(part, meshPart) -- not ok. generic constraints will not infer BasePart (the common supertype), nor will it infer 'Part | MeshPart'
 transform(basePart, meshPart) -- not ok for the same reason as above
 ```
 
@@ -124,7 +124,7 @@ end
 
 local a = if math.random() > 0.5 then 1 else vector.zero -- number | vector
 local b = if math.random() > 0.5 then 1 else vector.zero -- number | vector
-printAdd(a, b) -- typing is ok. a, b are number | vector.
+printAdd(a, b) -- typing is ok. a, b are 'number | vector'.
 			   -- but, this can cause a runtime error if type(a) ~= type(b)
 ```
 Since the types passed into `printAdd` are `number | vector`, they already satisfy `T`.
@@ -132,10 +132,10 @@ Since the types passed into `printAdd` are `number | vector`, they already satis
 Explicitly putting a type on a generic is allowed as well as long as `T` is assignable to `Constraint`. This follows the same rules and design as above.
 
 ```luau
-printAdd<<number>>(1, 2) -- ok! T is explicitly number
-printAdd<<vector>>(vector.one, vector.zero) -- ok! T is explicitly vector
-printAdd<<number>>(vector.one, vector.zero) -- not ok. T is explicitly number, and vector cannot be casted to number
-printAdd<<string>>("hello", "foo") -- not ok. string is not assignable to number | vector
+printAdd<<number>>(1, 2) -- ok! T is explicitly 'number'
+printAdd<<vector>>(vector.one, vector.zero) -- ok! T is explicitly 'vector'
+printAdd<<number>>(vector.one, vector.zero) -- not ok. T is explicitly 'number', and 'vector' cannot be casted to 'number'
+printAdd<<string>>("hello", "foo") -- not ok. 'string' is not assignable to 'number | vector'
 ```
 
 ### Type Aliases
