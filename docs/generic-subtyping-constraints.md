@@ -76,9 +76,9 @@ merge(vector.zero, vector.one) -- ok (T = vector)
 merge(1, vector.zero) -- not ok, no single T can satisfy both args
 ```
 Meaning:
-- `T: A` implies that `T` must be assignable to `A`.
-- All occurrences of `T` in the function must resolve to the same inferred type. Types will not widen the given types to satisfy `A`. This means that inference will never choose union types in order to resolve `A`.
-- If no `T` can satisfy `A`, then the inputs are invalid.
+- `T: Constraint` implies that `T` must be assignable to `Constraint`.
+- All occurrences of `T` in the function must resolve to the same inferred type. Types will not widen the given types to satisfy `Constraint`. This means that inference will never choose union types in order to resolve `Constraint`.
+- If no `T` can satisfy `Constraint`, then the inputs are invalid.
 Therefore,
 ```luau
 function transform<T: BasePart>(x: T, y: T): T
@@ -103,7 +103,7 @@ printAdd(a, b) -- typing is ok. a, b are number | vector.
 ```
 Since the types passed into `printAdd` are `number | vector`, they already satisfy `T`.
 
-Explicitly putting a type on a generic is allowed as well as long as `T` is assignable to `A`. This follows the same rules and design as above.
+Explicitly putting a type on a generic is allowed as well as long as `T` is assignable to `Constraint`. This follows the same rules and design as above.
 ```luau
 printAdd<<number>>(1, 2) -- ok! T is explicitly number
 printAdd<<vector>>(vector.one, vector.zero) -- ok! T is explicitly vector
