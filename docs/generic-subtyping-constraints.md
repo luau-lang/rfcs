@@ -103,7 +103,9 @@ Meaning:
 - `T: Constraint` implies that `T` must be assignable to `Constraint`.
 - All occurrences of `T` in the function must resolve to the same inferred type. Types will not widen the given types to satisfy `Constraint`. This means that inference will never choose union types in order to resolve `Constraint`.
 - If no `T` can satisfy `Constraint`, then the inputs are invalid.
+
 Therefore,
+
 ```luau
 function transform<T: BasePart>(x: T, y: T): T
 
