@@ -138,8 +138,7 @@ end
 - Unions are able to create a false sense of safety and can lead to runtime errors if not careful.
 - Adding generic constraints is a massive step up in complexity for the type checker.
 ## Alternatives
-### Use overloads
-Overloads can perform a lot of what generic constraints aim to achieve, but is not scalable, and does not preserve subtype relationships. Overloads are also unable to represent relationships between generic parameters.
+- Use overloads. Overloads can perform a lot of what generic constraints aim to achieve, but is not scalable, and does not preserve subtype relationships. Overloads are also unable to represent relationships between generic parameters.
 ```luau
 local merge: (
 	(number, number) -> number &
@@ -149,5 +148,4 @@ local merge: (
 end
 -- works, but is more verbose and if more types need to be added here (like integers), we would need to just keep on adding overloads.
 ```
-### Do nothing
-Workarounds exist, but lead to code duplication or verbosity. This includes having an extra typecast every time a function is used, writing duplicate functions or writing a custom type functions. 
+- Do nothing. Workarounds exist, but lead to code duplication or verbosity. This includes having an extra typecast every time a function is used, writing duplicate functions or writing a custom type functions. 
