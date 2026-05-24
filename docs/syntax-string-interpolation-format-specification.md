@@ -32,7 +32,7 @@ local score = 1030
 print(`Score:\
 {score;05i}`)
 ```
-`Score`
+`Score`\
 `01030`
 
 ## Drawbacks
