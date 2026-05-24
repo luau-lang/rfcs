@@ -49,9 +49,9 @@ This RFC was originally denied due to the delimiter.
 
 - `,` was denied as it creates a false impression of adding an argument into the interpolated string. Some users might expect a function that returns `2, ".2f"` to use the second parameter as the format specifier.
 - `:` was denied as is used for namecalls, and conflating the symbol with string interpolation could cause confusion.
-- `|`, `&`, `#`, `=`, and `@` are all used in the language already. These would clash with how the symbols are already used in the language.
-- `!` does not seem like a good choice for Luau as it would introduce a new symbol to normal code when its only use currently is for comment directives.
+- `|`, `&`, `#`, `=`, `~`, and `@` are all used in the language already. These would clash with how the symbols are already used in the language.
 - `$` is reserved to not be used as a symbol in Luau.
+- `!` does not seem like a good choice for Luau as it would introduce a new symbol to normal code when its only use currently is for comment directives. This is the second best option.
 - `;` is already used in Luau to separate statements or to separate keys in dictionaries. It is never required to be used in Luau, and seems to be the least evil option as the delimiter. This feels like an acceptable extension to how `;`s are used today.
 
 Other alternative delimiters (like `%`) were denied due to issues with backwards compatibility.
