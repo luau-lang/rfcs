@@ -41,7 +41,7 @@ String interpolation is no longer safe for primitives and can error if the forma
 
 ## Alternatives
 
-- Keep on using `string.format` for format specification. This can be achieved by using `string.format` in place of string interpolation or nesting it within one.
+Keep on using `string.format` for format specification. This can be achieved by using `string.format` in place of string interpolation or nesting it within one.
 
 ### Delimiters
 
