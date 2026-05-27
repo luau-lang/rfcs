@@ -85,7 +85,8 @@ local CyclicDependencyError = {
     end,
     __newindex = function(self, prop, value)
         error(`Cannot set the exported field {prop} because it has a cyclic dependency on its requiring module`)
-    end
+    end,
+    __metatable = "The metatable is locked"
 }
 ```
 
@@ -221,3 +222,9 @@ class ClassBTwo extends A.ClassATwo ... end
 ```
 
 With the described design, we will produce a sensible error, but the restriction itself is fairly complicated and is likely to confuse users.  They will likely have to think a little bit about how to adjust the design of their code.
+
+## Alternatives
+
+This RFC goes to some lengths to specify how cycle support works for modules that don't use the new `export` keyword.  An alternative design would be to, instead of using `...` to hold the export table, to put it in some other place that's inaccessable within the current module as it's being evaluated.  This would simplify some of the edge cases because there would be no way, for instance, to attach a metatable to the current module's exports.
+
+The current proposal is not to do this because `...` is a preexisting mechanism that works really well to solve this class of problem and because the edge cases don't seem very difficult to deal with.
