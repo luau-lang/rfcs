@@ -49,6 +49,21 @@ This is equivalent to:
 type Callback = (name: string, age: number) -> ()
 ```
 
+When a type pack alias contains a single component, it can be used either as the entire parameter pack or inside a parenthesized parameter list:
+
+```luau
+type Named = (name: string)
+
+type CallbackA = Named -> ()
+type CallbackB = (Named) -> ()
+```
+
+Both function types are equivalent to:
+
+```luau
+type Callback = (name: string) -> ()
+```
+
 Component names are preserved as metadata, but they do not affect type compatibility:
 
 ```luau
@@ -58,30 +73,45 @@ type Unnamed = (string, number)
 
 The two packs have the same component types. The names are useful for tooling, diagnostics, documentation, and type functions, but they are not part of assignability.
 
-### Single-element packs
+### Single-component aliases
 
-Single-element packs need explicit syntax to distinguish them from grouped types.
+A parenthesized single component keeps its existing meaning in ordinary type positions.
 
 ```luau
 type Grouped = (string)
 ```
 
-This is still equivalent to:
+This is equivalent to:
 
 ```luau
 type Grouped = string
 ```
 
-A one-element type pack uses a trailing comma:
+A named single-component alias behaves the same way in ordinary type positions:
 
 ```luau
-type One = (string)
+type Named = (value: string)
 ```
 
-Named one-element packs use the same rule:
+This is treated as the underlying type:
 
 ```luau
-type OneNamed = (value: string)
+type Named = string
+```
+
+However, when the same alias is used in a type pack position, it expands as a single-component pack and preserves its component name:
+
+```luau
+type Named = (value: string)
+
+type CallbackA = Named -> ()
+type CallbackB = (Named) -> ()
+```
+
+Both are equivalent to:
+
+```luau
+type Callback = (value: string) -> ()
 ```
 
 ### Variadic packs
@@ -182,7 +212,7 @@ This RFC intentionally does not include insertion or removal methods. Type funct
 Type functions should be able to construct new packs:
 
 ```luau
-type function Optionalize(params: type)
+type function Optionalize<P...>(params: P...)
 	local result = types.newpack()
 
 	for index, component in params:components() do
@@ -263,19 +293,19 @@ type Params = (string, number)
 
 would now define a type pack alias rather than being rejected or interpreted as another construct.
 
-Single-element packs may also be confusing because:
+Single-component aliases may also be confusing because:
 
 ```luau
 type T = (string)
 ```
 
-looks like a grouped type, while:
+is equivalent to the underlying type in ordinary type positions:
 
 ```luau
-type T = (string,)
+type T = string
 ```
 
-would be a one-element pack. This distinction needs to be clearly documented.
+but can still expand as a single-component pack in type pack positions. This distinction needs to be clearly documented.
 
 Another drawback is that named pack components may create expectations that names affect type compatibility. This RFC explicitly treats names as metadata only, but users may still misunderstand this behavior.
 
