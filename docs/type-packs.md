@@ -286,14 +286,6 @@ This RFC adds the ability for type aliases to represent pack expressions and for
 
 This feature adds another kind of type-function runtime instance, increasing the surface area of the type-function API.
 
-It also introduces a new interpretation for some type aliases. For example:
-
-```luau
-type Params = (string, number)
-```
-
-would now define a type pack alias rather than being rejected or interpreted as another construct.
-
 Single-component aliases may also be confusing because:
 
 ```luau
@@ -306,13 +298,7 @@ is equivalent to the underlying type in ordinary type positions:
 type T = string
 ```
 
-but can still expand as a single-component pack in type pack positions. This distinction needs to be clearly documented.
-
-Another drawback is that named pack components may create expectations that names affect type compatibility. This RFC explicitly treats names as metadata only, but users may still misunderstand this behavior.
-
-This RFC intentionally avoids mutation operations that change pack length, such as inserting or removing components. This keeps the initial API smaller, but it means type functions that need to add or remove parameters must construct a new pack instead of modifying an existing one in place.
-
-Finally, implementing this RFC may require changes to type alias resolution, type-function runtime representation, function type APIs, generic pack handling, and error reporting.
+but can still expand as a single-component pack in type pack positions.
 
 ## Alternatives
 
