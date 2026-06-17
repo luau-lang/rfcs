@@ -181,12 +181,13 @@ type PackComponent = {
 A `pack` instance supports the following methods:
 
 ```luau
-pack:is(kind: "pack"): boolean
+pack:is("pack"): boolean
 
 pack:components(): { PackComponent }
 pack:getcomponent(index: number): PackComponent?
 pack:getcomponentbyname(name: string): PackComponent?
 
+pack:setcomponents(components: { PackComponent })
 pack:setcomponent(index: number, data: PackComponent)
 pack:setcomponentbyname(name: string, data: PackComponent)
 
@@ -212,7 +213,7 @@ This RFC intentionally does not include insertion or removal methods. Type funct
 Type functions should be able to construct new packs:
 
 ```luau
-type function Optionalize<P...>(params: P...)
+type function Optionalize(params: type)
 	local result = types.newpack()
 
 	for index, component in params:components() do
@@ -235,7 +236,7 @@ Function type runtime instances should expose their parameter and return type pa
 For example:
 
 ```luau
-type function ParamsOf<F>(callback: F)
+type function ParamsOf(callback: type)
 	if not callback:is("function") then
 		return types.never
 	end
