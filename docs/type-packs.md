@@ -173,7 +173,7 @@ A `pack` represents an ordered list of components and an optional tail.
 
 ```luau
 type PackComponent = {
-	name: string?,
+	name: type?,
 	type: type,
 }
 ```
@@ -188,8 +188,8 @@ pack:getcomponent(index: number): PackComponent?
 pack:getcomponentbyname(name: string): PackComponent?
 
 pack:setcomponents(components: { PackComponent })
-pack:setcomponent(index: number, data: PackComponent)
-pack:setcomponentbyname(name: string, data: PackComponent)
+pack:setcomponent(index: number, component: PackComponent)
+pack:setcomponentbyname(name: string, component: PackComponent)
 
 pack:tail(): pack? | type?
 pack:settail(tail: pack? | type?)
@@ -201,7 +201,7 @@ The `setcomponent` method replaces a component at an existing index:
 
 ```luau
 pack:setcomponent(1, {
-	name = "userId",
+	name = types.singleton("userId"),
 	type = types.string,
 })
 ```
@@ -324,7 +324,7 @@ For example:
 
 ```luau
 pack:setcomponentbyname("age", {
-	name = "years",
+	name = types.singleton("years"),
 	type = types.number,
 })
 ```
