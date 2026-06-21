@@ -72,3 +72,4 @@ return {
 * Allow importing `.luaurc`s as well
 * Have a different file extension for `.config.luau` dependencies
 * Allow any Luau module to be imported
+* Have pure data files that can be required instead
