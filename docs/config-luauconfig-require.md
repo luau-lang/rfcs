@@ -1,21 +1,19 @@
-# Support `require` in `.config.luau` files for other configs
+# Support `require` in `.config.luau` files
 
 ## Summary
 
-Allow `.config.luau` configuration files to call `require` exclusively to require other `.config.luau` files.
+Allow `.config.luau` configuration files to call `require` exclusively to require other `*.config.luau` files.
 
 ## Motivation
 
 Luau-syntax configuration files can contain more than just a `return` statement. This means that tools, such as package managers,
-cannot easily modify them to, for example, add new aliases for dependencies.
+cannot easily modify them to add new aliases for dependencies.
 
 ## Design
 
-Allow Luau-syntax configuration files to `require` other `.config.luau` scripts, which may be managed by development tools.
-They are identified as files with the file extension `.config.luau`.
+Allow Luau-syntax configuration files to `require` other `.config.luau` scripts.
+They are identified as modules with the file extension `.config.luau`.
 As per `require` semantics, the `.luau` extension is omitted in the call.
-
-The path component "`foo.config`" must resolve directly to a `foo.config.luau` file, and not a directory with an `init.lua(u)` file inside.
 
 Calls to `require` may use aliases defined by ancestral configuration files.
 
