@@ -11,8 +11,8 @@ cannot easily modify them to add new aliases for dependencies.
 
 ## Design
 
-Allow Luau-syntax configuration files to `require` other `.config.luau` scripts.
-They are identified as modules with the file extension `.config.luau`.
+Allow Luau-syntax configuration files to `require` other `*.config.luau` scripts.
+They are identified as modules with the file extension "`.config.luau`".
 As per `require` semantics, the `.luau` extension is omitted in the call.
 
 Calls to `require` may use aliases defined by ancestral configuration files.
@@ -55,8 +55,8 @@ return {
 
 return {
     dependencies = {
-        ["foo"] = "@hinapkg/packages/foo@version-42.0.1",
-        ["bar"] = "@hinapkg/packages/bar@version-1.5.0",
+        ["foo"] = "@hinapkg/packages/foo@42.0.1",
+        ["bar"] = "@hinapkg/packages/bar@1.5.0",
     },
 }
 ```
