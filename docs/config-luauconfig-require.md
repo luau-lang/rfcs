@@ -1,21 +1,33 @@
-# Support `require` in `.config.luau` files
+# Support `require` in Luau-syntax configuration files
 
 ## Summary
 
-Allow `.config.luau` configuration files to call `require` exclusively to require other `*.config.luau` files.
+Allow Luau-syntax configuration files to call `require` exclusively to require other `.config` modules.
 
 ## Motivation
 
-Luau-syntax configuration files can contain more than just a `return` statement. This means that tools, such as package managers,
-cannot easily modify them to add new aliases for dependencies.
+Developers, presently, cannot separate different parts of the configuration into different scripts as a way
+of organization.
+
+Additionally, tools, such as package managers, cannot easily modify Luau-syntax configuration files to add new
+aliases for dependencies, as they may contain implementation details that are not visible in the return value,
+such as code before the final `return` statement.
 
 ## Design
 
-Allow Luau-syntax configuration files to `require` other `*.config.luau` scripts.
-They are identified as modules with the file extension "`.config.luau`".
-As per `require` semantics, the `.luau` extension is omitted in the call.
+Allow Luau-syntax configuration scripts to `require` other [Luau-syntax configuration scripts](https://rfcs.luau.org/config-luauconfig.html).
+For consistency with the behavior of `require` in normal code, they are identified as [modules](https://rfcs.luau.org/amended-require-resolution.html#throw-an-error-if-multiple-files-matched)
+with the extension `.config`.
 
-Calls to `require` may use aliases defined by ancestral configuration files.
+Concretely, the following are all potential candidates for `require("./foo.config")`:
+* `./foo.config.luau`
+* `./foo.config.lua`
+* `./foo.config/init.luau`
+* `./foo.config/init.lua`
+
+Calls to `require` are able to use aliases defined by ancestral configuration files.
+
+The `.config.luau` file will remain as the exclusive entry point for Luau-syntax configuration scripts.
 
 `project/.config.luau`:
 
@@ -65,11 +77,11 @@ return {
 ## Drawbacks
 
 * Complexity of parsing configuration files increase
-* It can be un-idiomatic that there are two different kinds of `*.config.luau` files
+* It can be un-idiomatic that there are two different kinds of Luau-syntax configuration files, "real" configurations and dependencies of them
 
 ## Alternatives
 
 * Allow importing `.luaurc`s as well
-* Have a different file extension for `.config.luau` dependencies
+* Have a different file extension for Luau-syntax configuration dependencies
 * Allow any Luau module to be imported
-* Have pure data files that can be required instead
+* Have a different, pure data file type that can be required instead
