@@ -9,9 +9,10 @@ Allow Luau-syntax configuration files to call `require` exclusively to require o
 Developers, presently, cannot separate different parts of the configuration into different scripts as a way
 of organization.
 
-Additionally, tools, such as package managers, cannot easily modify Luau-syntax configuration files to add new
-aliases for dependencies, as they may contain implementation details that are not visible in the return value,
-such as code before the final `return` statement.
+Additionally, tools, such as package managers, cannot easily modify Luau-syntax configuration files as they
+may contain implementation details that are not visible in the return value, such as code before the final
+`return` statement.
+Package managers specifically may want to do this to create `require` aliases for dependencies.
 
 ## Design
 
