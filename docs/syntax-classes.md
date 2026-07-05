@@ -3,63 +3,90 @@
 ## Summary
 
 ```luau
-class Point
-    public x: number
-    public y
-
-    function length(self)
-        return math.sqrt(self.x * self.x + self.y * self.y)
-    end
-
-    function __add(self, other: Point)
-        return Point { x = self.x + other.x, y = self.y + other.y }
-    end
-
-    function __tostring(self)
-        return `Point \{ x = {self.x}, y = {self.y} \}`
-    end
-
-    function new(x, y)
-        return Point { x = x, y = y }
-    end
-end
-
-local p = Point.new(3, 4)
-print(`Check out my cool point: {p}  length = {p:length()}`)
+class Point  
+	public x: number  
+	public y: number  
+	private cachedLength: number?  
+  
+	constructor(x: number, y: number)  
+		self.x = x  
+		self.y = y  
+	end  
+  
+	function length(): number  
+		if not self.cachedLength then  
+			self.cachedLength = math.sqrt(self.x * self.x + self.y * self.y)  
+		end  
+	  
+		return self.cachedLength  
+	end  
+  
+	function __add(other: Point): Point  
+		return Point(self.x + other.x, self.y + other.y)  
+	end  
+  
+	function __tostring(): string  
+		return `Point \{ x = {self.x}, y = {self.y} \}`  
+	end  
+end  
+  
+local p = Point(3, 4)  
+print(p:length()) -- 5.0 
 ```
+This RFC proposes native class syntax with:
+- `public` & `private` fields
+- constructors
+- implicit `self` for instance methods
+- nominal typing
+- native class instances
+- supported metamethods
+
 
 ## Motivation
 
-* People write object-oriented code.  We should afford it in a polished way.
-* Accurate type inference of `setmetatable` has proven to be very difficult to get right.  Because of this, the quality of our autocomplete isn't what it could be.
-* A construct with a fixed shape and a completely locked-down metatable will open up optimization opportunities that could improve performance:
-    * If classes can only be declared at the top scope, then we know that each method of each class has exactly one instance.  This makes it simple for the compiler to know the exact function that will be invoked for any method call expression.
-    * If a value is known to be an instance of a particular class, the bytecode compiler should be able optimize method calls to skip the whole `__index` metamethod process and instead generate code to directly call the correct method.
-    * By the same token, method calls can be inlined more aggressively.  Particularly self-method calls eg `self:SomeOtherMethod()`
-    * Field accesses can compile to a simple integral table offset so that the VM doesn't need to do a hashtable lookup as the program runs.
-    * Since every instance of a class has the same set of properties, we can split the hash table: The set of fields can be associated with the class and instances only need to carry the values of those fields.  We think this can improve performance by improving cache locality.
+Many Luau users write object-oriented code today.  It should be a first-class, polished feature.
+
+Accurate type inference of `setmetatable` has proven to be very difficult to get right. Because of this, the quality of autocomplete and type inference for object-oriented code is not as effective as it could be. A native class construct provides explicit semantics that are significantly easier for both the compiler and type checker to reason about. This allows class types to be nominal, instance layouts to be known statically, and member access to be analyzed more accurately.
+
+Likewise, a construct with a fixed shape and a completely locked-down metatable will open up optimization opportunities that could improve performance:
+- If classes can only be declared at the top scope, then we know that each method of each class has exactly one instance. This makes it simple for the compiler to know the exact function that will be invoked for any method call expression.
+- If a value is known to be an instance of a particular class, the bytecode compiler should be able optimize method calls to skip the whole  `__index`  metamethod process and instead generate code to directly call the correct method.
+- By the same token, method calls can be inlined more aggressively, such as self-method calls like  `self:SomeOtherMethod()`.
+-   Field accesses can compile to a simple integral table offset so that the VM doesn't need to do a hashtable lookup as the program runs.
+- Instance layouts can be split from field metadata to improve cache locality.
+
+However, a class abstraction is more than a fixed-layout record with attached methods. Constructors and encapsulation are fundamental components of a class abstraction and establish the model developers interact with daily. Designing these semantics alongside the core class syntax results in a more cohesive feature than introducing them in separate RFCs after the surface language has already been established.
 
 ## Design
 
 ### Syntax
 
-Class definitions are a block construct.  They can only be written at the topmost scope.  `export class X` is allowed.
+Class definitions are a block construct. `export class X` is allowed. 
+
+Fields are introduced with the new `public` and `private` keywords. Members are public only when explicitly marked `public`.
+
+```luau
+class Player
+    public name: string
+    private coins: number = 0
+end
+```
+A class may declare:
+ - fields
+ - one constructor
+ - methods
+ - supported metamethods
+
+Classes are closed declarations. Fields, constructors, methods, and metamethods may only be declared within the lexical body of the class. Instance methods are invoked using `instance:method()` syntax. References to instance methods may be obtained through `Class.method` syntax.
+
+```luau
+local fn = Player.method
+fn(player)
+```
+
+Instance methods and constructors implicitly receive a local binding named `self`, whose type is the enclosing class. This binding is available within constructors, methods, and metamethods.
 
 Defining two classes with the same name in the same module is forbidden.
-
-Within a class block, two declarations are allowed: Fields and methods.
-
-Fields are introduced with the new `public` keyword.  We also plan to eventually offer `private`, but is sufficiently complex that it merits its own RFC.
-
-Methods are introduced with the familiar `function` keyword.  `public function f()` is also permitted.
-
-Methods defined on class objects can be accessed either via `Class.method()` or `instance:method()` syntax.
-
-If a method's first argument is named `self`, it should be invoked with the familiar `instance:method()` call syntax.  This is not strictly required, but the compiler and optimizers may deoptimize code that doesn't.  Type annotations on the `self` parameter are not allowed.
-
-If a method accepts no arguments or if its first argument is not named `self`, it should be invoked via `Class.method()` syntax.  This is the same as "static methods" from other languages.
-
-To create a new instance of a class, invoke it as if it were a function.  It accepts one argument: A table that describes the initial values of all its properties.  If more customization is desired, static factory functions (frequently named `new()` or `create()`) are an easy, familiar way to accomplish this.
 
 Classes can define the following Luau metamethods.  They all work just like they do on a metatable:
 
@@ -83,9 +110,69 @@ Classes can define the following Luau metamethods.  They all work just like they
 For forward-compatibility, it is a syntax error to define any other method whose
 name starts with two underscores.
 
+#### Constructors
+Classes may define a constructor using the contextual keyword `constructor`.
+```luau
+class Player
+    public name: string
+
+    constructor(name: string)
+        self.name = name
+    end
+end
+```
+Instances are constructed by calling the class.
+```luau
+local p = Player("Builderman")
+```
+Additional rules include:
+- Only one constructor is allowed per class.
+- Constructors do not return values.
+- Constructors cannot be invoked directly.
+- Default field initializers execute before the constructor body.
+- If no constructor is declared, a default zero-argument constructor is synthesized. Field default initializers still run. 
+- Fields without default initializers are initialized to `nil`. 
+- A field whose declared type does not include `nil` must be definitely assigned by either a field initializer or every control-flow path through the constructor. Failing to do so is a type error.
+
+For examples of a class with no constructor, this:
+```
+class Player  
+end
+```
+would be identical to this:
+```
+class Player  
+	constructor()  
+	end  
+end
+```
+
+A constructor is a special instance member whose sole purpose is initialization. Unlike a factory function, it is automatically invoked when a class object is called and cannot return a value.
+
+#### Access Control
+Fields are public only when explicitly marked `public`.  Private members are accessible only from within the lexical body of the enclosing class declaration.
+```luau
+class Player
+    private coins: number = 0
+
+    function Coins()
+        return self.coins
+    end
+end
+
+local p = Player("Builderman")
+print(p.coins) -- error
+```
+Likewise, methods cannot be defined outside the class declaration. This allows encapsulation to be enforced lexically, guarantees a stable object layout, and simplifies compiler optimization.
+```luau
+function Player:GetCoins() -- syntax error
+	return self.coins
+end
+```
+
 #### Class Objects
 
-The action of evaluating a class definition statement introduces a *class object* in the module scope.  A class object is a value that serves as a factory for instances of the class and as a namespace for any functions that are defined on the class.
+The action of evaluating a class definition statement introduces a *class object* in the module scope.  A class object is a value that serves as a factory for instances of the class and as a namespace for methods that are defined on the class.
 
 Class objects behave like class instances in most ways, but are always `const` and frozen.
 
@@ -95,7 +182,7 @@ Taking references to class methods via `ClassName.method` syntax is allowed so t
 local n = pcall(SomeClass.getName, someClassInstance)
 ```
 
-To construct an instance of a class, call the class object as though it were a function.  It accepts a single argument: a table-like value that contains initial values for all the fields.  While it will typically be most useful to pass a table literal to this function, that isn't the only use.  For example, any class can be shallowly cloned by passing it to its class constructor: `local clone = MyClass(original)`
+To construct an instance of a class, call the class object as though it were a function. If the class defines a constructor, the provided arguments are forwarded directly to that constructor. If no constructor is defined, a default zero-argument constructor is synthesized. Constructors initialize the newly allocated instance and do not return values.
 
 The top type of all class objects is named `class`.  `type()` and `typeof()` return `"class"` when passed a class object.
 
@@ -108,6 +195,8 @@ Class instances are a new type of value in the VM.  They are similar but not qui
 Reading or writing a nonexistent class property raises an exception.  This makes it easy to disambiguate between a nonexistent property and a property whose value is nil.
 
 We introduce a new top type for class instances: `object`.  The builtin `type()` and `typeof()` functions return `"object"` for any class instance.  We chose this over having them return the class name because class names do not have to be globally unique (they must only unique within a single module) and because we do not want to make it possible for classes to impersonate other types.
+
+Private fields participate in object layout normally but are inaccessible outside the lexical class declaration.
 
 ```luau
 class Cls end
@@ -135,7 +224,7 @@ local class: {
 
 This library also serves as an obvious extension point for future features like reflection.
 
-The function `class.isinstance(o, Class)` returns `true` if the object `o` is an instance of `Class`.  At runtime, it raises an exception if the second argument is not a class object.  If the first argument is not a class instance, `class.isinstance` returns false.  (eg `class.isinstance(5, MyClass)`)
+The function `class.isinstance(o, Class)` returns `true` if the object `o` is an instance of `Class`.  At runtime, it raises an exception if the second argument is not a class object.  If the first argument is not a class instance, `class.isinstance` returns false.  (Ex: `class.isinstance(5, MyClass)`)
 
 ### Type System
 
@@ -145,7 +234,7 @@ Unlike tables, which are structurally typed, class types are nominal.  Two diffe
 
 Inferring the types of class fields is fraught with difficulty, so un-annotated fields are given the type `any`.
 
-The type introduced by a class definition is available anywhere in the source file.
+The type introduced by a class definition is available anywhere in the source file. Within instance methods and constructors, the implicit `self` binding is typed as the enclosing class.
 
 The `class.isinstance` function participates in refinement:
 
@@ -165,7 +254,7 @@ Class definitions are Luau statements just like function definitions.
 
 The action of a class definition statement is to allocate the class object, define its functions and properties, and freeze it.  Consequently, a class cannot be instantiated before this statement is executed.
 
-We do, however, *hoist* the class identifier's binding to the top of the script so that it can be referred to within functions or classes that lexically appear before the class definition.  This makes it easy and straightforward for developers to write classes or functions that mutually refer to one another.
+Unlike the accepted proposal, class declarations are not runtime-hoisted. They behave like ordinary Luau declarations. Forward type references continue to work through the existing type solver.
 
 Static analysis also considers the class's type to be global to the whole module so that it can appear in any type annotation anywhere in the script.
 
@@ -173,7 +262,7 @@ An example:
 
 ```luau
 -- illegal: MyClass is not yet defined
-local a = MyClass {}
+local a = MyClass()
 
 -- OK: MyClass can appear in any type annotation anywhere
 function use(c: MyClass)
@@ -181,7 +270,7 @@ end
 
 function create()
     -- OK as long as this function is invoked after the class definition statement
-    return MyClass {}
+    return MyClass()
 end
 
 -- We can't statically catch this in the general case, but this will fail at runtime!
@@ -190,7 +279,7 @@ create()
 class MyClass
 end
 
-local b = MyClass {} -- OK
+local b = MyClass() -- OK
 local c = create() -- OK
 ```
 
@@ -202,39 +291,57 @@ local globalCount = 0
 class Counter
     public count: number
 
-    function new()
-        local count = globalCount
+    constructor()
+        self.count = globalCount
         globalCount += 1
-        return Counter {count=count}
     end
 end
 ```
 
+When a class object is invoked, the runtime order is as follows:
+
+1. Allocate a new instance of the class.
+2. Initialize fields using any default initializers.
+3. Invoke the class constructor, if one exists.
+4. Return the initialized instance.
+
 ### Out of scope for now
 
-#### Private fields, const fields
+#### Const/Static fields
 
-These are things we want to do, but integrating them with the existing structural type system is surprisingly tricky and will be tackled in separate RFCs.
+The keyword `static` will be reserved for future RFCs. 
 
 #### Generic classes
 
-We're very excited to support generic classes and plan to introduce a fresh RFC to deal with them specifically.
+This is another feature complex enough to demand its own RFC.
 
 #### Inheritance
 
-We're still evaluating whether or not implementation inheritance is something we want to support.
+Inheritance's worth as a programming technique is controversial: the [Fragile Base Class Problem](https://en.wikipedia.org/wiki/Fragile_base_class) can cause significant harm to a project.
 
-Method inlining is something we'd like to try that is greatly complicated by inheritance.
+Method inlining is also greatly complicated by inheritance.
 
-Also, frankly, its worth as a programming technique is controversial: the [Fragile Base Class Problem](https://en.wikipedia.org/wiki/Fragile_base_class) can cause significant harm to a project.
+#### Composition
 
-Lastly, while Luau doesn't quite properly afford interface inheritance through its structural type system, this shortfall is relatively easy to fix.  Because of this, implementation inheritance is judged to be lower priority.
+Whether Luau should support composition-specific language features is also outside the scope of this RFC.
+
+## Compatibility
+
+This proposal intentionally changes several aspects of the accepted Classes RFC:
+
+- dedicated constructors replace table-based construction
+- class declarations are no longer runtime-hoisted
+- encapsulation is introduced
+- instance methods receive an implicit `self`
+- classes become closed declarations
+
+No implementation of the accepted RFC currently exists, so these changes do not affect existing Luau programs.
 
 ## Drawbacks
 
 This is a really big feature that has lots of moving parts!
 
-We need to introduce multiple new contextual keywords: `class` and `public` to start and `private` later.  We also introduce two new top types `object` and `class`.
+We need to introduce multiple new contextual keywords: `class`,`public`, `constructor` and `private`.  We also introduce two new top types `object` and `class`.
 
 Allowing code to grab unbound method references (ie `local m = o.someMethod`) seems risky because it opens the doorway to a lot of difficult-to-optimize dynamism, but it also makes a bunch of nice things like `pcall` work exactly the way developers expect.  We're making the bet here that this does not materially affect our ability to optimize more mundane attribute access or method calls.
 
@@ -244,47 +351,28 @@ Object oriented codebases tend to have far more cyclic dependencies between modu
 
 ## Alternatives
 
-[Arseny's record proposal](https://github.com/luau-lang/luau/blob/7f790d3910bbfc2adf007da3551b0a13e42ebb7a/rfcs/records.md).  This proposal is really quite similar, but looks a bit more familiar to users coming from other languages and affords the development of features like private fields.
+### Accepted Class RFC
+The currently merged class RFC is much smaller in scope but still lays out the foundation for native OOP in Luau and can still be amended with later RFCs for the features it's currently missing.
 
-[Shared Self Types](https://github.com/luau-lang/rfcs/blob/master/docs/shared-self-types.md).  This proposal was intended to shore up table type inference in the case that the code was written in an OO style, but after significant work, it doesn't actually work all that well in practice.  The resulting system was very brittle and tricky to work with.  Trickier, in fact, than the pattern that developers are already writing today.
+### Explicit Self
+An explicit `self` can make instance methods more readable but creates boilerplate code. Type annotations for `self` also wouldn't be allowed.
 
-### Field syntax
+### Constructor syntax
+This RFC uses a dedicated `constructor` declaration instead of requiring constructors to be expressed as ordinary methods or metamethod-like hooks.  
+  
+A dedicated constructor has a few advantages:  
+  
+- It separates object initialization from normal instance behavior.  
+- It avoids making construction look like an ordinary method call.  
+- It avoids reserving conventional method names such as `new`.  
+- It does not resemble a Luau metamethod, unlike names beginning with `__`.  
+- It allows class invocation syntax, `Point(...)`, to have one clear meaning.
 
-We considered a number of possibilities for field syntax before settling on `public` and `private`.
+Alternatives such as `new` or `__init` would make construction appear to be either a normal method or a metamethod-like hook, even though construction has special language semantics.
 
-Type annotations must be optional, so the syntax we choose must work well in that situation.
-
-We considered using the existing `local` keyword for class fields, but judged it to be a bridge too far: Fields are not locals!  They do not inhabit the stack.
-
-We also considered using no keyword at all and judged that to be unacceptable in the case that a field also has no type annotation.  A single bare identifier on a line all by itself looks too weird and might make the grammar difficult to change later on.
-
-So there must be a keyword and it cannot be `local`.  Other keywords we considered were `var`, `let`, and `field`.
-
-```luau
-class Test
-    local foo
-
-    public foo
-    public foo2: number
-
-    private local foo2: number
-    private foo3: number
-
-    var bar
-    var bar2: number
-
-    field bar
-    field bar2: number
-
-    quux
-    quux2: number
-end
-```
-
-`let` is a great keyword to introduce a local binding, but does not make a ton of sense in a class declaration. (especially a declaration where we’re not providing an initializer!)
-
-`var` is pretty good and also makes sense as a token to introduce a local, but is largely redundant.
-
-`field` is spiritually aligned with the syntax sensibilities that drove the development of Lua, but has no precedent in any other language.
-
-`public` and `private` work pretty well from a parsing perspective, have no historical precedent in Lua, and also encode ideas that we definitely want classes to support.
+## Open Questions
+- Should explicit `public` remain required, or should public be the default?
+- Should constructorless classes synthesize a default constructor or support table initialization?
+- Should `static` be reserved for the future? Are static fields and methods necessary?
+- Should `super` and `protected` be reserved despite inheritance's drawbacks?
+- Should definite assignment analysis be required, or should initialization rules be simplified?
