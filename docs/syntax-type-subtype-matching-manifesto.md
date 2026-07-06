@@ -64,6 +64,8 @@ to rely on subtyping. is there a more intuitive way to handle issues with covari
 - is there any other surprising (bad) behavior these packs will exhibit with existing subtyping rules?
 - can type inference construct matches? if no, and if runtime matching were to ever exist, could type inference then
 infer these types usefully?
+- can the type system verify returns with match types? if no, is runtime matching a prerequisite to implementing this
+rfc?
 - could the type system infer generic bounds from match syntax?
 - will this mesh with type pack unions?
 
