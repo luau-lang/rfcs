@@ -19,7 +19,7 @@ types, and user experience. this rfc aims to:
 - enable an expeditious implementation timeline with good room for improvement from type pack functions & native support
 - make cohesive type-level programming patterns more idiomatic to improve user experience and adoption within luau's new
 type solver
-- provide major performance benefits over traditional function overloads due to the linear priority and 
+- provide major performance benefits over traditional function overloads via linear shortcircuiting
 
 ## design
 
@@ -31,8 +31,6 @@ respecting covariance. a built-in implementation could improve performance & inf
 formalizing this, but it does not need to exist at first.
 - runtime match expressions are intentionally out of scope for this rfc, and it seems like a bad choice to limit
 ourselves to matches testable at runtime
-- shortcircuiting should have major performance advantages over traditional overloading because the priority is clear,
-and you don't need to check the validity of every arm.
 
 rough syntax declaration:
 
