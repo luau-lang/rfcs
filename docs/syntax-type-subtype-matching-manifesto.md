@@ -35,10 +35,17 @@ ourselves to matches testable at runtime
 rough syntax declaration:
 
 ```luau
+-- a very simple example
+local function meow<bool>(): match (bool) {
+	(true): some_value,
+	(false): nil,
+	(boolean): some_value?,
+	(): never, -- this is the default final arm, defined explicitly for this example
+}
+end
 -- i think we should probably require parenthesis on the pack here because it looks the most luau and also wont block
 -- t {} type syntax from happening in the future
 -- the first matching arm will be the output of this type function
--- match syntax will be allowed more or less anywhere a type is allowed
 type retrieve<entity, lifetime, dead> = match (lifetime, dead) {
 	-- similarly to functions, parenthesis are required on the input pack but not the output pack.
 	-- to avoid confusion with function types, ':' has been chosen as a separator between the input and output packs.
@@ -46,7 +53,6 @@ type retrieve<entity, lifetime, dead> = match (lifetime, dead) {
 	("static"): index<entity, "data">,
 	("dynamic", true): nil,
 	-- trailing commas or semicolons are allowed
-	-- '(): never' will be the final arm by default unless specified
 	(): index<entity, "data">?,
 }
 ```
@@ -58,6 +64,7 @@ to rely on subtyping. is there a more intuitive way to handle issues with covari
 - is there any other surprising (bad) behavior these packs will exhibit with existing subtyping rules?
 - can type inference construct matches? if no, and if runtime matching were to ever exist, could type inference then
 infer these types usefully?
+- could the type system infer generic bounds from match syntax?
 - will this mesh with type pack unions?
 
 ## drawbacks
