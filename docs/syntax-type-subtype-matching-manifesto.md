@@ -64,9 +64,22 @@ to rely on subtyping. is there a more intuitive way to handle issues with covari
 - is there any other surprising (bad) behavior these packs will exhibit with existing subtyping rules?
 - can type inference construct matches? if no, and if runtime matching were to ever exist, could type inference then
 infer these types usefully?
+  - the answer is, in narrow circumstances, almost certainly:
+  ```luau
+  local result: match (
+  	typeof(foo)
+  ) {
+  	(~false?): typeof(bar),
+  	(false?): typeof(baz),
+  	(): typeof(bar) | typeof(baz),
+  }
+  ```
 - can the type system verify returns with match types? if no, is runtime matching a prerequisite to implementing this
 rfc?
 - could the type system infer generic bounds from match syntax?
+  - probably yes, any arm which returns `never`(s) could be used to constrain types
+  - this begs the question, there may be branches where you want to explicitly emit a user-defined type error. Should we
+  add complementary syntax to support that?
 - will this mesh with type pack unions?
 
 ## drawbacks
