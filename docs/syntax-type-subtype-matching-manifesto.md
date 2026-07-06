@@ -36,6 +36,7 @@ rough syntax declaration:
 
 ```luau
 -- a very simple example
+-- the first matching arm will be the output of this function
 local function meow<bool>(): match (bool) {
 	(true): some_value,
 	(false): nil,
@@ -45,7 +46,6 @@ local function meow<bool>(): match (bool) {
 end
 -- i think we should probably require parenthesis on the pack here because it looks the most luau and also wont block
 -- t {} type syntax from happening in the future
--- the first matching arm will be the output of this type function
 type retrieve<entity, lifetime, dead> = match (lifetime, dead) {
 	-- similarly to functions, parenthesis are required on the input pack but not the output pack.
 	-- to avoid confusion with function types, ':' has been chosen as a separator between the input and output packs.
