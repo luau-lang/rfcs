@@ -103,10 +103,10 @@ end
 local trill = {
 	chitter = ":3"
 }
--- currently, this causes `foo.chitter` to infer to '":3"'
+-- currently, this causes `trill.chitter` to infer to '":3"'
 leopard(trill.chitter)
 -- this currently instantiates leopard with 'loaf' as 'string'
--- instead, it could coerce foo.chitter.
+-- instead, it could coerce trill.chitter.
 leopard(`hello {trill.chitter}`)
 
 const spit: unknown = ...
