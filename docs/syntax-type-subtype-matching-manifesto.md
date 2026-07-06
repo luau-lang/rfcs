@@ -19,6 +19,7 @@ types, and user experience. this rfc aims to:
 - enable an expeditious implementation timeline with good room for improvement from type pack functions & native support
 - make cohesive type-level programming patterns more idiomatic to improve user experience and adoption within luau's new
 type solver
+- use match syntax to improve verifiability and inference of programs with complex type expression
 - provide major performance benefits over traditional function overloads via linear shortcircuiting
 
 ## design
@@ -75,11 +76,13 @@ infer these types usefully?
   }
   ```
 - could the type system infer generic bounds from match syntax?
-  - probably yes, any arm which returns `never`(s) could be used to constrain types
+  - probably yes, any arm which returns `never`(s) could constrain input types
   - this begs the question, there may be branches where you want to explicitly emit a user-defined type error. Should we
-  add complementary syntax to support that?
+  add discrete syntax to surface specific errors and 'explanations' from matches?
 - can the type system verify returns with match types? if no, is runtime matching a prerequisite to implementing this
 rfc?
+  - it seems likely it could be far superior to existing function overloads. i'm currently unsure how much flexibility
+  there is with the soundness and completeness of that tho
 - will this mesh with type pack unions?
 
 ## drawbacks
