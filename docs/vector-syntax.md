@@ -6,13 +6,12 @@ Implement new syntax to construct vectors, `<x, y, z>`.
 
 ## Motivation
 
-Within the [future work section of the vector library RFC](https://rfcs.luau.org/vector-library.html#future-work), it was stated that there would be a "better" vector syntax that is less verbose. This proposal defines that syntax and how it is used.
+Currently, vectors are constructed using constructor functions. While this has worked, it can harm the readability of code by making it harder to distinguish between a vector and a function call, and can add lots of nested function calls to code.
 
 ## Design
 
-A new vector constructor is introduced, the `<x, y, z?>` constructor. When 4-wide mode is enabled, the constructor would be `<x, y, z?, w?>`.
+Vectors can now be constructed using the syntax `<x, y, z?>`, with an additional `w?` parameter being added when 4-wide mode is enabled. All parameters must be of type `number`, and the first two parameters are required.
 
-In practice, it would look something like this:
 ```lua
 local newvector = <1, 2, 3>
 vector.magnitude(<1, 2, 3>)
@@ -29,21 +28,7 @@ vector.magnitude(<1, 2, 3, 4>)
 <1, 2, 3> -- Expected identifier when parsing expression, got '<1, 2, 3>'
 ```
 
-The `vector.create` function and the `<x, y, z>` syntax are interchangable.
-
-```lua
-local Foo = {
-    [vector.create(1, 2, 3)] = "Foo",
-    [<4, 5, 6>] = "Bar",
-}
-
-print(Foo[<1, 2, 3>]) -- Foo
-print(Foo[vector.create(4, 5, 6)]) -- Bar
-
-print(vector.create(1, 2, 3) == <1, 2, 3>) -- true
-```
-
-If a number is put next to a vector without a comma separating it, it will just compare the two numbers instead of constructing a vector.
+If a number is placed next to angle brackets used to construct a vector, the angle bracket will be interpertred as a comparison operator instead of being part of vector construction.
 
 ```lua
 function Foo(...)
@@ -61,63 +46,31 @@ Foo(1 <2, 3, 4>)
 -- Expected identifier when parsing expression, got ')'
 ```
 
+Vectors must be wrapped in parentheses when being used as the only parameter in a function call to prevent confusion with type parameters and generics.
+
+```lua
+function Bar(v: vector)
+  -- code
+end
+
+Bar(<1, 2, 3>) -- ok!
+Bar<1, 2, 3> -- not ok, will error.
+```
+
 This RFC does not propose any changes when printing or stringifying vectors. Printing vectors varies based on what runtime you use, and stringifying vectors will still return `"x, y, z"`.
-
-```lua
-print(<1, 2, 3>) -- varies on how the runtime prints vectors
-
-print(tostring(<1, 2, 3>)) -- 1, 2, 3
-print(`<{tostring(<1, 2, 3>)}>`) -- <1, 2, 3>
-```
-
----
-
-Since the angle brackets are already used by generics, there are rules that define when angle brackets refer to generics or vectors.
-
-When angle brackets are used after a type name, it will be interpreted as a generic instead of a vector.
-
-```lua
-type Foo<T> = {T}
-type Bar<T = typeof(<1, 2, 3>)> = F<T>
-type Bax
-<T>
-=
-Bar<T>
-```
-
-Angle brackets will also refer to generics within function definitions where they are expected. 
-
-Double brackets used between the function name and the parameters are used for putting types into type parameters when calling functions.
-
-```lua
-type Foo<T> = {T}
-
-local Bar = function<T>(foo: T)
-  -- code
-end
-
-Bar<<vector>>(<1, 2, 3>)
-
-function Baz<T>(foo: T)
-  -- code
-end
-
-Baz<<{typeof(<1, 2, 3>)}>>({<4, 5, 6>} :: Foo<typeof(<7, 8, 9>)>)
-```
-Any other usage interprets it as a vector.
 
 ## Drawbacks
 
 This will add more syntax to Luau, making the language more complex and more bloated.
 
-Complex constraints must be introduced to differentiate vectors from generics. This could be resolved altogether by using another form of syntax.
+Angle brackets are already used for comparison, type parameters, and generics. Making them used for vector construction syntax would give them another use case and could make them more complicated to work with.
 
 ## Alternatives
 
 Do nothing; vectors can already be constructed using `vector.create` or any other runtime provided vector constructor.
 
-Use different syntax for constructing vectors instead of using angle brackets. A few of these were suggested in the vector library RFC as possiblities.
+Use different syntax for constructing vectors instead of using angle brackets. However, other proposals would cause issues with other features in Luau or would be confusing to work with.
 - `(x, y, z)` is often used for tuples and functions, so it would not work.
 - `[x, y, z]` is used for table indexing, so writing out `newtable[[x, y, z]]` may confuse readers. People may also write `newtable[x, y, z]` expecting for it to index the vector.
 - `vector(x, y, z)` would give the `vector` library a `__call` metamethod, which requires more discussion over whether this is a good idea.
-- `|x, y, z|` shouldn't conflict with anything, however, `<x, y, z>` is the better choice for vector constructor syntax.
+- `|x, y, z|` isn't valid vector notation.
