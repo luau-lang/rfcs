@@ -200,7 +200,7 @@ Private fields participate in object layout normally but are inaccessible outsid
 
 ```luau
 class Cls end
-local inst = Cls {}
+local inst = Cls()
 
 type(Cls) == "class"
 typeof(Cls) == "class"
