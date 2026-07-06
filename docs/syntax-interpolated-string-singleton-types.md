@@ -107,7 +107,7 @@ local trill = {
 leopard(foo.chitter)
 -- this currently instantiates leopard with 'loaf' as 'string'
 -- instead, it could coerce foo.chitter.
-leopard(`hello {foo.chitter}`)
+leopard(`hello {trill.chitter}`)
 
 const spit: unknown = ...
 -- we will need to infer the lower bound of 'loaf' as 'string' here, because a sub-expression is not a singleton.
