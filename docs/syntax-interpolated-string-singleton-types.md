@@ -104,7 +104,7 @@ local trill = {
 	chitter = ":3"
 }
 -- currently, this causes `foo.chitter` to infer to '":3"'
-leopard(foo.chitter)
+leopard(trill.chitter)
 -- this currently instantiates leopard with 'loaf' as 'string'
 -- instead, it could coerce foo.chitter.
 leopard(`hello {trill.chitter}`)
