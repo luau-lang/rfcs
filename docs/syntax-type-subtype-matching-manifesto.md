@@ -74,12 +74,12 @@ infer these types usefully?
   	(): typeof(bar) | typeof(baz),
   }
   ```
-- can the type system verify returns with match types? if no, is runtime matching a prerequisite to implementing this
-rfc?
 - could the type system infer generic bounds from match syntax?
   - probably yes, any arm which returns `never`(s) could be used to constrain types
   - this begs the question, there may be branches where you want to explicitly emit a user-defined type error. Should we
   add complementary syntax to support that?
+- can the type system verify returns with match types? if no, is runtime matching a prerequisite to implementing this
+rfc?
 - will this mesh with type pack unions?
 
 ## drawbacks
