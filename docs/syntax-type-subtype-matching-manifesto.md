@@ -64,13 +64,14 @@ closing questions (draft, temporary):
 infer these types usefully?
   - the answer is, in narrow circumstances, almost certainly:
   ```luau
+  -- the type system could resolve this annotation all on its own
   local result: match (
   	typeof(foo)
   ) {
   	(~false?): typeof(bar),
   	(false?): typeof(baz),
   	(): typeof(bar) | typeof(baz),
-  }
+  } = if foo then bar else baz
   ```
 - could the type system infer generic bounds from match syntax?
   - probably yes, any arm which returns `never`(s) could constrain input types
