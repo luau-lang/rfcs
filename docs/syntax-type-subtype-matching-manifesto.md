@@ -20,7 +20,7 @@ types, and user experience. this rfc aims to:
 - make cohesive type-level programming patterns more idiomatic to improve user experience and adoption within luau's new
 type solver
 - use match syntax to improve verifiability and inference of programs with complex type expression
-- provide major performance benefits over traditional function overloads via linear shortcircuiting
+- provide major performance benefits over traditional function overloads and type functions
 
 ## design
 
@@ -59,9 +59,7 @@ type retrieve<entity, lifetime, dead> = match (lifetime, dead) {
 ```
 
 closing questions (draft, temporary):
-- if we implement this with current subtyping rules respecting covariance, users may shoot themselves in the foot with
-inexact tables. this issue exists already when using the type system, but will likely surface more if we encourage users
-to rely on subtyping. is there a more intuitive way to handle issues with covariance here?
+- if we implement this with current subtyping rules respecting variance, users may shoot themselves in the foot with inexact types. this issue exists already when using the type system, but will likely surface more if we encourage users to rely on subtyping. is there a more intuitive way to handle issues here?
 - is there any other surprising (bad) behavior these packs will exhibit with existing subtyping rules?
 - can type inference construct matches? if no, and if runtime matching were to ever exist, could type inference then
 infer these types usefully?
@@ -77,10 +75,9 @@ infer these types usefully?
   ```
 - could the type system infer generic bounds from match syntax?
   - probably yes, any arm which returns `never`(s) could constrain input types
-  - this begs the question, there may be branches where you want to explicitly emit a user-defined type error. Should we
+  - there may be branches where you want to explicitly emit a user-defined type error. Should we
   add discrete syntax to surface specific errors and 'explanations' from matches?
-- can the type system verify returns with match types? if no, is runtime matching a prerequisite to implementing this
-rfc?
+- can the type system verify returns with match types?
   - it seems likely it could be far superior to existing function overloads. i'm currently unsure how much flexibility
   there is with the soundness and completeness of that tho
 - will this mesh with type pack unions?
@@ -89,7 +86,7 @@ rfc?
 
 todo
 - users may be encouraged to test subtyping against larger types when a simpler discriminant can be used trivially
-- although the simplicity of making this sugard around user-defined type functions is advantageous, we should consider:
+- although the simplicity of making this sugar around user-defined type functions is advantageous, we should consider:
   - implementing it with a type function means non-unary return packs will need to be a type error until type pack
   functions are done
   - user-defined type functions might not have imperative access to match types
