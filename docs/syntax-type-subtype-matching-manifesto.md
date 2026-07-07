@@ -17,10 +17,10 @@ those of [user-defined type functions](https://rfcs.luau.org/user-defined-type-f
 types, and user experience. this rfc aims to:
 - use simple syntax to complement existing traits found in user defined type functions
 - enable an expeditious implementation timeline with good room for improvement from type pack functions & native support
-- make cohesive type-level programming patterns more idiomatic to improve user experience and adoption within luau's new
+- make type-level programming patterns more idiomatic to improve user experience and adoption within luau's new
 type solver
 - use match syntax to improve verifiability and inference of programs with complex type expression
-- provide major performance benefits over traditional function overloads and type functions
+- provide major editor performance benefits over traditional function overloads and type functions
 
 ## design
 
@@ -28,7 +28,7 @@ this section is incomplete and serves as a rough draft of what the design might 
 
 some personal notes:
 - i think we should implement this initially as syntactic sugar around type functions and subtyping, of course
-respecting covariance. a built-in implementation could improve performance & inference a lot, which is a goal of
+respecting variance. a built-in implementation could improve performance & inference a lot, which is a goal of
 formalizing this, but it does not need to exist at first.
 - runtime match expressions are intentionally out of scope for this rfc, and it seems like a bad choice to limit
 ourselves to matches testable at runtime
@@ -59,7 +59,6 @@ type retrieve<entity, lifetime, dead> = match (lifetime, dead) {
 ```
 
 closing questions (draft, temporary):
-- if we implement this with current subtyping rules respecting variance, users may shoot themselves in the foot with inexact types. this issue exists already when using the type system, but will likely surface more if we encourage users to rely on subtyping. is there a more intuitive way to handle issues here?
 - is there any other surprising (bad) behavior these packs will exhibit with existing subtyping rules?
 - can type inference construct matches? if no, and if runtime matching were to ever exist, could type inference then
 infer these types usefully?
@@ -86,6 +85,7 @@ infer these types usefully?
 
 todo
 - users may be encouraged to test subtyping against larger types when a simpler discriminant can be used trivially
+- users might expect covariance when their match expressions search for e.g. `{ unknown }`. subtyping issues like this exist today, but will surface more if we encourage logic based on subtyping
 - although the simplicity of making this sugar around user-defined type functions is advantageous, we should consider:
   - implementing it with a type function means non-unary return packs will need to be a type error until type pack
   functions are done
