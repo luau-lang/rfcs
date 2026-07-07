@@ -140,7 +140,6 @@ anyways though.
 
 - Do nothing. People can use existing workarounds for the forseeable future, and the syntactic consistency is not
 critically important when weighed against potential drawbacks.
-- Handle unions via a dedicated concrete type for interpolation. This approach is nonexclusive with this RFC, and can be
-discussed at a later date.
+- Handle unions via something more specialized. this isn't exlusive with this rfc.
 - Introduce utility type function(s) based on string formatting
 - Introduce concatenation syntax operator for types with `..`
