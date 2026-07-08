@@ -147,31 +147,46 @@ For functions without default parameters or named call arguments, existing parsi
 
 ### Prototype and performance
 
-A prototype implementation is available for review and testing at https://github.com/Aurora-Aeralis/luau/tree/aurora/default-params-named-args. The prototype implements parser, AST, type checking, compiler, pretty printer, and conformance coverage for default parameters and named call arguments.
+A prototype implementation is available for review and testing at https://github.com/Aurora-Aeralis/luau/tree/aurora/default-params-named-args. The prototype implements parser, AST, type checking, compiler lowering, pretty printer, conformance coverage, bytecode inlining support for default parameters, data flow traversal for default expressions, and autocomplete inside default expressions.
+
+The compiler lowers named arguments to positional argument slots at compile time. Default parameters are lowered as direct nil checks in the callee. In optimized builds, the inliner can now inline functions that declare defaults: omitted arguments, explicit `nil`, and named arguments can fold through constant defaults, while unknown runtime values emit the same nil check behavior before the inlined body. This avoids a runtime keyword argument object, runtime parameter lookup, or table allocation for named calls.
 
 The following local microbenchmark compares positional calls, hand written default handling, the proposed syntax, and options table alternatives. Each result is the median of 7 rounds with 5,000,000 iterations on the same local Windows build, so the values should be treated as prototype relative measurements rather than final cross platform performance data.
 
 | Case | VM `-O2` | Native `--codegen` |
 |---|---:|---:|
-| Plain positional, inlineable | 0.052s | 0.018s |
-| Plain positional, noinline | 0.198s | 0.122s |
-| Manual defaults, full arguments | 0.187s | 0.052s |
-| Manual defaults, noinline full arguments | 0.280s | 0.114s |
-| Manual defaults, nil arguments | 0.221s | 0.073s |
-| Manual defaults, noinline nil arguments | 0.306s | 0.118s |
-| Default parameters, full arguments | 0.272s | 0.122s |
-| Default parameters, noinline full arguments | 0.271s | 0.118s |
-| Default parameters, nil arguments | 0.293s | 0.266s |
-| Default parameters, noinline nil arguments | 0.290s | 0.290s |
-| Default parameters, named argument | 0.286s | 0.265s |
-| Options table, literal | 0.551s | 0.434s |
-| Options table, reused | 0.329s | 0.212s |
-| Options table, noinline literal | 0.655s | 0.528s |
-| Options table, noinline reused | 0.430s | 0.234s |
+| Plain positional, inlineable | 0.049s | 0.017s |
+| Plain positional, noinline | 0.191s | 0.117s |
+| Manual defaults, full arguments | 0.151s | 0.050s |
+| Manual defaults, noinline full arguments | 0.267s | 0.112s |
+| Manual defaults, nil arguments | 0.212s | 0.068s |
+| Manual defaults, noinline nil arguments | 0.303s | 0.121s |
+| Default parameters, full arguments | 0.081s | 0.016s |
+| Default parameters, noinline full arguments | 0.275s | 0.114s |
+| Default parameters, nil arguments | 0.053s | 0.015s |
+| Default parameters, noinline nil arguments | 0.285s | 0.254s |
+| Default parameters, named argument | 0.051s | 0.015s |
+| Options table, literal | 0.542s | 0.384s |
+| Options table, reused | 0.316s | 0.172s |
+| Options table, noinline literal | 0.647s | 0.460s |
+| Options table, noinline reused | 0.440s | 0.254s |
 
-This shows that default parameters and named arguments are substantially faster than options table calls that allocate table literals. Reused table cases are more mixed in the prototype, but the proposed syntax still preserves a direct function signature, keeps the call target statically visible, and avoids requiring a runtime keyword argument object or reflective lookup.
+The latest optimized prototype materially improves the hot inlineable paths:
 
-The prototype is not yet an universal performance win over hand written default checks. In the current implementation, functions with default parameters are excluded from bytecode inlining, and the native codegen path for default substitution still has optimization headroom. These are implementation issues rather than semantic requirements of the feature: named arguments can be lowered to positional arguments at compile time, and default checks only need to run for functions that declare defaults.
+| Case | Before | After | Change |
+|---|---:|---:|---:|
+| Default parameters, full arguments, VM | 0.272s | 0.081s | 3.35x faster |
+| Default parameters, nil arguments, VM | 0.315s | 0.053s | 5.94x faster |
+| Default parameters, named argument, VM | 0.274s | 0.051s | 5.39x faster |
+| Default parameters, full arguments, native | 0.158s | 0.016s | 9.76x faster |
+| Default parameters, nil arguments, native | 0.276s | 0.015s | 18.87x faster |
+| Default parameters, named argument, native | 0.261s | 0.015s | 17.37x faster |
+
+This shows that the proposed syntax can be faster than hand written default checks in optimized inlineable cases and substantially faster than options table calls that allocate table literals. Reused table cases can still be competitive for noinline code, but the proposed syntax preserves a direct function signature, keeps the call target statically visible, and avoids requiring a runtime keyword argument object or reflective lookup.
+
+The noinline native path for `nil` default substitution still has optimization headroom. This is an implementation detail rather than a semantic requirement: named arguments are already lowered to positional arguments at compile time, and default checks are only emitted for functions that declare defaults.
+
+The current prototype has also been tested against full local unit and conformance suites. Additional regression coverage checks that default expressions are evaluated at call time, only when needed, can allocate fresh values per call, can observe live upvalues, and can contain function calls while compiling with bytecode type information enabled.
 
 ## Drawbacks
 
@@ -185,7 +200,7 @@ Code using this feature will not parse on older Luau versions. Existing Luau cod
 
 There is a small cost for functions that use default parameters, since the function needs to check whether defaulted parameters are `nil`. This cost is only paid by functions that opt into defaults. Calls using named arguments can be lowered to positional calls, so they do not need a runtime allocation or lookup mechanism.
 
-The prototype also needs more performance work before landing. Default parameter functions should be reconsidered for inlining when their defaults are simple enough, and the native codegen lowering for missing or `nil` arguments should be reviewed so default substitution is closer to equivalent hand written checks.
+The prototype still needs broader review before landing. In particular, the native noinline path for missing or `nil` arguments should be reviewed so default substitution is closer to equivalent hand written checks, and CI should validate the implementation across the project's Linux, macOS, sanitizer, coverage, and native codegen configurations.
 
 The initial design also limits named arguments to calls where parameter names can be resolved statically. Supporting named calls through arbitrary function values would require either threading type information into compilation or adding runtime parameter metadata, neither of which is part of this proposal.
 
