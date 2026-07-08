@@ -1,3 +1,4 @@
+
 # Classes
 
 ## Summary
@@ -19,6 +20,10 @@ class Point
 		end  
 	  
 		return self.cachedLength  
+	end
+	
+	static function origin(): Point
+		return Point(0, 0)
 	end  
   
 	function __add(other: Point): Point  
@@ -30,13 +35,15 @@ class Point
 	end  
 end  
   
-local p = Point(3, 4)  
+local p = Point(3, 4)
+local o = Point.origin()  
 print(p:length()) -- 5.0 
 ```
 This RFC proposes native class syntax with:
 - `public` & `private` fields
 - constructors
 - implicit `self` for instance methods
+- static fields & methods
 - nominal typing
 - native class instances
 - supported metamethods
@@ -50,7 +57,7 @@ Accurate type inference of `setmetatable` has proven to be very difficult to get
 
 Likewise, a construct with a fixed shape and a completely locked-down metatable will open up optimization opportunities that could improve performance:
 - If classes can only be declared at the top scope, then we know that each method of each class has exactly one instance. This makes it simple for the compiler to know the exact function that will be invoked for any method call expression.
-- If a value is known to be an instance of a particular class, the bytecode compiler should be able optimize method calls to skip the whole  `__index`  metamethod process and instead generate code to directly call the correct method.
+- If a value is known to be an instance of a particular class, the bytecode compiler should be able to optimize method calls to skip the whole  `__index`  metamethod process and instead generate code to directly call the correct method.
 - By the same token, method calls can be inlined more aggressively, such as self-method calls like  `self:SomeOtherMethod()`.
 -   Field accesses can compile to a simple integral table offset so that the VM doesn't need to do a hashtable lookup as the program runs.
 - Instance layouts can be split from field metadata to improve cache locality.
@@ -72,12 +79,14 @@ class Player
 end
 ```
 A class may declare:
- - fields
+ - instance fields
+ - static fields
  - one constructor
- - methods
+ - instance methods
+ - static methods
  - supported metamethods
 
-Classes are closed declarations. Fields, constructors, methods, and metamethods may only be declared within the lexical body of the class. Instance methods are invoked using `instance:method()` syntax. References to instance methods may be obtained through `Class.method` syntax.
+Classes are closed declarations. Fields, constructors, methods, and metamethods may only be declared within the lexical body of the class. Instance methods are invoked using `instance:method()` syntax. References to instance methods may be obtained through `Class.method` syntax. References to static methods are also obtained through `Class.method`.
 
 ```luau
 local fn = Player.method
@@ -109,6 +118,13 @@ Classes can define the following Luau metamethods.  They all work just like they
 
 For forward-compatibility, it is a syntax error to define any other method whose
 name starts with two underscores.
+
+Field modifiers must appear in a canonical order to improve readability and simplify parsing:
+1. Access Modifier (`private` or `public`)
+2. `static`
+3. `read` (If introduced in the future)
+
+Function declarations do not use access modifiers. Because classes are closed declarations, methods cannot be defined or replaced outside the class body, making separate access modifiers unnecessary.
 
 #### Constructors
 Classes may define a constructor using the contextual keyword `constructor`.
@@ -147,7 +163,7 @@ class Player
 end
 ```
 
-A constructor is a special instance member whose sole purpose is initialization. Unlike a factory function, it is automatically invoked when a class object is called and cannot return a value.
+A constructor is a special declaration used to initialize a newly allocated instance. Unlike a factory function, it is automatically invoked when a class object is called and cannot return a value.
 
 #### Access Control
 Fields are public only when explicitly marked `public`.  Private members are accessible only from within the lexical body of the enclosing class declaration.
@@ -170,13 +186,45 @@ function Player:GetCoins() -- syntax error
 end
 ```
 
+#### Static Members
+
+Class members may be declared `static`. Static members belong to the class object rather than class instances and static methods do not receive the implicit `self` binding.
+
+```luau
+class Player
+    public name: string
+
+    public static maxLevel: number = 100
+
+    constructor(name: string)
+        self.name = name
+    end
+    
+	static function getMaxLevel(): number
+		return Player.maxLevel
+	end
+
+    static function fromData(data): Player
+        return Player(data.name)
+    end
+end
+```
+Static members are accessed through the class object itself and cannot be accessed through instances. Static members are not introduced as local bindings in the class body and must be accessed through the class object, such as `Player.maxLevel`. Static methods may access other static members of the same class, but they cannot directly access instance fields without an instance value.
+```luau
+Player.maxLevel -- OK
+player.maxLevel -- error
+
+Player.fromData(data) -- OK
+player:fromData(data) -- error
+```
+
 #### Class Objects
 
-The action of evaluating a class definition statement introduces a *class object* in the module scope.  A class object is a value that serves as a factory for instances of the class and as a namespace for methods that are defined on the class.
+The action of evaluating a class definition statement introduces a *class object* in the module scope.  A class object is a value that serves as a factory for instances of the class and as a namespace for static members.
 
 Class objects behave like class instances in most ways, but are always `const` and frozen.
 
-Taking references to class methods via `ClassName.method` syntax is allowed so that classes can easily compose with existing popular APIs:
+Taking references to instance methods via `ClassName.method` syntax is allowed so that classes can easily compose with existing popular APIs:
 
 ```luau
 local n = pcall(SomeClass.getName, someClassInstance)
@@ -307,9 +355,9 @@ When a class object is invoked, the runtime order is as follows:
 
 ### Out of scope for now
 
-#### Const/Static fields
+#### Read-only fields
 
-The keyword `static` will be reserved for future RFCs. 
+Whether Luau should support read-only object fields remains an open question. If it were to be implemented, I would propose the `read` modifier and require it to be placed after both access & storage modifiers (Ex: `public static read x = 1`).
 
 #### Generic classes
 
@@ -334,6 +382,7 @@ This proposal intentionally changes several aspects of the accepted Classes RFC:
 - encapsulation is introduced
 - instance methods receive an implicit `self`
 - classes become closed declarations
+- static fields & methods are introduced
 
 No implementation of the accepted RFC currently exists, so these changes do not affect existing Luau programs.
 
@@ -373,6 +422,5 @@ Alternatives such as `new` or `__init` would make construction appear to be eith
 ## Open Questions
 - Should explicit `public` remain required, or should public be the default?
 - Should constructorless classes synthesize a default constructor or support table initialization?
-- Should `static` be reserved for the future? Are static fields and methods necessary?
 - Should `super` and `protected` be reserved despite inheritance's drawbacks?
 - Should definite assignment analysis be required, or should initialization rules be simplified?
