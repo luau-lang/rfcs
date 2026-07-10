@@ -20,7 +20,7 @@ local slice = string.sub(str, start, finish)
 
 ```lua
 local slice = buffer.create(size)
-buffer.copy(part, 0, source, offset, size)
+buffer.copy(slice, 0, source, offset, size)
 ```
 
 #### For high-frequency workloads such as:
