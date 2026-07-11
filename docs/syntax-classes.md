@@ -1,4 +1,5 @@
 
+
 # Classes
 
 ## Summary
@@ -41,7 +42,7 @@ print(p:length()) -- 5.0
 ```
 This RFC proposes native class syntax with:
 - `public` & `private` fields
-- constructors
+- explicit constructors
 - implicit `self` for instance methods
 - static fields & methods
 - nominal typing
@@ -70,7 +71,7 @@ However, a class abstraction is more than a fixed-layout record with attached me
 
 Class definitions are a block construct. `export class X` is allowed. 
 
-Fields are introduced with the new `public` and `private` keywords. Members are public only when explicitly marked `public`.
+Fields are introduced with the new `public` and `private` keywords. Fields are public only when explicitly marked `public`.
 
 ```luau
 class Player
@@ -124,10 +125,12 @@ Field modifiers must appear in a canonical order to improve readability and simp
 2. `static`
 3. `read` (If introduced in the future)
 
-Function declarations do not use access modifiers. Because classes are closed declarations, methods cannot be defined or replaced outside the class body, making separate access modifiers unnecessary.
+Function declarations do not use access modifiers. All instance and static methods are publicly accessible, although they may only be declared within the class body and cannot be replaced afterward.
 
-#### Constructors
-Classes may define a constructor using the contextual keyword `constructor`.
+#### Construction
+Every class has a construction protocol.
+
+A class may declare an explicit constructor using the contextual keyword `constructor`.
 ```luau
 class Player
     public name: string
@@ -137,36 +140,68 @@ class Player
     end
 end
 ```
-Instances are constructed by calling the class.
+Instances are constructed by invoking the class value.
 ```luau
 local p = Player("Builderman")
 ```
+
+If a class does not declare an explicit constructor, the compiler synthesizes a default constructor that accepts exactly one mapping from instance fields to their initial values. Positional calls such as `Class(x, y)` are invalid for such classes.
+```luau
+class Point
+    public x: number
+    public y: number
+end
+
+local point = Point {
+    x = 3,
+    y = 4,
+}
+```
+The mapping may initialize fields accessible at the construction site. Fields omitted from the mapping use their declared default initializers, or `nil` when their types permit it. Values supplied by the field mapping override declared field defaults.
+
+Every field whose declared type does not include `nil` must be initialized either by the field mapping or by a default field initializer. Otherwise, construction is a type error.
+
+```luau
+class Player
+    public name: string
+    public level: number = 1
+    public nickname: string?
+end
+
+local player = Player {
+    name = "Builderman",
+}
+```
+If a class declares any private instance fields, its synthesized default constructor is private and may only be invoked from within the lexical body of that class. Otherwise, the synthesized constructor is public.
+```luau
+class Point
+    private x: number
+    private y: number
+
+    static function origin(): Point
+        return Point {
+            x = 0,
+            y = 0,
+        }
+    end
+end
+
+local origin = Point.origin() -- OK
+local point = Point { x = 1, y = 2 } -- error: default constructor is private
+```
+Declaring an explicit constructor replaces the synthesized field-mapping constructor.
+
 Additional rules include:
-- Only one constructor is allowed per class.
+- Only one explicit constructor is allowed per class.
 - Constructors do not return values.
-- Constructors cannot be invoked directly.
-- Default field initializers execute before the constructor body.
-- If no constructor is declared, a default zero-argument constructor is synthesized. Field default initializers still run. 
-- Fields without default initializers are initialized to `nil`. 
-- A field whose declared type does not include `nil` must be definitely assigned by either a field initializer or every control-flow path through the constructor. Failing to do so is a type error.
+- Constructors cannot be invoked or referenced directly.
+- Default field initializers execute before an explicit constructor body.
+- A field whose declared type does not include `nil` must be definitely assigned by a field initializer or on every control-flow path through an explicit constructor.
 
-For examples of a class with no constructor, this:
-```
-class Player  
-end
-```
-would be identical to this:
-```
-class Player  
-	constructor()  
-	end  
-end
-```
-
-A constructor is a special declaration used to initialize a newly allocated instance. Unlike a factory function, it is automatically invoked when a class object is called and cannot return a value.
+A constructor is a special declaration used to initialize a newly allocated instance. Unlike a factory function, it is automatically invoked when a class value is called.
 
 #### Access Control
-Fields are public only when explicitly marked `public`.  Private members are accessible only from within the lexical body of the enclosing class declaration.
+Fields are public only when explicitly marked `public`.  Private fields are accessible only from within the lexical body of the enclosing class declaration.
 ```luau
 class Player
     private coins: number = 0
@@ -188,7 +223,7 @@ end
 
 #### Static Members
 
-Class members may be declared `static`. Static members belong to the class object rather than class instances and static methods do not receive the implicit `self` binding.
+Class members may be declared `static`. Static members belong to the class value rather than class instances and static methods do not receive the implicit `self` binding.
 
 ```luau
 class Player
@@ -209,7 +244,7 @@ class Player
     end
 end
 ```
-Static members are accessed through the class object itself and cannot be accessed through instances. Static members are not introduced as local bindings in the class body and must be accessed through the class object, such as `Player.maxLevel`. Static methods may access other static members of the same class, but they cannot directly access instance fields without an instance value.
+Static members are accessed through the class value itself and cannot be accessed through instances. Static members are not introduced as local bindings in the class body and must be accessed through the class value, such as `Player.maxLevel`. Static methods may access other static members of the same class, but they cannot directly access instance fields without an instance value.
 ```luau
 Player.maxLevel -- OK
 player.maxLevel -- error
@@ -218,11 +253,13 @@ Player.fromData(data) -- OK
 player:fromData(data) -- error
 ```
 
-#### Class Objects
+Declared static fields may be reassigned through the class value, subject to their declared type and access modifier.
 
-The action of evaluating a class definition statement introduces a *class object* in the module scope.  A class object is a value that serves as a factory for instances of the class and as a namespace for static members.
+#### Class Values
 
-Class objects behave like class instances in most ways, but are always `const` and frozen.
+The action of evaluating a class definition statement introduces a *class value* in the module scope.  A class value serves as a factory for instances of the class and as a namespace for static members.
+
+Class values have a fixed shape and cannot gain, lose, or replace members. Declared static fields remain writable according to their access restrictions.
 
 Taking references to instance methods via `ClassName.method` syntax is allowed so that classes can easily compose with existing popular APIs:
 
@@ -230,9 +267,9 @@ Taking references to instance methods via `ClassName.method` syntax is allowed s
 local n = pcall(SomeClass.getName, someClassInstance)
 ```
 
-To construct an instance of a class, call the class object as though it were a function. If the class defines a constructor, the provided arguments are forwarded directly to that constructor. If no constructor is defined, a default zero-argument constructor is synthesized. Constructors initialize the newly allocated instance and do not return values.
+To construct an instance of a class, call the class value as though it were a function. If the class defines a constructor, the provided arguments are forwarded directly to that constructor. If no constructor is declared explicitly, the synthesized field-mapping constructor is invoked. Constructors initialize the newly allocated instance and do not return values.
 
-The top type of all class objects is named `class`.  `type()` and `typeof()` return `"class"` when passed a class object.
+The top type of all class values is named `class`.  `type()` and `typeof()` return `"class"` when passed a class value.
 
 #### Class Instances
 
@@ -248,7 +285,7 @@ Private fields participate in object layout normally but are inaccessible outsid
 
 ```luau
 class Cls end
-local inst = Cls()
+local inst = Cls {}
 
 type(Cls) == "class"
 typeof(Cls) == "class"
@@ -272,7 +309,7 @@ local class: {
 
 This library also serves as an obvious extension point for future features like reflection.
 
-The function `class.isinstance(o, Class)` returns `true` if the object `o` is an instance of `Class`.  At runtime, it raises an exception if the second argument is not a class object.  If the first argument is not a class instance, `class.isinstance` returns false.  (Ex: `class.isinstance(5, MyClass)`)
+The function `class.isinstance(o, Class)` returns `true` if the object `o` is an instance of `Class`.  At runtime, it raises an exception if the second argument is not a class value.  If the first argument is not a class instance, `class.isinstance` returns false.  (Ex: `class.isinstance(5, MyClass)`)
 
 ### Type System
 
@@ -294,13 +331,13 @@ function foo(p: unknown)
 end
 ```
 
-Each class object is a singleton instance of an unnamed type.  If needed, it is easy to access via `typeof(TheClass)`.  Class object types are all subtypes of the top `class` type.
+Each class value is a singleton instance of an unnamed type.  If needed, it is easy to access via `typeof(TheClass)`.  Class value types are all subtypes of the top `class` type.
 
 ### Semantics
 
 Class definitions are Luau statements just like function definitions.
 
-The action of a class definition statement is to allocate the class object, define its functions and properties, and freeze it.  Consequently, a class cannot be instantiated before this statement is executed.
+The action of a class definition statement is to allocate the class value, define its members, and seal its shape. Consequently, a class value cannot be invoked before the class declaration has executed.
 
 Unlike the accepted proposal, class declarations are not runtime-hoisted. They behave like ordinary Luau declarations. Forward type references continue to work through the existing type solver.
 
@@ -309,26 +346,17 @@ Static analysis also considers the class's type to be global to the whole module
 An example:
 
 ```luau
--- illegal: MyClass is not yet defined
-local a = MyClass()
-
--- OK: MyClass can appear in any type annotation anywhere
-function use(c: MyClass)
-end
+local a = MyClass {} -- illegal: MyClass is not defined yet
 
 function create()
-    -- OK as long as this function is invoked after the class definition statement
-    return MyClass()
+    return MyClass {}
 end
-
--- We can't statically catch this in the general case, but this will fail at runtime!
-create()
 
 class MyClass
 end
 
-local b = MyClass() -- OK
-local c = create() -- OK
+local b = MyClass {}
+local c = create()
 ```
 
 Because class definition is a statement, class methods can capture upvalues just like ordinary functions do.
@@ -346,11 +374,13 @@ class Counter
 end
 ```
 
-When a class object is invoked, the runtime order is as follows:
+When a class value is invoked, the runtime order is as follows:
 
 1. Allocate a new instance of the class.
-2. Initialize fields using any default initializers.
-3. Invoke the class constructor, if one exists.
+2. Initialize default field initializers.
+3. Execute either:
+	- the synthesized field-mapping constructor, or
+	- the explicit constructor body
 4. Return the initialized instance.
 
 ### Out of scope for now
@@ -377,7 +407,7 @@ Whether Luau should support composition-specific language features is also outsi
 
 This proposal intentionally changes several aspects of the accepted Classes RFC:
 
-- dedicated constructors replace table-based construction
+- explicit constructors supplement synthesized field-mapping constructors
 - class declarations are no longer runtime-hoisted
 - encapsulation is introduced
 - instance methods receive an implicit `self`
@@ -394,7 +424,7 @@ We need to introduce multiple new contextual keywords: `class`,`public`, `constr
 
 Allowing code to grab unbound method references (ie `local m = o.someMethod`) seems risky because it opens the doorway to a lot of difficult-to-optimize dynamism, but it also makes a bunch of nice things like `pcall` work exactly the way developers expect.  We're making the bet here that this does not materially affect our ability to optimize more mundane attribute access or method calls.
 
-The word `class` is doing triple duty under this RFC: It is a contextual keyword, the name of a top-level library, and the name of the top type for class objects.
+The word `class` is doing triple duty under this RFC: It is a contextual keyword, the name of a top-level library, and the name of the top type for class values.
 
 Object oriented codebases tend to have far more cyclic dependencies between modules because every piece of data is also coupled to a whole bunch of functions that operate on that data.  We are probably going to have to work out a way to relax the restrictions on cyclic module imports.
 
@@ -412,7 +442,7 @@ This RFC uses a dedicated `constructor` declaration instead of requiring constru
 A dedicated constructor has a few advantages:  
   
 - It separates object initialization from normal instance behavior.  
-- It avoids making construction look like an ordinary method call.  
+- It separates explicit construction logic from ordinary methods.
 - It avoids reserving conventional method names such as `new`.  
 - It does not resemble a Luau metamethod, unlike names beginning with `__`.  
 - It allows class invocation syntax, `Point(...)`, to have one clear meaning.
@@ -421,6 +451,5 @@ Alternatives such as `new` or `__init` would make construction appear to be eith
 
 ## Open Questions
 - Should explicit `public` remain required, or should public be the default?
-- Should constructorless classes synthesize a default constructor or support table initialization?
 - Should `super` and `protected` be reserved despite inheritance's drawbacks?
 - Should definite assignment analysis be required, or should initialization rules be simplified?
