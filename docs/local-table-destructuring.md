@@ -81,4 +81,14 @@ This proposal explicitly excludes nested table destructuring (e.g, `local { a = 
 Renaming keys during extraction (e.g `local { yes = customName }`) is excluded from this initial proposal to keep the parser and AST footprint simple.
 
 ## Drawbacks
-None as of right now. This feature is pure syntactic sugar that desugars into the exact bytecode.
+Potential ambiguity with function call sugar:
+```lua
+const {a, b}
+```
+
+Can already be interpreted as:
+```lua
+const({a, b})
+```
+
+Optimal way to distinguish destructuring syntax from function call now is to peek after `}` token and look for `=` token.
