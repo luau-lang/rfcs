@@ -231,8 +231,6 @@ We're very excited to support generic classes and plan to introduce a fresh RFC 
 
 Inheritance is planned and will be described in a separate RFC.
 
-Lastly, while Luau doesn't quite properly afford interface inheritance through its structural type system, this shortfall is relatively easy to fix.  Because of this, implementation inheritance is judged to be lower priority.
-
 ## Drawbacks
 
 This is a really big feature that has lots of moving parts!
