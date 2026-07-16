@@ -12,19 +12,22 @@ class Point
     end
 
     function __add(self, other: Point)
-        return Point { x = self.x + other.x, y = self.y + other.y }
+        return Point.new({ x = self.x + other.x, y = self.y + other.y })
     end
 
     function __tostring(self)
         return `Point \{ x = {self.x}, y = {self.y} \}`
     end
 
-    function new(x, y)
-        return Point { x = x, y = y }
+    function fromAxisLength(theta, length)
+        return Point.new({
+            x = length * math.cos(theta),
+            y = length * math.sin(theta),
+        })
     end
 end
 
-local p = Point.new(3, 4)
+local p = Point.fromAxisLength(math.pi / 4, 4)
 print(`Check out my cool point: {p}  length = {p:length()}`)
 ```
 
@@ -59,10 +62,11 @@ If a method's first argument is named `self`, it should be invoked with the fami
 
 If a method accepts no arguments or if its first argument is not named `self`, it should be invoked via `Class.method()` syntax.  This is the same as "static methods" from other languages.
 
-To create a new instance of a class, invoke it as if it were a function.  It accepts one argument: A table that describes the initial values of all its properties.  If more customization is desired, static factory functions (frequently named `new()` or `create()`) are an easy, familiar way to accomplish this.
+All classes define a builtin `new()` function that is used to create a new instance of the class.  Constructors are described in their own RFC.
 
 Classes can define the following Luau metamethods.  They all work just like they do on a metatable:
 
+* `__init`
 * `__call`
 * `__concat`
 * `__unm`
@@ -80,8 +84,9 @@ Classes can define the following Luau metamethods.  They all work just like they
 * `__len`
 * `__idiv`
 
-For forward-compatibility, it is a syntax error to define any other method whose
-name starts with two underscores.
+For now, `__index` and `__newindex` are forbidden in classes.  We may revisit this later.
+
+For forward-compatibility, it is a syntax error to define any other method whose name starts with two underscores.
 
 #### Class Objects
 
@@ -95,7 +100,7 @@ Taking references to class methods via `ClassName.method` syntax is allowed so t
 local n = pcall(SomeClass.getName, someClassInstance)
 ```
 
-To construct an instance of a class, call the class object as though it were a function.  It accepts a single argument: a table-like value that contains initial values for all the fields.  While it will typically be most useful to pass a table literal to this function, that isn't the only use.  For example, any class can be shallowly cloned by passing it to its class constructor: `local clone = MyClass(original)`
+To construct an instance of a class, invoke `MyClass.new(props)`.  The constuctor accepts a single optional argument: a table-like value that contains initial values for all the fields.  While it will typically be most useful to pass a table literal to this function, that isn't the only use.  For example, any class can be shallowly cloned by passing it to its class constructor: `local clone = MyClass.new(original)`
 
 The top type of all class objects is named `class`.  `type()` and `typeof()` return `"class"` when passed a class object.
 
@@ -103,7 +108,7 @@ The top type of all class objects is named `class`.  `type()` and `typeof()` ret
 
 Class instances are a new type of value in the VM.  They are similar but not quite the same as tables.  They have no array part, for instance.
 
-`pairs`, `ipairs` , `getmetatable`, and `setmetatable` do not work on class instances.  They also cannot be iterated over with the generic `for` loop. (unless the class implements `__iter`)
+`pairs`, `ipairs` , `getmetatable`, and `setmetatable` all raise a runtime exception when invoked on a class instance.  They also cannot be iterated over with the generic `for` loop. (unless the class implements `__iter`)
 
 Reading or writing a nonexistent class property raises an exception.  This makes it easy to disambiguate between a nonexistent property and a property whose value is nil.
 
@@ -111,7 +116,7 @@ We introduce a new top type for class instances: `object`.  The builtin `type()`
 
 ```luau
 class Cls end
-local inst = Cls {}
+local inst = Cls.new()
 
 type(Cls) == "class"
 typeof(Cls) == "class"
@@ -120,7 +125,7 @@ type(inst) == "object"
 typeof(inst) == "object"
 ```
 
-Comparisons between object instances is the same as with tables: If `__eq` is not defined, object comparisons use physical (pointer) equality.  `__eq` is only invoked if both operands are the same type.
+Comparisons between object instances are the same as with tables: If `__eq` is not defined, object comparisons use physical (pointer) equality.  `__eq` is only invoked if both operands are the same type.
 
 #### The `class` library
 
@@ -128,14 +133,16 @@ We introduce a new global library `class`.  Its contents are
 
 ```luau
 local class: {
-    isinstance: (o: object, C: class) -> boolean,
-    classof: (o: object) -> class?,
+    isinstance: (o: unknown, C: class) -> boolean,
+    classof: (o: unknown) -> class?,
 }
 ```
 
 This library also serves as an obvious extension point for future features like reflection.
 
 The function `class.isinstance(o, Class)` returns `true` if the object `o` is an instance of `Class`.  At runtime, it raises an exception if the second argument is not a class object.  If the first argument is not a class instance, `class.isinstance` returns false.  (eg `class.isinstance(5, MyClass)`)
+
+The `classof` function returns the class object corresponding to the first argument.  If the first argument is not a class instance, the result is `nil`.
 
 ### Type System
 
@@ -173,7 +180,7 @@ An example:
 
 ```luau
 -- illegal: MyClass is not yet defined
-local a = MyClass {}
+local a = MyClass.new()
 
 -- OK: MyClass can appear in any type annotation anywhere
 function use(c: MyClass)
@@ -181,7 +188,7 @@ end
 
 function create()
     -- OK as long as this function is invoked after the class definition statement
-    return MyClass {}
+    return MyClass.new()
 end
 
 -- We can't statically catch this in the general case, but this will fail at runtime!
@@ -190,7 +197,7 @@ create()
 class MyClass
 end
 
-local b = MyClass {} -- OK
+local b = MyClass.new() -- OK
 local c = create() -- OK
 ```
 
@@ -202,10 +209,10 @@ local globalCount = 0
 class Counter
     public count: number
 
-    function new()
+    function create()
         local count = globalCount
         globalCount += 1
-        return Counter {count=count}
+        return Counter.new({count=count})
     end
 end
 ```
@@ -222,11 +229,7 @@ We're very excited to support generic classes and plan to introduce a fresh RFC 
 
 #### Inheritance
 
-We're still evaluating whether or not implementation inheritance is something we want to support.
-
-Method inlining is something we'd like to try that is greatly complicated by inheritance.
-
-Also, frankly, its worth as a programming technique is controversial: the [Fragile Base Class Problem](https://en.wikipedia.org/wiki/Fragile_base_class) can cause significant harm to a project.
+Inheritance is planned and will be described in a separate RFC.
 
 Lastly, while Luau doesn't quite properly afford interface inheritance through its structural type system, this shortfall is relatively easy to fix.  Because of this, implementation inheritance is judged to be lower priority.
 
