@@ -2,7 +2,7 @@
 
 ## Summary
 
-Introduce a labeled form of loop and `do` block statements, and extend `break` and `continue` to optionally reference a label. The label is written as a colon-suffix on the loop's `do` keyword — `for i = 1, 10 do: outer` — making it structurally bound to the block it names. This allows structured non-local exits from nested loops without workarounds such as flag variables or immediately-invoked function expressions.
+Introduce a labeled form of loop, and extend `break` and `continue` to optionally reference a label. The label is written as a colon-suffix on the loop's `do` keyword — `for i = 1, 10 do: outer` — making it structurally bound to the loop it names. This allows structured non-local exits from nested loops without workarounds such as flag variables or immediately-invoked function expressions.
 
 ## Motivation
 
@@ -51,10 +51,9 @@ Labeled `break` and `continue` address all of these problems with a straightforw
 
 ### Syntax
 
-A label is introduced by appending `:` and a name directly to the `do` keyword that opens a loop body or standalone block:
+A label is introduced by appending `:` and a name directly to the `do` keyword that opens a loop body:
 
 ```
-doblock  ::= 'do' ':' Name block 'end'
 forstat  ::= 'for' ... 'do' ':' Name block 'end'
 whilestat ::= 'while' exp 'do' ':' Name block 'end'
 repeatstat ::= 'repeat' ':' Name block 'until' exp
@@ -78,8 +77,6 @@ When no label is given, `break` and `continue` behave exactly as today: they ref
 ### Scoping rules
 
 A label is in scope from the `do:` (or `repeat:`) token to the end of the enclosing block. It is visible in all nested blocks and functions — but only for the purpose of `break`/`continue`; a label cannot be referenced in any other context, and it is never captured as an upvalue.
-
-A label on a `do` block may be targeted by `break` but not `continue`, because `do` blocks do not iterate. Attempting to `continue` a `do` block is a compile-time error.
 
 Label names must be unique within their immediately enclosing block. Redeclaring a label name at the same scope level is a compile-time error. Shadowing an outer label with an inner label of the same name is permitted, following the same rules as variable shadowing.
 
@@ -126,19 +123,6 @@ for _, row in grid do: outer
         end
         process(cell)
     end
-end
-```
-
-**Breaking a `do` block to skip a section of code:**
-
-```lua
-do: validate
-    if not config.enabled then break validate end
-    if config.value < 0 then
-        warn("negative value")
-        break validate
-    end
-    applyConfig(config)
 end
 ```
 
@@ -200,8 +184,6 @@ end
 **Contextual keyword extension.** `continue` is already a contextual keyword. `break label` and `continue label` require the parser to recognize that the identifier following `break`/`continue` on the same line is a label reference. This is straightforward but must be carefully specified to avoid edge cases at line boundaries.
 
 **Increased language surface area.** Labels are a feature programmers must learn. Deeply nested loops with non-obvious label names can reduce readability. Poor use of labeled breaks can produce code nearly as hard to follow as `goto`.
-
-**`do` block labeling asymmetry.** Allowing `break` but not `continue` on `do` blocks introduces an asymmetry that users must remember.
 
 ## Alternatives
 
