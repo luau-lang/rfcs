@@ -42,7 +42,7 @@ This is a very well-known problem.  The well-known solution is constructors.
 
 ## Design
 
-All class instances are created by calling a built-in static method `.new()` on the class.
+All class instances are created by calling a built-in static method `.new()` on the class.  The method name `new()` is reserved by the language.  It is a parse error to attempt to define it.
 
 Let `T` be a class object.  When `T.new(...args)` is invoked with any arguments, the following happens:
 
