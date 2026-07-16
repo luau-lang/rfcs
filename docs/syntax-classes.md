@@ -86,7 +86,7 @@ Classes can define the following Luau metamethods.  They all work just like they
 
 For now, `__index` and `__newindex` are forbidden in classes.  We may revisit this later.
 
-\* `__init__` is not a metamethod per se but we call it out here as a valid method to define on a class.
+\* `__init` is not a metamethod per se but we call it out here as a valid method to define on a class.
 
 For forward-compatibility, it is a syntax error to define any other method whose name starts with two underscores.
 
