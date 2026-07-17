@@ -1,5 +1,7 @@
 # Const Keyword
 
+**Status**: Implemented
+
 ## Summary
 
 Introduce a `const` keyword for local variable bindings that prevents reassignment after initialization. A const declaration makes the binding immutable, not the value, so tables and other mutable objects remain mutable through the binding.
