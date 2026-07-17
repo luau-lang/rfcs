@@ -1,5 +1,7 @@
 # 64-bit Integer Type
 
+**Status**: Implemented 
+
 ## Summary
 
 A builtin 'integer' type to represent 64-bit integer numbers.
