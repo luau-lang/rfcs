@@ -97,6 +97,7 @@ module.
 
 We propose to alleviate this with a special import alias `@self` that resolves
 to the path to the current module.
+This alias is reserved and cannot be overridden by user-defined alias mappings.
 
 ```lua
 -- package/init.luau
