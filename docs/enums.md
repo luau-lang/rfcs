@@ -57,17 +57,16 @@ enum DemonstrationEnum
 end
 ```
 
-An enum requires a minimum of one item. An enum with no items would have an  type of `enum<never>` and produce a type alias of `never`, which is meaningless.
+An enum requires a minimum of one item. An enum with no items would have an  type of `enum<never>` and produce a type alias of `never`, which is confusing at best. Further, an empty enum has no runtime values and therefore provides no useful functionality.
 
 ```luau
 enum DemonstrationEnum  -- syntax error: No enum items defined
+end
 ```
 
 An enum can be exported using `export enum Name`. Two scripts defining an enum with identical names define two distinct enums.
 
-
-
-The value of an enum item must be a expression that the compiler can fully evaluate to a non-nil constant of type `number`, `string`, `boolean` or `integer`. For example, `Foo = math.rand()` would not be legal, but `Foo = 1 + 1` is known to be `Foo = 2` and is therefore legal. `nan` is explicitly disallowed as a legal value.
+The value of an enum item must be an expression that Luau's compiler constant-folding pass can evaluate to a non-nil constant of type `number`, `string`, `boolean` or `integer`. For example, `Foo = math.random()` would not be legal, but `Foo = 1 + 1` is known to be `Foo = 2` and is therefore legal. `nan` is explicitly disallowed as a legal value.
 
 An enum is constant and its items cannot be altered at runtime.
 
@@ -82,7 +81,7 @@ An `enumitem` has a read-only field `name` containing its name, and a read-only 
 A new `enum` library is introduced to the language:
 
 ```luau
-function enum.fromName<T>(e: enum<T>, name: string): T?
+function enum.fromname<T>(e: enum<T>, name: string): T?
 ```
 
 Returns the item from enum `e` whose declared name is equal to `name`. Returns `nil` if no match is identified.
@@ -90,7 +89,7 @@ Returns the item from enum `e` whose declared name is equal to `name`. Returns `
 ---
 
 ```luau
-function enum.fromValue<T>(e: enum<T>, value: any): T?
+function enum.fromvalue<T>(e: enum<T>, value: any): T?
 ```
 
 Returns the first item from `e` whose associated value compares equal to `value`. If multiple members in the enumeration share a value, the first matching member in declaration order of the enum is returned. Returns `nil` if no match is identified.
@@ -106,11 +105,23 @@ Returns a table containing all items, in order, that are members of enum `e`.
 ---
 
 ```luau
-function enum.enumOf<T>(item: T): enum<T>
+function enum.enumof<T>(item: T): enum<unknown>
 -- where T <: enumitem
+--
+-- The concrete return type is the enum containing T.
+-- This relationship is handled intrinsically by the typechecker.
 ```
 
 Returns the enum the enum item `item` is a member of.
+
+If `T` represents a union of enum items from different enums, the return type would be a union of the possible owning enums:
+
+```luau
+enum.enumof(E.Foo)                 -- typeof(E)
+enum.enumof(item :: E.Foo | E.Bar) -- typeof(E)
+enum.enumof(item :: E.Foo | F.Bar) -- typeof(E) | typeof(F)
+enum.enumof(item :: enumitem)      -- enum<unknown>
+```
 
 ---
 
@@ -118,9 +129,9 @@ No function is currently proposed for dynamic creation of enums. This is due to 
 
 ### Type system interactions
 
-`enum<T>` is the type of an enum object whose members are represented by the enum-item union `T`; the generic argument is a union of enum-item types, not a union of their associated value types. That is to say, `DemonstrationEnum` is of type `enum<DemonstrationEnum.Foo | DemonstrationEnum.Bar>`. `enum<unknown>` is the top type for enumerations.
+`enum<T>` is the type of an enum object whose members are represented by the enum-item union `T` (`T <: enumitem`, with the permitted exceptions of `T = unknown` and `T = any`); the generic argument is a union of enum-item types, not a union of their associated value types. That is to say, `DemonstrationEnum` is of type `enum<DemonstrationEnum.Foo | DemonstrationEnum.Bar>`. `enum<unknown>` is the top type for enumerations.
 
-The non-generic type `enumitem` is added as the top type for all enum members. Every nominal enum item type is a subtype of `enumitem`. The definition of an enum introduces a type alias of the same name which represents a union of all members of that enum.
+The non-generic type `enumitem` is added as the top type for all enum members. Every nominal enum item type is a subtype of `enumitem`. The definition introduces a type alias of the same name which behaves as the union of all members. Implementations are not required to represent this as an ordinary materialized union.
 
 As an example:
 
@@ -138,7 +149,8 @@ DemonstrationEnum.Foo.value  -- type: number
 
 -- An example for when `enumitem` might be used instead of the nominal types
 local function getEnumItemName(ei: enumitem): string
-	return ei.nameend
+	return ei.name
+end
 ```
 
 Enumeration members are nominal. The following code is a type error, despite both the name and the value matching:
@@ -154,7 +166,7 @@ end
 local foo: DemonstrationEnumOne = DemonstrationEnumTwo.Foo
 ```
 
-Refinements on an enum item can be performed with direct equality, or by equality of the `name` field (as shown below). This refinement logic comes as part of general union refinement, and `name` being a singleton string. Refinement on `value` is possible by the same logic, but is unlikely to narrow an unknown enum member particularly strongly (for example, `.Foo.value` and `.Bar.value` could identical `number` types).
+Refinements on an enum item can be performed with direct equality, or by equality of the `name` field (as shown below). This refinement logic comes as part of general union refinement, and `name` being a singleton string. Refinement on `value` is possible by the same logic, but is unlikely to narrow an unknown enum member particularly strongly (for example, `.Foo.value` and `.Bar.value` could have identical `number` types).
 
 ```luau
 function foo(bar: DemonstrationEnum)
@@ -167,7 +179,7 @@ function foo(bar: DemonstrationEnum)
 end
 ```
 
-Intersections between two nominal enum items, such as `DemonstrationEnum.Foo & DemonstrationEnum.Bar`, reduces to `never`. Intersection between a nominal enum item type and `enumitem`, such as `DemonstrationEnum.Foo & enumitem`, reduces to the nominal enum item type (`DemonstrationEnum.Foo`).
+Intersections between two nominal enum items, such as `DemonstrationEnum.Foo & DemonstrationEnum.Bar`, reduce to `never`. Intersection between a nominal enum item type and `enumitem`, such as `DemonstrationEnum.Foo & enumitem`, reduces to the nominal enum item type (`DemonstrationEnum.Foo`).
 
 ### Interactions with existing language features
 
@@ -191,7 +203,7 @@ DemonstrationEnum.Foo ~= OtherEnum.Foo
 -- type error: cannot assign to readonly property 'Foo'
 DemonstrationEnum.Foo = OtherEnum.Foo
 
-DemonstrationEnum["Foo"] == DemonstrationEnum.Foo  -- Can be considered an alternative to enum.fromName
+DemonstrationEnum["Foo"] == DemonstrationEnum.Foo  -- Can be considered an alternative to enum.fromname
 
 -- runtime error: attempted to access enum item "DoesNotExist" which does not exist
 -- type error: Item "DoesNotExist" not found in enum "DemonstrationEnum"
@@ -210,7 +222,7 @@ end
 
 ### Restrictions
 
-All enums must be defined at the top level of a script.
+All enums must be defined at the top level of a script. This permits embedders to assign build-scoped identities to enum declarations. Whether identities are assigned, and the mechanism used to assign them, are embedder-defined implementation details.
 
 While this restricts flexibility, this is currently a strict requirement for efficient serialisation. This restriction may be relaxed in the future.
 
