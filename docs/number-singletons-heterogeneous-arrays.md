@@ -44,12 +44,12 @@ type SerializedStructure =
     }
   | {
         Version: 2,
-        Data: buffer
+        Data: { string }
     }
 ```
 
 , however, this is currently inexpressible. `Version` would have to be left annotated as `number`, which prevents `deserialize` from typechecking
-as the union of `Items` is not narrowed from `{ number } | buffer`.
+as the union of `Items` is not narrowed from `{ number } | { string }`.
 
 Certain runtimes may expose platform-level APIs that use enumerations that are represented as `number`s.
 
