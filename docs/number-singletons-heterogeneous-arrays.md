@@ -2,7 +2,7 @@
 # Integral `number` singletons and heterogeneous arrays
 
 ## Summary
-Allow for singletons of the `number` primitive, similar to `boolean` (`true`/`false`).
+Allow for singletons of the `number` primitive, similar to `boolean` (`true`/`false`) and `string`.
 
 Allow for them to be used like table properties to form heterogeneous arrays.
 
