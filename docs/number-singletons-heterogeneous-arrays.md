@@ -14,7 +14,7 @@ type Deserialized = {
     Items: { string }
 }
 
-local function convertFromV1ToV2(_: buffer): { string }
+local function convertFromV1ToV2(_: { number }): { string }
     -- ...
 end
 
@@ -40,7 +40,7 @@ The desired type of `Serialized` would be:
 type SerializedStructure =
   | {
         Version: 1,
-        Data: { string }
+        Data: { number }
     }
   | {
         Version: 2,
@@ -49,7 +49,7 @@ type SerializedStructure =
 ```
 
 , however, this is currently inexpressible. `Version` would have to be left annotated as `number`, which prevents `deserialize` from typechecking
-as the union of `Items` is not narrowed from `{ string } | buffer`.
+as the union of `Items` is not narrowed from `{ number } | buffer`.
 
 Certain runtimes may expose platform-level APIs that use enumerations that are represented as `number`s.
 
