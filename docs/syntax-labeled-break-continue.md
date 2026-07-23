@@ -43,7 +43,7 @@ This pattern has several drawbacks:
 - It reuses `return` with different semantics than the enclosing function, which can confuse readers.
 - Luau's type checker must reason through the IIFE boundary, which complicates type narrowing and return type inference.
 - It is stylistically alien — the construct exists solely to work around a language limitation rather than to express intent.
-- If compiled without optimization(or inlining doesn't happen), it introduces a closure allocation and call overhead. The IIFE takes zero arguments and captures locals as upvalues. Luau's inlining cost model deprioritizes such functions, so the call is unlikely to be inlined. Even when inlining does occur, the lambda's prototype remains in the bytecode — occupying space and contributing to parse time.
+- If compiled without optimization(or inlining doesn't happen), it introduces a closure allocation and call overhead.
 
 Labeled `break` and `continue` address all of these problems with a straightforward, well-precedented mechanism found in Java, Kotlin, JavaScript, Rust, and other languages. It is the natural complement to the `continue` statement already present in Luau.
 
@@ -76,7 +76,7 @@ When no label is given, `break` and `continue` behave exactly as today: they ref
 
 ### Scoping rules
 
-A label is in scope from the `do:` (or `repeat:`) token to the end of the enclosing block. It is visible in all nested blocks and functions — but only for the purpose of `break`/`continue`; a label cannot be referenced in any other context, and it is never captured as an upvalue.
+A label is in scope from the `do:` (or `repeat:`) token to the end of the enclosing block. It is visible in all nested blocks — but only for the purpose of `break`/`continue`; a label cannot be referenced in any other context, and it is never captured as an upvalue.
 
 Label names must be unique within their immediately enclosing block. Redeclaring a label name at the same scope level is a compile-time error. Shadowing an outer label with an inner label of the same name is permitted, following the same rules as variable shadowing.
 
@@ -86,7 +86,7 @@ It is a compile-time error to `break` or `continue` a label that is not in scope
 
 `do` is a keyword with no existing interpretation that allows `:` to follow it, so `do:` is entirely unambiguous at the parser level. No lookahead is required — the parser commits to the labeled form as soon as it sees the `:` token immediately after `do` (or `repeat`).
 
-Label references in `break label` and `continue label` use a bare identifier. Since `break` and `continue` are keywords that currently take no arguments, any identifier following them on the same line is unambiguously a label reference.
+Label references in `break label` and `continue label` use a bare identifier. Since `break` is a keyword and `continue` is contextual keywords that currently take no arguments, any identifier following them on the same line is unambiguously a label reference.
 
 ### Interaction with `continue`
 
@@ -175,7 +175,7 @@ end
 
 ### Bytecode
 
-`break label` compiles to the same `JUMP` instruction as an unlabeled `break`, targeting the instruction immediately following the labeled statement. `continue label` compiles to the same `JUMP` as an unlabeled `continue`, targeting the loop condition of the labeled statement. No new bytecode instructions are required.
+`break label` compiles to the same `JUMP` instruction as an unlabeled `break`, targeting the instruction immediately following the labeled statement(extra `CLOSEUPVALS` for all outer loops should be also emitted though). `continue label` compiles to the same `JUMP` as an unlabeled `continue`, targeting the loop condition of the labeled statement. No new bytecode instructions are required.
 
 ## Drawbacks
 
