@@ -73,7 +73,7 @@ Not all of these ideas will make it to the final RFC, if any at all. Consider th
 
 ### Class Field Default Values
 Class fields can take an optional default parameter via regular assignment syntax
-```
+```luau
 public thing: type = defaultValue
 public vagueThing = defaultValue
 ```
@@ -84,7 +84,7 @@ public vagueThing1, vagueThing2 = defaultValue
 public Foo: type, vagueFoo = defaultValue
 ```
 This is still valid, and functions largely the same as the initial classes RFC:
-```
+```luau
 public thing: type
 public vagueThing
 public Foo: type, Bar: type
@@ -93,14 +93,15 @@ public vagueBaz, Baz: type
 ```
 However, it is not safe to use these fields in non-conditional reads without first checking if it has been assigned a value. Code that does not do this will not run in strict mode
 
-Finally, runtime variables and functions are allowed in field defaults. If the default expression has side effects or cyclic dependancies, that will be the user's job to handle unless there is a viable way to check for cyclic side effects in compiletime. 
+Finally, runtime variables and functions are allowed in field defaults. If the default expression has side effects or cyclic dependencies, that will be the user's job to handle unless there is a viable way to check for cyclic side effects at compile time. 
 Erroring default expressions propagate the error through class initialization as well.
 Runtime functions that determine field defaults do not have access to the instance they are used to create. 
 
-### self Keyword and Static Methods/Fields
+### `self` Keyword and Static Methods/Fields
 
 Currently, `self` is an opt-out magic keyword that is automatically applied to class functions. While convenient, it is unintuitive for people learning the language or transitioning from metamethod classes.
 Instead, class methods should continue to follow Lua's `.` and `:` syntax rules:
+
 ```luau
 class Foo
   function Foo:thing1() end -- self is implicitly usable 
@@ -110,19 +111,23 @@ class Foo
   function thing5() end -- functions identically to thing4
 end
 ```
-Note that the exact semantic rules for functions like `thing5` have yet to be fully deliberated on. See `Alternatives` for details.
+Note that the exact semantic rules for functions like `thing5` have yet to be fully deliberated on. See Alternatives for details.
 
 For now, Class methods with `.` prefix or no prefix at all function identically to static functions in other languages.
 
-Fields can also be declared through `public Class.fieldName`, which functions identically to static fields in other languages
+Fields can also be declared through `public Class.fieldName`, which functions identically to static fields in other languages.
+
 Fields cannot be declared through `public Class:fieldName` due to ambiguity concerns (`:` is supposed to function as syntax sugar for self)
 
 ### `as` Keyword and `super()` Inheritance
 
-Note: `as` keyword will likely move to a separate RFC due to its described behavior being extremely out of scope implementation-wise compared to the problem that it solves. However, the point of not introducing `super` into Luau still stands.
+Note: `as` keyword will likely be neutered or move to a separate RFC due to its described behavior likely being overkill for the problem that it seeks to solve. However, the point of not introducing `super` into Luau as-is still stands.
 
+---
 The current inheritance design intentionally excludes `super()` in favor of directly referencing the parent class. This is not a bad alternative, but it comes at the cost of coupling the child class directly to its parent. This makes class inheritance fragile and creates a major annoyance when the user needs to refactor a base class with multiple children spread across many files 
+
 On the other hand, `super()` is a poorly named and incredibly inflexible keyword whose use is not inherently obvious to the vast majority of new programmers until they go out of their way to learn how it works. 
+
 Many others have made suggestions on how to bring super-adjacent functionality, but most try to port the keyword too literally and introduce all the problems previously discussed as well as some additional implementation/design hurdles
 
 To sidestep such issues, class declarations should gain an additional `as` keyword:
@@ -171,7 +176,7 @@ end
 ```
 
 Under these rules, `as` can be syntax sugar for class name as well:
-```
+```luau
 class Foo as F extends Bar as B
   public F.staticField -- Valid, as F is shorthand for Foo
   public Fizzbuzz: number = 42
@@ -184,7 +189,7 @@ end
 ```
 
 Unfortunately, aliases through `as` do not stop you from mixing and matching the original declaration with its corresponding alias to your own detriment:
-```
+```luau
 class Foo as F extends Bar as B
   public F.staticField
   public Foo.anotherStaticField
@@ -253,12 +258,15 @@ local my3DPoint = Point3D.fromDirection(60, 30) -- extremely misleading method t
 Aside from the inability to overload in certain situations, there is also a chance that the end user doesn't want their children using certain fields. While this can be partially solved through the planned `private` keyword, it's too restrictive and doesn't account for situations like the one described above, where `fromDirection` still needs to be accessible for enduser use
 
 There are many possible solutions to this problem, but not many are desirable due to how inheritance is defined in the original design:
+
 > However, the method declared in the subclass must be a subtype of the method in the superclass. That is, a child class can override a parent class method with a function that is more permissive than that of the base class method, but not less.
 
-Interestingly, there seems to be an exception carved out specifically for class objects:
+Interestingly, there seems to be an exception that static class-level data could exploit:
+
 > However, class objects never have any subtyping relationship
+
 If true, then theoretically static/class-level data could safely allow some form of shadowing: 
-```
+```luau
 open class Point
     function Point.fromDirection(theta: number, length: number): Point
         return Point {
@@ -293,6 +301,7 @@ class Point3D extends Point as Parent -- see the `as` keyword section if this co
   end
 ```
 This may also open the way for static fields and functions to completely "opt out" of inheritance altogether.
+
 However, this still requires redefining some rules about static methods and taking some tradeoffs, since it could create unsavory situations:
 ```luau
 local point: Point = Point3D {z = 10} -- Because Point3D is a child of Point, this is technically type legal
@@ -300,6 +309,7 @@ local point: Point = Point3D {z = 10} -- Because Point3D is a child of Point, th
 local newPoint = point.fromDirection(theta, length) -- However, due to shadowing, this causes the type checker to lie
 ```
 There are potentially multiple ways to fix this while still allowing for static shadowing, but none are small changes. As things currently stand, the type system does not have enough information about classes to handle such situations. A section dedicated to explaining this can be found near the bottom of the page.
+
 For now, the "how" can be decided in future revisions of this RFC if it is deemed worthy of the effort, as it likely requires new syntax/grammar.
 
 ### Default Constructors
@@ -330,11 +340,18 @@ function Foo.__init(args)
     instance[name] = data
   end
 
-  for field in class.getPublicFields(instance) do
+  local publicFields = class.getPublicFields(instance)
+
+  for field in publicFields do
     if args[field] == nil and not field.hasDefault and luau.isStrictMode then
       error(`Intitalization is missing required field {field} in class {instance}`)
-    elseif args[field] then
+    elseif args[field] ~= nil then
       instance[field] = args[field]
+    end
+  end
+  for name, field in args do
+    if not table.find(name) then
+      error(`Initialization contains unused field {name}`)
     end
   end
   -- doesn't return anything because it still needs to go through its __post_init pass
@@ -342,9 +359,10 @@ end
 ```
 `__init` is not publicly accessible and only assigns public variables. No `__post_init` runs until every `__init` in the inheritance hierarchy runs first.
 Private field initialization (once implemented) and other tasks are assigned in `__post_init`, which is publicly reassignable by the runtime and end users.
+
 `__post_init` is not required to be specified by the end user. If unspecified, that class' `__post_init` is an empty function
 
-By default, __post_init runs in order of oldest to youngest inheritance parent. If possible, the fields inside each class are initialized from top to bottom. This RFC draft is currently unsure if endusers should be allowed to reorder or even call inheritance `__post_init`s due to the implementation headache and design questions they introduce. Deferring such logic to a future RFC may make sense.
+By default, `__post_init` runs in order of oldest to youngest inheritance parent. If possible, the fields inside each class are initialized from top to bottom. This RFC draft is currently unsure if endusers should be allowed to reorder or even call inheritance `__post_init`s due to the implementation headache and design questions they introduce. Deferring such logic to a future RFC may make sense.
 
 Note that this only applies to default constructors. Custom constructors with the following syntax are still allowed:
 ```luau
@@ -446,7 +464,7 @@ assert(class.isclass(recoveredClass, Point)) -- Option 2: introduce a stricter v
 Option 1 could introduce problems with equivalence metamethods, so option 2 is likely the safer choice. 
 
 By the end of the "easiest" solution, safely editing static methods without direct access to the initializer class looks like this:
-```
+```luau
 function recreate(pnt: Point)
   local cls = class.classOf(pnt)
 
