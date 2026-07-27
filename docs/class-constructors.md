@@ -69,7 +69,9 @@ If a class does not explicitly define a constructor, it is given a default const
 
 In strict mode, it is a warning to leave fields uninitialized.
 
-If a base class defines no explicit constructor, its subclasses do not need to either.  The default constructor for these derived classes will initialize all fields from the provided mapping both from the current class and all of its ancestors.  For example:
+A class must define an explicit constructor if its base class defines one.  Attempting to construct such a class will result in a runtime exception.  Type inference will also warn in this case.
+
+If a class defines no constructor and inherits from another that also defines no constructor, the default constructor will initialize all fields of the class.  For example:
 
 ```luau
 open class BasePoint
