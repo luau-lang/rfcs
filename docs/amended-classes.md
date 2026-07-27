@@ -9,14 +9,14 @@ open class Animal as Ani -- the optional "as" keyword allows use of "Animal" to 
     function Ani:__post_init() -- There is no publically accessible __init, as Luau controls it internally. All public fields are guaranteed to be initialized.
         self.species = string.lower(self.species) 
     end
-    function Ani:__tostring() -- Inherited and implicitly adds self
+    function Ani:__tostring() -- Implicitly adds self
         return `I am an animal of species {self.species}.`
     end
 
-    function Ani.live() -- Inherited, but behaves like a static function
+    function Ani.live() -- Behaves like a static function without access to self
         return "I am alive"
     end
-    function new(name) -- Behaves like a static function. Self is not automatically applied
+    function new(name) -- Behaves like a static function and is later overshadowed by cat. Has nothing to do with the fact that it's `Ani`-less
         return Ani { species = name }
     end
 end
