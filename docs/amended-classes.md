@@ -3,30 +3,30 @@
 ## Summary
 
 ```luau
-open class Animal as Ani
-    public species: string
+open class Animal as Ani -- the optional "as" keyword allows use of "Animal" to be synonymous with "Ani". They are one and the same.
+    public species
 
-    function Ani:__post_init() -- Inherited and implicitly adds self
-        self.species = string.lower(self.species)
+    function Ani:__post_init() -- There is no publically accessible __init, as Luau controls it internally. All public fields are guaranteed to be initialized.
+        self.species = string.lower(self.species) 
     end
-    function Ani:__tostring() 
+    function Ani:__tostring() -- Inherited and implicitly adds self
         return `I am an animal of species {self.species}.`
     end
 
     function Ani.live() -- Inherited, but behaves like a static function
         return "I am alive"
     end
-    local function new(name: string) -- Behaves like a static function, but overshadowed. Self is not automatically applied
+    function new(name) -- Behaves like a static function. Self is not automatically applied
         return Ani { species = name }
+    end
 end
 
-class Cat extends Animal as A
-    public meowMult: number = 1
-    public owner: string? = nil
+class Cat extends Animal as A -- the as keyword can still alias Cat in this form, but I chose not to so I can show that it is not required
+    public meowMult: number, owner: string? = 1, nil
 
     function Cat:__post_init()
-      assert(not self.owner or self.owner ~= "me", "I do not like cats")
-      self.species += " catus"
+      assert(not self.owner or self.owner ~= "me", "I do not like cats because they are mean :(")
+      .species += " catus"
     end
     function Cat:__tostring(): string
         return `{A.__tostring(self)} and can meow with {self.MeowMult}x strength.`
@@ -39,8 +39,8 @@ class Cat extends Animal as A
     function Cat.fromAnimal(animal: A): typeof(Cat)
       return Cat { species = animal.species }
     end
-    function Cat.new(species: string, meowMult: number, owner: string): typeof(Cat)
-      local newCat = Cat.fromAnimal(A.new(species)) -- new shadows Animal's new, not overloads it
+    function Cat.new(species: string, meowMult: number, owner: string): typeof(Cat) -- Cat.new trumps Animal.new and will run if called from Cat. Behavior exclusive to static fields/methods
+      local newCat = Cat.fromAnimal(A.new(species)) -- Cat's new shadows Animal's new, but does not overload it. This is still legal syntax
 
       newCat.meowMult = meowMult
       newCat.owner = owner
@@ -79,9 +79,10 @@ public vagueThing = defaultValue
 ```
 Fields with similar properties can also be batch declared like so:
 ```luau
-public thing1: type, thing2: type = defaultValue
-public vagueThing1, vagueThing2 = defaultValue
-public Foo: type, vagueFoo = defaultValue
+public thing1: type, thing2: type = defaultValue1, defaultValue2
+public vagueThing1, vagueThing2 = defaultValue1, defaultValue2
+public Foo: type, vagueFoo = defaultValue1, defaultValue2
+public defaultedFoo, nilFoo = defaultValue1 -- nilFoo is not assigned a default value
 ```
 This is still valid, and functions largely the same as the initial classes RFC:
 ```luau
@@ -91,11 +92,31 @@ public Foo: type, Bar: type
 public vagueFoo, vagueBar
 public vagueBaz, Baz: type
 ```
-However, it is not safe to use these fields in non-conditional reads without first checking if it has been assigned a value. Code that does not do this will not run in strict mode
+In strict mode, non-nillable typed fields must be assigned during initialization, or else the class will fail to construct. For example:
 
-Finally, runtime variables and functions are allowed in field defaults. If the default expression has side effects or cyclic dependencies, that will be the user's job to handle unless there is a viable way to check for cyclic side effects at compile time. 
-Erroring default expressions propagate the error through class initialization as well.
-Runtime functions that determine field defaults do not have access to the instance they are used to create. 
+```luau
+--!strict
+class Foo
+  public thing: string -- Required to be assigned
+  public defaultedThing: string = "Bar" -- Is not required to be assigned
+  public nillableThing: string? -- Does not need to be assigned during construction
+  public nonsenseThing: string? = nil -- Does not need to be assigned as well, albeit weird syntax
+end
+```
+Ideally, untyped fields require non-nil assignment as well in strict mode, but that may be reaching too far. Normal refinement is a fine alternative as well:
+```
+--!strict
+class Foo
+  public untypedThing -- Either gets refined to `unknown?`, or refines to `unknown` with nil assignments banned. Prefer the latter, fine with the former
+end
+```
+This RFC will be updated with a more concrete stance in future revisions.
+
+Finally, runtime expressions and variables are allowed in field defaults. Default expressions are allowed to have side effects and cyclic dependencies, to the user's detriment. If there is a viable way to reliably check for cyclic side effects at compile time, then Luau can still lint/warn in such cases. 
+
+Errors and warnings caused by default expressions propagate through the class and lint errors at both the site of initialization, as well as anywhere the class is constructed.
+
+Runtime expressions that determine field defaults cannot side-effect other instances of the same instance (if such a feat is possible to begin with). 
 
 ### `self` Keyword and Static Methods/Fields
 
@@ -117,7 +138,8 @@ For now, Class methods with `.` prefix or no prefix at all function identically 
 
 Fields can also be declared through `public Class.fieldName`, which functions identically to static fields in other languages.
 
-Fields cannot be declared through `public Class:fieldName` due to ambiguity concerns (`:` is supposed to function as syntax sugar for self)
+Fields cannot be declared through `public Class:fieldName` due to ambiguity concerns (`:` is supposed to function as syntax sugar for `self`)
+
 
 ### `as` Keyword and `super()` Inheritance
 
@@ -331,7 +353,7 @@ local loreIspum = Foo { Bar = 42, Baz = "Fizz buzz"}
 ```
 When `Foo` is directly called (via `Foo({})` or `Foo {}`), luau calls an internal `__init` function that theoretically behaves like so pre-optimization:
 ```luau
--- Note that this is pseudo code
+-- Note that this is pseudo code that isn't intended to work
 function Foo.__init(args)
   local instance = Foo 
   local parent = instance.Parent:.__init(args)
@@ -362,7 +384,32 @@ Private field initialization (once implemented) and other tasks are assigned in 
 
 `__post_init` is not required to be specified by the end user. If unspecified, that class' `__post_init` is an empty function
 
-By default, `__post_init` runs in order of oldest to youngest inheritance parent. If possible, the fields inside each class are initialized from top to bottom. This RFC draft is currently unsure if endusers should be allowed to reorder or even call inheritance `__post_init`s due to the implementation headache and design questions they introduce. Deferring such logic to a future RFC may make sense.
+By default, `__post_init` runs in order of oldest to youngest inheritance parent. If possible, the specific fields inside each class are initialized from top to bottom. For example:
+
+```
+open class Foo
+  public one
+  public two
+  public Foo.three
+end
+
+class Bar extends Foo
+  public four
+  public five
+  public Bar.six
+end
+```
+Is initialized in the order:
+
+0. `three` and `six`
+1. `one`
+2. `two`
+3. `four`
+4. `five`
+
+`three` and `six` are "0" because they are static/class fields, which are already initialized and accessible through the class itself. `__init` should not  handle their initialization.
+
+This RFC draft is currently unsure if endusers should be allowed to reorder or even call inheritance `__post_init`s due to the implementation headache and design questions they introduce. Deferring such logic to a future RFC may make sense.
 
 Note that this only applies to default constructors. Custom constructors with the following syntax are still allowed:
 ```luau
@@ -386,7 +433,7 @@ end
 - Allowing runtime variables in default classes adds extra implementation baggage/questions to look out for, and allowing function calling can result in foul code hygiene if wielded by the wrong person (through side effects) 
 - Thanks to the proposed Default Constructors redesign, private default values are an open design question
 
-### self Keyword and Static Methods/Fields
+### `self` Keyword and Static Methods/Fields
 - While the `as` keyword helps, it is still more boilerplate that the enduser has to use to make function methods. Since `self` is so common in OOP and classes, explicit clarity that people may not value comes at a high cost to the enduser 
 - Allowing "unnamed" functions/fields that have different defaults (unnamed fields default as instance fields while unnamed methods default as static functions) can be seen as weird and inconsistent to the enduser or someone new to Luau
 
@@ -411,11 +458,11 @@ end
 - Default and named parameter support erases the ergonomic benefits of default fields, and is a feature that can be widely used outside of classes. However, much of this RFC is built around the idea of default field parameters, and default and named parameter support for functions is its own implementation beast.
 - Do nothing, and force all field initialization to happen in `__init` or `__post_init`. This allows for better code readability at the cost of more frustrating initialization assuming Default Constructors is implemented as described in this draft RFC. Otherwise, the cost of implementation is also passed to the class creator themselves, as they need to manually `__init` every variable themselves in 1 or 2 big functions
 
-### self Keyword and Static Methods/Fields
-- Introduce a `static`-adjacent keyword instead of relying on Lua philosophies. This will also contain all the problems associated with adding a new keyword to Luau with very little use outside of classes. A `static`-like keyword also must be stackable with other keywords, bringing about the Java problem again. The word `static` is also not inherently obvious about what it does. New devs will have to go out of their way to learn what it does
+### `self` Keyword and Static Methods/Fields
+- Introduce a `static`-adjacent keyword instead of relying on Lua philosophies. This will also contain all the problems associated with adding a new keyword to Luau with very little use outside of classes. A `static`-like keyword also must be stackable with other keywords, bringing about the Java problem of its class structure intimidating new programmers (`public static void main` is not very approachable syntactically). The word `static` is also not inherently obvious about what it does. New devs will have to go out of their way to learn what it does
 - Forgo the classname and only include the bare necessities (`.` and `:`). This works, but it is syntactically ugly and potentially easier to miss. People used to Lua's `.` and `:` notation may still write the classname regardless due to muscle memory. Outside that, there are no further obvious drawbacks.
 - Continue with the original plan, and have `self` be a required positional argument implicitly added to every class method function that doesn't use `className.methodName` syntax. The impact has already been discussed in the design section for this change
-- Do nothing and/or defer static and self logistics to a future RFC. However, Classes will be neutered until an equivalent is implemented
+- Do nothing and/or defer `static` and `self` logistics to a future RFC. However, Classes will be neutered until an equivalent is implemented
 
 ###  `as` Keyword and `super()` Inheritance
 - Implement `super` as a keyword, class library method, built-in function, or by some other means. By doing so, Luau inherits the many problems that came with `super`:
@@ -439,8 +486,15 @@ end
 - Do nothing, and force every public field and method to be inherited indiscriminately. The drawbacks of such have been described in-depth in the section itself
 
 ### Default Constructors
-- By @TenebrisNoctua in #210: Allow C++-style inheritance as described [here](https://github.com/luau-lang/rfcs/pull/210#issuecomment-4632943714), and reintroduce `__init` as a usable/callable baseclass. More boilerplate, but also more power. You can choose which fields you like to implement, the order of their implementation, and the order of the initiation class functions themselves. It is also less magical than the proposed default constructor idea, as `__init`-less functions are constructed as a typed empty metatable instead of them going through the initialization algorithm behind the scenes. However, an empty, unititalized table poses type system design gaps (everything is `nil`, regardless of type information) and it loses the readability benefits of the current constructor method. It also loses the guarantee that every public field is initialized before side effects begin, potentially leading to weaker or harder-to-implement type enforcement. If going forward with this idea, it is highly recommended to strongly consider implementing default fields, default parameters, and named parameters for a better user experience
-- By @InfraredGodYT in #216: Have a dedicated `constructor()` function type that handles `__init` as described [here](https://github.com/luau-lang/rfcs/pull/216#issue-4814448206). This is more honest in its functionality than `__init`, but results in more keywords and grammar added to Luau's lexicon (with all the aforementioned problems that come with it). Has similar boilerplate, lack of initialization guarantees, readability, and a magical default `__init` that must be expressed through special initialization syntax (`Cls {}` instead of `Cls()`)
+- By @TenebrisNoctua in #210: Allow C++-style inheritance as described [here](https://github.com/luau-lang/rfcs/pull/210#issuecomment-4632943714), and reintroduce `__init` as a usable/callable baseclass. More boilerplate, but also more power.
+  - You can choose which fields you like to implement, the order of their implementation, and the order of the initiation class functions themselves.
+  - It is also less magical than the proposed default constructor idea, as `__init`-less functions are constructed as a typed empty metatable instead of them going through the initialization algorithm behind the scenes.
+  - However, an empty, unititalized table poses type system design gaps (everything is `nil`, regardless of type information) and it loses the readability benefits of the current constructor method.
+  - It also loses the guarantee that every public field is initialized before side effects begin, potentially leading to weaker or harder-to-implement type enforcement.
+
+If going forward with this idea, it is highly recommended to strongly consider implementing default fields, default parameters, and named parameters for a better user experience
+
+- By @InfraredGodYT in #216: Have a dedicated `constructor()` function type that handles `__init` as described [here](https://github.com/luau-lang/rfcs/pull/216#issue-4814448206). This is more honest in its functionality than `__init`, but results in more keywords and grammar added to Luau's lexicon (with all the aforementioned problems that come with it). Has similar problems with boilerplate, lack of initialization guarantees, bad enduser readability, and a magical default `__init` that must be expressed through special initialization syntax (`Cls {}` instead of `Cls()`)
 - Continue with the original plan and face the downsides addressed in its PR comments (#210)
 - Do nothing, and force explicit construction via factory functions. Still has all the problems faced with the previous alternatives
 
