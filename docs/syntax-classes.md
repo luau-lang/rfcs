@@ -174,7 +174,7 @@ Class definitions are Luau statements just like function definitions.
 
 The action of a class definition statement is to allocate the class object, define its functions and properties, and freeze it.  Consequently, a class cannot be instantiated before this statement is executed.
 
-We do, however, *hoist* the class identifier's binding to the top of the script so that it can be referred to within functions or classes that lexically appear before the class definition.  This makes it easy and straightforward for developers to write classes or functions that mutually refer to one another.
+We do, however, hoist the class identifier's binding to the top of the script so that it can be referred to within functions or classes that lexically appear before the class definition.  This makes it easy and straightforward for developers to write classes or functions that mutually refer to one another.
 
 Static analysis also considers the class's type to be global to the whole module so that it can appear in any type annotation anywhere in the script.
 
@@ -244,6 +244,14 @@ Allowing code to grab unbound method references (ie `local m = o.someMethod`) se
 The word `class` is doing triple duty under this RFC: It is a contextual keyword, the name of a top-level library, and the name of the top type for class objects.
 
 Object oriented codebases tend to have far more cyclic dependencies between modules because every piece of data is also coupled to a whole bunch of functions that operate on that data.  We are probably going to have to work out a way to relax the restrictions on cyclic module imports.
+
+We acknowledge that hoisting is awkward.  Like JavaScript, hoisted Luau classes create a "temporal dead zone" where the class's identifier is available but is bound to `nil`.  This is unavoidable because:
+
+* Classes must be able to capture upvalues.  Their evaluation therefore cannot be reordered without also hoisting any upvalues they depend on.
+* A class must be able to refer to other classes within its method bodies.  We believe this is a critical usability requirement.
+* It must be possible to statically know all classes in the program:
+    * Static type inference is infeasible when there can be many "instances" of the same class created by different closures.
+    * This also opens the door to more efficient network serialization: instead of sending any data about the structure of the class, senders can ascribe a unique ID to each class and then send the properties in some order, knowing that the receiver will independently compute the same encoding.
 
 ## Alternatives
 
