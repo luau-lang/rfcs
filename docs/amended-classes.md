@@ -26,7 +26,7 @@ class Cat extends Animal as A -- the as keyword can still alias Cat in this form
 
     function Cat:__post_init()
       assert(not self.owner or self.owner ~= "me", "I do not like cats because they are mean :(")
-      .species += " catus"
+      self.species += " catus"
     end
     function Cat:__tostring(): string
         return `{A.__tostring(self)} and can meow with {self.MeowMult}x strength.`
