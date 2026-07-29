@@ -20,7 +20,7 @@ t[i], t[#t] = t[#t], nil
 ```
 While this idiom is concise, it obscures the intent of performing an unordered removal and leaves the details of the operation to individual implementations. For example, a manual implementation does not return the removed value like `table.remove`, does not consistently validate (namely, throwing an error for non-numeric indices) or floor (for non-integers) the provided index, and may not update the VM's cached array length in the same way as the `table` library. A native implementation could improve performance.
 
-A dedicated `table.swapremove` function would provide a single, well-defined abstraction for this common operation, offering behavior that is consistent with `table.remove`. It would also complete the table library by providing an unordered counterpart to `table.remove`. Users may implement swap-and-pop themselves, just as they might implement insertion with `t[i] = value` or append with `t[#t + 1]` = value. The value of `table.insert`, however, is not that it enables something previously impossible or impractical, but that it provides a clear, consistent, and optimised implementation of a common operation. This RFC proposes doing the same for unordered removal.
+A dedicated `table.swapremove` function would provide a single, well-defined abstraction for this common operation, offering behavior that is consistent with `table.remove`. It would also complete the table library by providing an unordered counterpart to `table.remove`. Users may implement swap-and-pop themselves, just as they might implement insertion with `t[i] = value` or append with `t[#t + 1] = value`. The value of `table.insert`, however, is not that it enables something previously impossible or impractical, but that it provides a clear, consistent, and optimised implementation of a common operation. This RFC proposes doing the same for unordered removal.
 
 Rust (`Vec`'s `swap_remove`), Zig (`ArrayList`'s `swapRemove`), and Unreal Engine (`TArray::RemoveAtSwap`) implement this.
  
@@ -37,7 +37,7 @@ table.swapremove(t: {any}, pos: number): Variant
 - Uses `pos = #t` if `pos` is omitted
 - Returns the removed element
 
-We propose using Rust and Zig's `swapremove` nomenclature (in luaucase), as opposed to Unreal Engine's `RemoveAtSwap`, or something else like `swapandpop` or `moveandpop`.
+We propose using Rust and Zig's `swapremove` nomenclature (in luaucase), as opposed to something like `swapandpop` or `moveandpop`, or Unreal Engine's `RemoveAtSwap`.
 
 ## Drawbacks
 
