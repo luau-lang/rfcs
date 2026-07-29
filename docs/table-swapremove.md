@@ -22,7 +22,7 @@ While this idiom is concise, it obscures the intent of performing an unordered r
 
 A dedicated `table.swapremove` function would provide a single, well-defined abstraction for this common operation, offering behavior that is consistent with `table.remove`. It would also complete the table library by providing an unordered counterpart to `table.remove`. Users may implement swap-and-pop themselves, just as they might implement insertion with `t[i] = value` or append with `t[#t + 1]` = value. The value of `table.insert`, however, is not that it enables something previously impossible or impractical, but that it provides a clear, consistent, and optimised implementation of a common operation. This RFC proposes doing the same for unordered removal.
 
-Rust (`Vec`'s `swap_remove`), Zig (`ArrayList`'s `swapRemove`), and Unreal Engine (`TArray::RemoveAtSwap`), implement this.
+Rust (`Vec`'s `swap_remove`), Zig (`ArrayList`'s `swapRemove`), and Unreal Engine (`TArray::RemoveAtSwap`) implement this.
  
 ## Design
 
