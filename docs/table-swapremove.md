@@ -18,7 +18,7 @@ Currently, to perform swap and pop, one might usually do the following:
 ```luau
 t[i], t[#t] = t[#t], nil
 ```
-This obscures the intent of performing an unordered removal and leaves the details of the operation to individual implementations. For example, a manual implementation does not return the removed value like `table.remove`, does not consistently validate (namely, throwing an error for non-numeric indices) or floor (for non-integers) the provided index, and it is certainly less clear than a dedicated `table.swapremove`. It also has unexpected behaviour for negative indices or indices that are greater than maxn, namely converting all the keys into string keys and turning the entire array sparse respectively.
+This obscures the intent of performing an unordered removal and leaves the details of the operation to individual implementations. For example, a manual implementation does not return the removed value like `table.remove`, does not consistently validate (namely, throwing an error for non-numeric indices) or floor (for non-integers) the provided index, and it is certainly less clear than a dedicated `table.swapremove`. It also has unexpected behaviour for negative indices or indices that are greater than maxn, namely turning it into a mixed table without any validation, and turning the entire array sparse respectively.
 
 A dedicated `table.swapremove` function would provide a single, well-defined abstraction for this common operation, offering behavior that is consistent with `table.remove`. It would also complete the table library by providing an unordered counterpart to `table.remove`. 
 
@@ -46,12 +46,12 @@ Swapping the last element with element 99 is already a major issue. Firstly, if 
 
 The second part, removing the last element, is also now at best ambiguous. It is unclear whether we remove the original last element, at index 4, or the new "last" element, at index 99. Using the former is what `table.remove` would do on this mutated array, but again that still leaves holes in the array which we did not have before. Using the latter would trivially have made the swapremove operation a no-op. There is no sensible way to swap-and-pop in this way.
 
-Caling `table.swapremove` with a non-positive index should be an error. Consider the following swap part of the process:
-```luau
+Calling table.swapremove with a non-positive index should be an error. Consider the following:
+
 local myFavouriteFruits = {"apple", "banana", "kiwi", "orange"}
 myFavouriteFruits[-4] = myFavouriteFruits[#myFavouriteFruits]
-```
-This would convert all the numeric keys in the array into string keys which is entirely unexpected. Trying to circumvent this by keeping all other keys numeric and turning -4 into a string key (which is unnecessary complexity), and then somehow continuing from there on a mixed table, is inconsistent with how we (and table.remove) handled other unacceptable indices like strings. It is safer and clearer to keep this as an error.
+
+This introduces a negative key into what was previously a contiguous array, turning it into a mixed table. This is an unexpected result for an operation whose purpose is simply to remove an element from an array. It is therefore safer and clearer to reject non-positive indices.
 
 ## Drawbacks
 
