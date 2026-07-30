@@ -48,8 +48,10 @@ The second part, removing the last element, is also now at best ambiguous. It is
 
 Calling table.swapremove with a non-positive index should be an error. Consider the following:
 
+```luau
 local myFavouriteFruits = {"apple", "banana", "kiwi", "orange"}
 myFavouriteFruits[-4] = myFavouriteFruits[#myFavouriteFruits]
+```
 
 This introduces a negative key into what was previously a contiguous array, turning it into a mixed table. This is an unexpected result for an operation whose purpose is simply to remove an element from an array. It is therefore safer and clearer to reject non-positive indices.
 
