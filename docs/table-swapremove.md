@@ -37,14 +37,14 @@ table.swapremove<T>(t: {T}, pos: number): T?
 
 For arrays with holes, calling `table.swapremove` on an index with a nil value will not silently fail, and will as prescribed move the last element to this index and return nil correctly, as it is the removed element.
 
-Calling `table.swapremove` beyond the maximum numerical index of the array, or on an index below 1, should do nothing. This may seem odd given we do not do this for holes in the array, but an alternative would be to continue as normal, which has undesirable effects. Consider the following:
+Calling `table.swapremove` beyond the maximum numerical index of the array, should do nothing. This may seem odd given we do not do this for holes in the array, but an alternative would be to continue as normal, which has undesirable effects. Consider the following:
 ```luau
 local myFavouriteFruits = {"apple", "banana", "kiwi", "orange"}
 table.swapremove(myFavouriteFruits, 99)
 ```
-Swapping the last element with element 99 is already a major issue. Firstly, if we naively did `myFavouriteFruits[99] = myFavouriteFruits[4]`, this results in the table becoming `{[1]: "apple", [2]: "banana", [3]: "kiwi", [4]: "orange", [99]: "orange"}`. This introduces a large gap in what was previously a contiguous sequence, and turns it into a sparse array. Creating holes in this manner is undesirable and gives perhaps classically unexpected results, including #t (4) and table.remove (removes `[4]: "orange"`).
+Swapping the last element with element 99 is already a major issue. Firstly, if we naively did `myFavouriteFruits[99] = myFavouriteFruits[4]`, this results in the table becoming `{[1]: "apple", [2]: "banana", [3]: "kiwi", [4]: "orange", [99]: "orange"}`. This introduces a gap in what was previously a contiguous sequence, and turns it into a sparse array. Creating holes in this manner is undesirable and gives perhaps classically unexpected results, such as #t giving 4 and table.remove with no position argument  removing `[4]: "orange"`.
 
-The second part, removing the last element, is also now at best ambiguous. It is unclear whether we remove the original last element, at index 4, or the new "last" element, at index 99. Using the former is what `table.remove` would do on this mutated array, but again that still leaves holes in the array which we did not have before. Using the latter would trivially have made the swapremove operation a no-op. There is no sensible way to swap-and-pop in this way.
+The second part, removing the last element, is also now at best ambiguous. It is unclear whether we remove the original last element, at index 4, or the new "last" element, at index 99. Using the former is what `table.remove` would do on this mutated array, but again that still leaves holes in the array which we did not have before. Using the latter would trivially have made the swapremove operation a no-op. There is no sensible way to swap-and-pop here.
 
 Calling table.swapremove with a non-positive index should be an error. Consider the following:
 
