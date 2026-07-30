@@ -24,7 +24,7 @@ A dedicated `table.swapremove` function would provide a single, well-defined abs
 
 As with table.insert and table.remove, users can already implement this operation themselves. The value of a standard library function is not enabling something impossible, but providing a clear, consistent, and optimized implementation.
 
-Rust (`Vec`'s `swap_remove`), Zig (`ArrayList`'s `swapRemove`), and Unreal Engine (`TArray::RemoveAtSwap`) implement this, so it is not something entirely novel, though these are not as motivating given that all of these are static languages and Luau is not.
+Rust (`Vec`'s `swap_remove`), Zig (`ArrayList`'s `swapRemove`), and Unreal Engine (`TArray::RemoveAtSwap`) implement this, so it is not something entirely novel, though these are not as motivating given that all of these are statically typed languages, and Luau is not.
  
 ## Design
 
