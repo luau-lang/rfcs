@@ -4,7 +4,7 @@
 
 Now that Luau is adding classes to the language, it's much more important that we afford some way modules to cyclically import one another.
 
-This RFC proposes that `require()` be augmented to pass an export table into the module.  This allows the runtime to close the loop and allow many cyclic import scenarios to work as desired.
+This RFC proposes that `require()` be augmented to automatically support cyclic imports for modules that use the `export` keyword.  This allows the runtime to close the loop and allow many cyclic import scenarios to work as desired.
 
 ## Motivation
 
@@ -47,73 +47,93 @@ Option 1 is laborious and sacrifices the fidelity of the type system.  Option 2 
 
 ## Runtime Design
 
-For modules that return tables, we can solve this issue by having `require` tie the knot: When it encounters a cyclic import, `require` will instead return an empty table that will later be populated with the export surface of the module.  As long as the requesting module doesn't access it at the topmost global scope, that table will eventually be populated and everything will work out.  The system will temporarily attach a metatable to surface these issues and produce a clear error message.
+For modules that use the `export` keyword, we can solve this issue by having `require` tie the knot: When it encounters a cyclic import, `require` will instead return an empty table that will later be populated with the export surface of the module.  As long as the requesting module doesn't access it at the topmost global scope, that table will eventually be populated and everything will work out.  The system will temporarily attach a metatable to surface these issues and produce a clear error message.
 
-There are subtle edge cases to consider here:
+The restriction for cyclic module support is deliberate: 
+1. `export` modules have a well-defined export surface that the runtime can reason about
+2. the `export` keyword signals intent to participate in the module system's advanced features.
+3. Non-export modules behave exactly as they do today where encountering a cycle raises an error.
 
-1. If a module fails to access a property from another module because of a cycle, Luau needs to clearly communicate what happened.
-2. If a module acquires a reference to an incomplete module due to a cycle, it should not be able to mutate that module\!
-3. Today, many modules return something other than a table.  It is okay if these modules do not support participation in cycles, but they still need to work as-written.
-4. This proposal requires modules to be adjusted to work with cyclic imports.  Modules that have not been adjusted need to work exactly as-written.
-5. When a non cycle-supporting module appears in a cycle, Luau still needs to communicate the problem to developers clearly.
+When a module uses `export`, the runtime automatically handles cycles without any additional boilerplate from the developer or changes to existing code.
 
-### Algorithm
+### Runtime Algorithm
+
+The algorithm operates in three phases: placeholder creation, short-circuit on cycle detection, and placeholder population.
 
 `require()` will be adjusted to do the following:
 
-1. First, save the current export table's metatable away, and replace it with a new `CyclicDependencyError` metatable.  This metatable prohibits reads and writes to the table by raising an exception with a clear error message.
-2. Look up the requested module in the cache to see if it has already been loaded or begun loading
-3. If a module is already present in the cache, return it immediately. Otherwise,
-    1. Populate the cache with a fresh table.
-    2. Pass this new table to the target script as its sole argument and evaluate it.  This table can be accessed within the script via `...` at the top level.
-    3. Once the module has been evaluated and returned a value, test to see if that value is the same as the table that was passed in.  If they are not the same, set `CyclicDependencyError` as the metatable on the original export table. (the one that wound up not being used)  The table will also be frozen for good measure.
-    4. Replace the module cache result with the result of the module
-4. Restore the current export table's metatable.
+#### 1. Placeholder Creation (module load start)
 
-This approach handles many cases, but has an important limitation:  A module that participates in a cycle can freely access imported symbols within function bodies, but not at the top level.  This is because those imported symbols cannot be guaranteed to have been evaluated yet.
+When a module begins executing, the runtime checks whether the module uses `export` via `lua_usesexport()`. Only if the module uses `export`:
 
-Step 3c covers an important edge case: In this design, the `require` function sometimes speculatively returns a table with the expectation that it will eventually become the export surface of the requested module.  If it is not, then we have a problem: We have already provided that table to other requesting modules\!  Luckily, this can only happen when we encounter a cycle between modules that do not accept the export table, so all we need to do is to mark that speculative export table as something that cannot be used.
+1. An empty placeholder table is created.
+2. A shared `CyclicDependencyError` metatable is attached.
+3. The table is frozen via `lua_setreadonly()` to prevent any writes while the module is being evaluated.
+4. The placeholder is cached under the module's cache key so that any subsequent `require()` calls for the same module will return the placeholder.
 
-In almost all reasonable cases, we expect the current module's export table to have no metatable.  We specify that steps 1 and 4 save and restore it just to handle the odd case where someone is adding a metatable to the exports.  We do not consider this to be good style at all, but this adjustment is very easy.
-
-The new metatable `CyclicDependencyError` can roughly be defined as follows:
+The shared metatable prevents reads and writes by raising clear error messages:
 
 ```luau
 local CyclicDependencyError = {
     __index = function(self, prop)
-        error(`Cannot access the exported field {prop} because it has a cyclic dependency on its requiring module`)
+        error(`Cannot access the exported field '{prop}' because it has a cyclic dependency on its requiring module`)
     end,
     __newindex = function(self, prop, value)
-        error(`Cannot set the exported field {prop} because it has a cyclic dependency on its requiring module`)
+        error(`Cannot set the exported field '{prop}' because it has a cyclic dependency on its requiring module`)
     end,
     __metatable = "The metatable is locked"
 }
 ```
 
-In the absence of `export`, a script must be updated to support cyclic requires by making a small edit: Instead of creating an export table directly with `{}`, the script should accept it from `...` like so:
+#### 2. Short-Circuit on Cycle Detection (module load in progress)
 
-```luau
-local exports = ...
+When `require()` detects a cycle (i.e. the module is already on the require stack):
 
-function exports.foo() end
-exports.MY_CONSTANT = true
+1. If the target module uses `export` (i.e. has a placeholder in the cache), the placeholder is noted and returned immediately to the cyclic importer.
+2. If the target module does not use `export`, an error is raised at runtime, as before: `"Requested module was required recursively"`.
 
-return exports
-```
+#### 3. Placeholder Population (module finishes executing)
 
-If necessary, the script could instead adopt a compatibility shim so that it works in older Luau environments that do not implement this RFC: `local exports = ... or {}`
+When the exported module finishes executing and returns its result:
 
-The new `export` keyword will be updated to handle this automatically.
-
-This algorithm satisfies a bunch of important properties:
-
-While existing code will not support cyclic `require()` calls, it will continue to work as-written.  Modules that return non-table values will also continue to work exactly as expected.
-
-If necessary, a module could be crafted to work with or without support for cycles by instead starting with `local exports = ... or {}`.
+1. We check whether the placeholder was provided to any cyclic importer. If not, we simply return the result as normal.
+2. If the placeholder was provided, we:
+    a. Unfreeze the placeholder
+    b. Copy all exported fields from the module's return value into the placeholder, and metatable (if any)
+    c. Freeze the placeholder again to prevent further writes
+3. The populated placeholder now replaces the module's cached result, ensuring object identity as all holders of the placeholder reference see the same fully-populated table.
 
 ### Examples
 
-#### Reentrant Accesses
+#### Basic Cyclic Import (Success)
+
+```luau
+--- A.luau
+local B = require("./B")
+export local name = "A"
+export function getB() return B.name end
+
+--- B.luau
+local A = require("./A")
+export local name = "B"
+export function getA() return A.name end
+
+--- main.luau
+require("./A")
+```
+
+Order of operations:
+
+1. `main.luau` requires `A.luau`. A placeholder is created for A (it uses `export`).
+2. `A.luau` requires `B.luau`. A placeholder is created for B (it uses `export`).
+3. `B.luau` requires `A.luau`. Cycle detected — A's locked placeholder is returned immediately.
+4. `B.luau` stores the placeholder reference in local `A` and continues executing. It defines its exports normally.
+5. `B.luau` finishes. Its placeholder is populated with `{name = "B", getA = <function>}`.
+6. `A.luau` resumes (its require of B returns the now-populated B placeholder). It defines its exports.
+7. `A.luau` finishes. Its placeholder is populated with `{name = "A", getB = <function>}`.
+8. All references resolve correctly. `B.getA()` returns `"A"` because by the time it's called, A's placeholder has been populated.
+
+#### Reentrant Top-Level Access (Error)
 
 ```luau
 --- A.luau
@@ -151,7 +171,7 @@ The order of operations in this program is:
 1. `main.luau` starts importing `A.luau`
 2. `A.luau` starts importing `B.luau`
 3. `B.luau` attempts to import `A.luau`.  We sense the cycle and short circuit; the incomplete module `A` is returned immediately.
-4. `B.luau` attempts to access `A.Tree`.  The value `A` is still incomplete and therefore has the `CyclicDependencyError` metatable attached to it.  We tell the developer that a cyclic dependency error has been encountered and raise an exception.  The developer can use the stack trace to understand the cycle.
+4. `B.luau` attempts to access `A.Tree`.  The value `A` is still incomplete and therefore has the `CyclicDependencyError` metatable attached to it.  We tell the developer that they `"Cannot access the exported field 'Tree' because it has a cyclic dependency on its requiring module"` and raise an exception.  The developer can use the stack trace to understand the cycle.
 
 #### Improper Reentrant Mutation
 
@@ -183,25 +203,59 @@ If we naively execute our planned resolution order, things proceed as follows:
 
 `CyclicDependencyError` saves us here.  We use it to freeze the shape of `B` at step 2\.  It remains frozen until step 5\.  We therefore raise an error in step 4\.
 
+#### Non-Export Module in Cycle (Error)
+
+```luau
+--- A.luau
+local B = require("./B")
+return { name = "A" }
+
+--- B.luau
+local A = require("./A")
+export local name = "B"
+
+--- main.luau
+require("./A")
+```
+
+Order of operations:
+
+1. `main.luau` requires `A.luau`. No placeholder is created (A doesn't use `export`).
+2. `A.luau` requires `B.luau`. A placeholder is created for B.
+3. `B.luau` requires `A.luau`. Cycle detected, but A has no placeholder — error: `"Requested module was required recursively"`.
+
 ## Type System Design
 
 The user-facing behaviour of the type inference engine should be unchanged as a result of this RFC, but the internal structure of the type checker is going to need significant changes.
 
 Today, typechecking is driven by a class called `Frontend`.  It accepts a set of modules that need checking, builds a DAG from that, and checks modules one after another.
 
-We will augment this class to instead work on one strongly-connected component\* at a time.  All modules within an SCC use the same arena and are typechecked together in a single pass through the solver.
+We will augment this class to instead work on one strongly-connected component\* at a time.  We will use Tarjan's algorithm to identify strongly-connected components (SCCs) in the module dependency graph.  Then, all modules within an SCC use the same arena and are typechecked together in a single pass through the solver.
 
 \* A "strongly connected component" is a set of 2 or more modules that all mutually `require()` one another. (eg if you had a require chain of `A -> B -> C -> A`, the SCC would consist of `A`, `B`, and `C`)
 
+Only SCCs where all members use `export` are eligible for joint typechecking. Mixed SCCs fall through to the existing typechecking behavior, which will produce an error when it encounters the cycle.
+
+### Type System Algorithm
+
+1. Detect strongly-connected components via Tarjan's algorithm on the module dependency graph.
+2. Created a shared type arena for all modules in the SCC, allowing types from any member to reference types from other members.
+3. Pre-allocate a `BlockedType` placeholder for each module in the SCC.  This allows the typechecker to resolve references to types from other modules in the SCC, even if they haven't been fully defined yet.
+4. Run constraint generation for each module in the SCC. Each module in the SCC gets its own scope and data flow graph, but all constraints flow into a single shared `ConstraintGraph`. After constraint generation for each module, the `BlockedType` placeholder is bound to the actual inferred return type.
+5. Run constraint solver once over the combined constraint graph for the entire SCC. This enables cross-cycle type inference, so constraints from Module A that depend on types from Module B, for example, are solved together.
+6. Distribute results and errors back to their original modules by their `moduleName`. Type checking runs on each module individually, and each module's public interface is then cloned and frozen via `clonePublicInterface`. The shared arena is frozen after all modules are processed.
+
+### Large Cycle Warning
+
 A problem that a developer might run into is that, if their application consists of a very large SCC (their whole application, perhaps\!), their incremental typechecking performance will be very bad: Luau will have to recheck all files whenever any file in the SCC has changed.
 
-To mitigate this and put some soft pressure on the developer, we'll report a warning when we encounter an SCC that consists of too many modules.  This warning will explain that large clusters of cyclic modules can cause typechecking performance to degrade badly.  We'll allow this limit to be configured via `FrontendOptions`.
+To mitigate this and put some soft pressure on the developer, we'll report a warning when we encounter an SCC that consists of too many modules.  This warning will explain that large clusters of cyclic modules can cause typechecking performance to degrade badly.  We'll allow this limit to be configured via `FrontendOptions`, defaulting to 4 modules.  The warning will list the names of the modules in the SCC, up to a configurable limit (default 10).
 
 We need to take particular care not to break the old type solver.  We will probably need to write some extra logic to ensure that it continues to handle cyclic imports exactly as it does today.
 
 ## Drawbacks
 
-The restrictions on how cyclic imports can be used are subtle\!  If two mutually-recursive modules need access to one another at the top level, the code will fail to load.
+The restrictions on how cyclic imports can be used are subtle\!  If two mutually-recursive modules need access to one another at the top level, the code will fail to load, because the placeholder has not yet been populated at that point.
 
 For instance, the following code will fail:
 
@@ -221,10 +275,13 @@ class ClassBOne ... end
 class ClassBTwo extends A.ClassATwo ... end
 ```
 
-With the described design, we will produce a sensible error, but the restriction itself is fairly complicated and is likely to confuse users.  They will likely have to think a little bit about how to adjust the design of their code.
+With the described design, we will produce a sensible error, but the restriction itself is fairly complicated and is likely to confuse users.  They will likely have to think a little bit about how to adjust the design of their code and understand that cyclic references are only safe inside function bodies, not at the top level during module initialization.
 
 ## Alternatives
 
-This RFC goes to some lengths to specify how cycle support works for modules that don't use the new `export` keyword.  An alternative design would be to, instead of using `...` to hold the export table, to put it in some other place that's inaccessable within the current module as it's being evaluated.  This would simplify some of the edge cases because there would be no way, for instance, to attach a metatable to the current module's exports.
+An earlier design passed the export table to the module as a vararg (`...`), requiring modules to opt in with `local exports = ...` or `local exports = ... or {}`. This was implemented then amended to use the `export` keyword instead because:
 
-The current proposal is not to do this because `...` is a preexisting mechanism that works really well to solve this class of problem and because the edge cases don't seem very difficult to deal with.
+- This would be a breaking change for existing code that used the vargs mechanism
+- It required boilerplate in every module that wanted cycle support.
+- The `export` keyword provides a cleaner, more explicit signal of intent, and clear boundary where only modules with a known, table-shaped export surface can participate in cycles.
+- This simplifies some edge cases because there would be no way, for instance, to attach a metatable to the current module's exports.
