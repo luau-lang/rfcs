@@ -2,9 +2,9 @@
 
 ## Summary
 
-Now that Luau is adding classes to the language, it's much more important that we afford some way modules to cyclically import one another.
+Now that Luau is adding classes to the language, it's much more important that we afford some way for modules to cyclically import one another.
 
-This RFC proposes that `require()` be augmented to automatically support cyclic imports for modules that use the `export` keyword.  This allows the runtime to close the loop and allow many cyclic import scenarios to work as desired.
+This RFC proposes that `require()` be augmented to automatically support cyclic imports for modules that use the [`export` keyword](./export-keyword.md).  All modules participating in a cycle must use `export`; if any module in the cycle does not, the runtime will raise an error when it encounters the cycle.  This allows the runtime to close the loop and allow many cyclic import scenarios to work as desired.
 
 ## Motivation
 
@@ -47,12 +47,11 @@ Option 1 is laborious and sacrifices the fidelity of the type system.  Option 2 
 
 ## Runtime Design
 
-For modules that use the `export` keyword, we can solve this issue by having `require` tie the knot: When it encounters a cyclic import, `require` will instead return an empty table that will later be populated with the export surface of the module.  As long as the requesting module doesn't access it at the topmost global scope, that table will eventually be populated and everything will work out.  The system will temporarily attach a metatable to surface these issues and produce a clear error message.
+For modules that use the `export` keyword, we can solve this issue by having `require` tie the knot: When it encounters a cyclic import, `require` will instead return an empty table that will later be populated with the export surface of the module.  As long as the requesting module doesn't access it at the top level during module initialization, that table will be fully populated by the time any function body actually runs.  The system will temporarily attach a metatable to surface these issues and produce a clear error message.
 
 The restriction for cyclic module support is deliberate: 
 1. `export` modules have a well-defined export surface that the runtime can reason about
-2. the `export` keyword signals intent to participate in the module system's advanced features.
-3. Non-export modules behave exactly as they do today where encountering a cycle raises an error.
+2. Non-export modules behave exactly as they do today where encountering a cycle raises an error.
 
 When a module uses `export`, the runtime automatically handles cycles without any additional boilerplate from the developer or changes to existing code.
 
@@ -228,17 +227,23 @@ Order of operations:
 
 The user-facing behaviour of the type inference engine should be unchanged as a result of this RFC, but the internal structure of the type checker is going to need significant changes.
 
-Today, typechecking is driven by a class called `Frontend`.  It accepts a set of modules that need checking, builds a DAG from that, and checks modules one after another.
+Today, typechecking is driven by a class called `Frontend`.  It accepts a set of modules that need checking, builds a directed acyclic graph (DAG) from that, and checks modules one after another.
 
-We will augment this class to instead work on one strongly-connected component\* at a time.  We will use Tarjan's algorithm to identify strongly-connected components (SCCs) in the module dependency graph.  Then, all modules within an SCC use the same arena and are typechecked together in a single pass through the solver.
+We will augment `Frontend` to instead work on all modules that can be reached from one another via `require()`. For example, given the following modules:
 
-\* A "strongly connected component" is a set of 2 or more modules that all mutually `require()` one another. (eg if you had a require chain of `A -> B -> C -> A`, the SCC would consist of `A`, `B`, and `C`)
+```
+A -> B
+B -> C
+C -> A
+```
+
+`Frontend` will detect that `A`, `B`, and `C` are all reachable from one another and will typecheck them together in a single pass through the solver. We call each of these sets of modules a [strongly-connected component (SCC)](https://en.wikipedia.org/wiki/Strongly_connected_component).  
 
 Only SCCs where all members use `export` are eligible for joint typechecking. Mixed SCCs fall through to the existing typechecking behavior, which will produce an error when it encounters the cycle.
 
 ### Type System Algorithm
 
-1. Detect strongly-connected components via Tarjan's algorithm on the module dependency graph.
+1. Detect strongly-connected components in the module dependency graph.
 2. Created a shared type arena for all modules in the SCC, allowing types from any member to reference types from other members.
 3. Pre-allocate a `BlockedType` placeholder for each module in the SCC.  This allows the typechecker to resolve references to types from other modules in the SCC, even if they haven't been fully defined yet.
 4. Run constraint generation for each module in the SCC. Each module in the SCC gets its own scope and data flow graph, but all constraints flow into a single shared `ConstraintGraph`. After constraint generation for each module, the `BlockedType` placeholder is bound to the actual inferred return type.
@@ -279,9 +284,9 @@ With the described design, we will produce a sensible error, but the restriction
 
 ## Alternatives
 
-An earlier design passed the export table to the module as a vararg (`...`), requiring modules to opt in with `local exports = ...` or `local exports = ... or {}`. This was implemented then amended to use the `export` keyword instead because:
+An earlier design passed the export table to the module as a vararg (`...`), requiring modules to opt in with `local exports = ...` or `local exports = ... or {}`. This approach had several downsides:
 
-- This would be a breaking change for existing code that used the vargs mechanism
+- It would be a breaking change for existing code that already uses the vararg mechanism for other purposes.
 - It required boilerplate in every module that wanted cycle support.
-- The `export` keyword provides a cleaner, more explicit signal of intent, and clear boundary where only modules with a known, table-shaped export surface can participate in cycles.
-- This simplifies some edge cases because there would be no way, for instance, to attach a metatable to the current module's exports.
+- It was ambiguous whether a module intended to participate in cycles or was simply using varargs for another reason, making it harder for the runtime to reason about the module's export surface.
+- It allowed modules to attach metatables to their export table, creating edge cases that could be difficult to handle correctly.
