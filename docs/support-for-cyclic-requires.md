@@ -17,30 +17,30 @@ This problem becomes much more difficult to deal with when classes are added to 
 Without cyclic requires, the following program cannot be evaluated.
 
 ```luau
--- A.luau
+-- folder.luau
 
-local B = require("./B")
+local file = require("./file")
 
-class A
-    public children: {B.B}
+class Folder
+    public files: {file.File}
 
-    function add_child(self)
-        table.insert(self.children, B.B {})
+    function add_file(self)
+        table.insert(self.files, file.File {})
     end
 end
 
--- B.luau
+-- file.luau
 
-local A = require("./A")
+local folder = require("./folder")
 
-class B
-    public parent: A.A
+class File
+    public parent: folder.Folder
 end
 ```
 
 The developer is left to choose between two bad options:
 
-1. They could introduce extra modules that just define interface types for `A` and `B`, or
+1. They could introduce extra modules that just define interface types for `Folder` and `File`, or
 2. Move both classes into the same script
 
 Option 1 is laborious and sacrifices the fidelity of the type system.  Option 2 potentially means that the developer's entire program must be specified in a single script\!
@@ -107,121 +107,119 @@ When the exported module finishes executing and returns its result:
 #### Basic Cyclic Import (Success)
 
 ```luau
---- A.luau
-local B = require("./B")
-export local name = "A"
-export function getB() return B.name end
+--- folder.luau
+local file = require("./file")
+export local name = "folder"
+export function get_file() return file.name end
 
---- B.luau
-local A = require("./A")
-export local name = "B"
-export function getA() return A.name end
+--- file.luau
+local folder = require("./folder")
+export local name = "file"
+export function get_folder() return folder.name end
 
 --- main.luau
-require("./A")
+require("./folder")
 ```
 
 Order of operations:
 
-1. `main.luau` requires `A.luau`. A placeholder is created for A (it uses `export`).
-2. `A.luau` requires `B.luau`. A placeholder is created for B (it uses `export`).
-3. `B.luau` requires `A.luau`. Cycle detected — A's locked placeholder is returned immediately.
-4. `B.luau` stores the placeholder reference in local `A` and continues executing. It defines its exports normally.
-5. `B.luau` finishes. Its placeholder is populated with `{name = "B", getA = <function>}`.
-6. `A.luau` resumes (its require of B returns the now-populated B placeholder). It defines its exports.
-7. `A.luau` finishes. Its placeholder is populated with `{name = "A", getB = <function>}`.
-8. All references resolve correctly. `B.getA()` returns `"A"` because by the time it's called, A's placeholder has been populated.
+1. `main.luau` requires `folder.luau`. A placeholder is created for `folder` (it uses `export`) and `folder.luau` begins executing.
+2. `folder.luau` requires `file.luau`. A placeholder is created for `file` (it uses `export`) and `file.luau` begins executing.
+3. `file.luau` requires `folder.luau`. Cycle detected — `folder`'s locked placeholder is returned immediately.
+4. `file.luau` stores the placeholder reference in local `folder` and continues executing. It defines its exports normally.
+5. `file.luau` finishes. Its placeholder is populated with `{name = "file", get_folder = <function>}`.
+6. `folder.luau` resumes (its require of `file` returns the now-populated placeholder). It defines its exports.
+7. `folder.luau` finishes. Its placeholder is populated with `{name = "folder", get_file = <function>}`.
+8. All references resolve correctly. `file.get_folder()` returns `"folder"` because by the time it's called, `folder`'s placeholder has been populated.
 
 #### Reentrant Top-Level Access (Error)
 
 ```luau
---- A.luau
+--- folder.luau
 
-local B = require("B")
+local file = require("./file")
 
-export class Tree
-    children: {B.Node}
+export class Folder
+    files: {file.File}
 
-    function append(self, prototype: B.Node)
-        -- In this example, we suppose that the tree needs to
-        -- insert a clone of the passed argument.
-        table.insert(self.children, B.Node(prototype))
+    function add(self, f: file.File)
+        table.insert(self.files, f)
     end
 end
 
---- B.luau
+--- file.luau
 
-local A = require("A")
+local folder = require("./folder")
 
--- create a global tree for some reason
-local t = A.Tree{children={}}
+-- try to create a root folder at the top level
+local root = folder.Folder{files={}}
 
-export class Node
-
+export class File
+    parent: folder.Folder
 end
 
--- main.luau
+--- main.luau
 
-require("A")
+require("./folder")
 ```
 
 The order of operations in this program is:
 
-1. `main.luau` starts importing `A.luau`
-2. `A.luau` starts importing `B.luau`
-3. `B.luau` attempts to import `A.luau`.  We sense the cycle and short circuit; the incomplete module `A` is returned immediately.
-4. `B.luau` attempts to access `A.Tree`.  The value `A` is still incomplete and therefore has the `CyclicDependencyError` metatable attached to it.  We tell the developer that they `"Cannot access the exported field 'Tree' because it has a cyclic dependency on its requiring module"` and raise an exception.  The developer can use the stack trace to understand the cycle.
+1. `main.luau` requires `folder.luau`. A placeholder is created for `folder` and it begins executing.
+2. `folder.luau` requires `file.luau`. A placeholder is created for `file` and it begins executing.
+3. `file.luau` requires `folder.luau`. Cycle detected — `folder`'s locked placeholder is returned immediately.
+4. `file.luau` attempts to access `folder.Folder`.  The placeholder is still incomplete and therefore has the `CyclicDependencyError` metatable attached to it.  We tell the developer that they `"Cannot access the exported field 'Folder' because it has a cyclic dependency on its requiring module"` and raise an exception.  The developer can use the stack trace to understand the cycle.
 
 #### Improper Reentrant Mutation
 
 ```luau
---- A.luau
+--- folder.luau
 
-local B = require("B")
+local file = require("./file")
 
-B.foo = "bar"
+file.max_size = 1000
 
---- B.luau
+--- file.luau
 
-local A = require("A")
+local folder = require("./folder")
 
-export const foo = "foo"
+export const max_size = 500
 
 --- main.luau
 
-require("B")
+require("./file")
 ```
 
 If we naively execute our planned resolution order, things proceed as follows:
 
-1. `main.luau` starts evaluating `require("B")`
-2. `B.luau` starts evaluating, but is immediately blocked on `require("A")`
-3. `A.luau` evaluates `require("B")`, which immediately returns with an empty table from the module cache
-4. `A.luau` inserts a property into the export table of `B`\!
-5. `B.luau` resumes execution with an unexpected extra entry in its export table
+1. `main.luau` starts evaluating `require("./file")`
+2. `file.luau` starts evaluating, but is immediately blocked on `require("./folder")`
+3. `folder.luau` evaluates `require("./file")`, which immediately returns with an empty table from the module cache
+4. `folder.luau` inserts a property into the export table of `file`\!
+5. `file.luau` resumes execution with an unexpected extra entry in its export table
 
-`CyclicDependencyError` saves us here.  We use it to freeze the shape of `B` at step 2\.  It remains frozen until step 5\.  We therefore raise an error in step 4\.
+`CyclicDependencyError` saves us here.  We use it to freeze the shape of `file` at step 2\.  It remains frozen until step 5\.  We therefore raise an error in step 4\.
 
 #### Non-Export Module in Cycle (Error)
 
 ```luau
---- A.luau
-local B = require("./B")
-return { name = "A" }
+--- logger.luau
+local formatter = require("./formatter")
+return { log = function(msg) print(formatter.format(msg)) end }
 
---- B.luau
-local A = require("./A")
-export local name = "B"
+--- formatter.luau
+local logger = require("./logger")
+export function format(msg) return "[INFO] " .. msg end
 
 --- main.luau
-require("./A")
+require("./logger")
 ```
 
 Order of operations:
 
-1. `main.luau` requires `A.luau`. No placeholder is created (A doesn't use `export`).
-2. `A.luau` requires `B.luau`. A placeholder is created for B.
-3. `B.luau` requires `A.luau`. Cycle detected, but A has no placeholder — error: `"Requested module was required recursively"`.
+1. `main.luau` requires `logger.luau`. No placeholder is created (`logger` doesn't use `export`).
+2. `logger.luau` requires `formatter.luau`. A placeholder is created for `formatter`.
+3. `formatter.luau` requires `logger.luau`. Cycle detected, but `logger` has no placeholder — error: `"Requested module was required recursively"`.
 
 ## Type System Design
 
@@ -232,12 +230,12 @@ Today, typechecking is driven by a class called `Frontend`.  It accepts a set of
 We will augment `Frontend` to instead work on all modules that can be reached from one another via `require()`. For example, given the following modules:
 
 ```
-A -> B
-B -> C
-C -> A
+foo -> bar
+bar -> baz
+baz -> foo
 ```
 
-`Frontend` will detect that `A`, `B`, and `C` are all reachable from one another and will typecheck them together in a single pass through the solver. We call each of these sets of modules a [strongly-connected component (SCC)](https://en.wikipedia.org/wiki/Strongly_connected_component).  
+`Frontend` will detect that `foo`, `bar`, and `baz` are all reachable from one another and will typecheck them together in a single pass through the solver. We call each of these sets of modules a [strongly-connected component (SCC)](https://en.wikipedia.org/wiki/Strongly_connected_component).  
 
 Only SCCs where all members use `export` are eligible for joint typechecking. Mixed SCCs fall through to the existing typechecking behavior, which will produce an error when it encounters the cycle.
 
@@ -247,7 +245,7 @@ Only SCCs where all members use `export` are eligible for joint typechecking. Mi
 2. Created a shared type arena for all modules in the SCC, allowing types from any member to reference types from other members.
 3. Pre-allocate a `BlockedType` placeholder for each module in the SCC.  This allows the typechecker to resolve references to types from other modules in the SCC, even if they haven't been fully defined yet.
 4. Run constraint generation for each module in the SCC. Each module in the SCC gets its own scope and data flow graph, but all constraints flow into a single shared `ConstraintGraph`. After constraint generation for each module, the `BlockedType` placeholder is bound to the actual inferred return type.
-5. Run constraint solver once over the combined constraint graph for the entire SCC. This enables cross-cycle type inference, so constraints from Module A that depend on types from Module B, for example, are solved together.
+5. Run constraint solver once over the combined constraint graph for the entire SCC. This enables cross-cycle type inference, so constraints from `foo` that depend on types from `bar`, for example, are solved together.
 6. Distribute results and errors back to their original modules by their `moduleName`. Type checking runs on each module individually, and each module's public interface is then cloned and frozen via `clonePublicInterface`. The shared arena is frozen after all modules are processed.
 
 ### Large Cycle Warning
@@ -265,19 +263,19 @@ The restrictions on how cyclic imports can be used are subtle\!  If two mutually
 For instance, the following code will fail:
 
 ```luau
---- A.luau
+--- widget.luau
 
-local B = require("B")
+local layout = require("./layout")
 
-class ClassAOne extends B.ClassOne ... end
-class ClassATwo ... end
+class Button extends layout.Container ... end
+class Label ... end
 
---- B.luau
+--- layout.luau
 
-local A = require("A")
+local widget = require("./widget")
 
-class ClassBOne ... end
-class ClassBTwo extends A.ClassATwo ... end
+class Container ... end
+class Row extends widget.Label ... end
 ```
 
 With the described design, we will produce a sensible error, but the restriction itself is fairly complicated and is likely to confuse users.  They will likely have to think a little bit about how to adjust the design of their code and understand that cyclic references are only safe inside function bodies, not at the top level during module initialization.
