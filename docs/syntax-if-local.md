@@ -1,16 +1,24 @@
-# `if local`
+# `if local` statements and expressions
 
 ## Summary
 
-Allow a `local` or `const` binding in the condition of an `if` or `elseif`. The variable is scoped to the `then`\-block, and the branch is taken when the initializer is truthy. `const` is included alongside `local` because it is already a contextual keyword valid everywhere `local` is valid.
+Allow a `local` or `const` binding in the condition of `if` or `elseif` statements or expressions. The variable is scoped to the `then`\-block, and the branch is taken when the initializer is truthy. `const` is included alongside `local` because it is already a contextual keyword valid everywhere `local` is valid.
 
 ```lua
+-- statement
 if local x = expr() then
     -- x is truthy here
 end
 
-if const y = expr() then
-    -- y is truthy here, and cannot be reassigned
+-- expression
+local y = if local x = expr() then x else "default"
+```
+
+`const` works the same way, with the additional guarantee that the binding cannot be reassigned within the block:
+
+```lua
+if const x = expr() then
+    -- x is truthy here and cannot be reassigned
 end
 ```
 
@@ -53,7 +61,7 @@ When the parser sees `local` or `const` immediately after `if` or `elseif`, it p
 ('local' | 'const') Name [':' Type] '=' exp
 ```
 
-The initializer is the entire condition: nothing else appears between it and `then`. Since neither `local` nor `const` can start an expression in Luau, there is no ambiguity. `const` here is the same contextual keyword already used for `const` statements – no new keyword is being introduced.
+The initializer is the entire condition: nothing else appears between it and `then`. `local` cannot start an expression, so `if local` is unambiguous. `const` is a contextual keyword and is also a valid variable name, so `if const then` is legal today (testing a variable named `const` for truthiness). This is resolved with a single token of lookahead: `if const Name` is not currently legal syntax, so when the parser sees `const` followed by a name, it parses a binding declaration.
 
 ### Semantics
 
@@ -91,7 +99,27 @@ if local user = users[id] then
 end
 ```
 
+### Expressions
+
+`if local` also works in `if` expressions (Luau's ternary form). The binding is visible in the `then` expression but not the `else` branch:
+
+```lua
+local display = if local user = users[id] then user.name else "anonymous"
+```
+
+The `else` branch is required, as with all `if` expressions. `elseif local` is supported as well:
+
+```lua
+local label = if local admin = admins[id] then admin.title
+    elseif local guest = guests[id] then guest.name
+    else "unknown"
+```
+
+The same scoping rules apply: each binding is only visible in its own `then` expression, and bindings from earlier branches are not visible in later ones.
+
 ### Desugaring
+
+#### Statements
 
 `if local x = E then B end` is equivalent to:
 
@@ -105,6 +133,21 @@ end
 ```
 
 and likewise `if const x = E then B end` desugars to a `do` block with a `const x = E` statement in place of `local`. No new bytecode instructions or evaluation rules are needed for either form. It is syntactic sugar with tighter scoping.
+
+#### Expressions
+
+`if local x = E then A else B` is equivalent to:
+
+```lua
+if E then
+    local x = E  -- bound and in scope only for A
+    A
+else
+    B
+end
+```
+
+In practice the compiler evaluates `E` once, binds the result to `x`, tests truthiness, and produces either `A` (where `x` is in scope) or `B` (where it is not).
 
 ## Drawbacks
 
@@ -169,9 +212,9 @@ while local line = reader:nextLine() do
 end
 ```
 
-The binding is re-evaluated each iteration and the loop terminates when the expression produces a falsy value.
+The binding is re-evaluated each iteration and the loop terminates when the expression produces a falsy value. `while` is a different syntactic construct from `if` with different loop-scoping semantics, so it is left for a separate proposal.
 
-Alternatively, `repeat ... until cond` already lets `cond` see locals declared in the loop body, so the following could be a workaround, not a substitute to `while`: 
+Alternatively, `repeat ... until cond` already lets `cond` see locals declared in the loop body, so the following is a workaround today:
 
 ```lua
 repeat
