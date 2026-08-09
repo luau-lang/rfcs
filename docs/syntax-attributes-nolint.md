@@ -8,7 +8,7 @@ Introduce a syntax attribute (`@nolint`) for expressions and statements to silen
 
 Users today may have many lints enabled in their projects. With [`lute lint`](https://lute.luau.org/cli/lint/), the
 number is likely to only grow. `--!nolint` hot comments do not allow users to granularly disable warnings in specific
-areas of their code. Adding standardized syntax for silencing in-editor warnings improves the granularity and the
+areas of their code. Adding standardized syntax for silencing in-editor warnings can improve the granularity and
 visibility of this feature.
 
 ## Design
