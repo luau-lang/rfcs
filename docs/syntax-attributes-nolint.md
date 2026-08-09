@@ -32,7 +32,8 @@ much immediately obvious benefit.
 ## Drawbacks
 
 - This augments attribute syntax, so it comes with natural costs to updating parsers / tooling and integrating the
-feature with existing software.
+feature with existing software. This is more permissive than existing attribute parsing, which might be a point of
+contention.
 
 - People implementing lint tooling for Luau will need to actively consider `@nolint` and interpret
 parameters to exclude named lints, but this should be fine because most linters already require luau
@@ -59,8 +60,12 @@ lints as they could with `@nolint`.
 boon or a flaw. However, users might also conflate `nowarn` with runtime warnings, and we want to avoid confusing
 people.
 
-- Use a comment instead. The only benefit to this is compatibility when running in a lua runtime, which seems moot at
-this point as many luau features today (and from the start) are exclusive with lua's syntax expectations.
+- Use a comment instead. The only direct benefit to this is compatibility when running in a lua runtime, which seems
+moot at this point as many luau features today (and from the start) are exclusive with lua's syntax expectations.
+
+- Include `start` / `finish` style syntax instead of scoping it syntactically. This makes scoping much more ambiguous to
+users, and is cumbersome for simply allowing e.g. `@nolint func()`. However, this idea isn't really exclusive with this
+RFC as it serves a different purpose.
 
 - Do nothing, which means linter projects will need to invent their own syntax or hot comments for this (e.g.,
 the formatter project StyLua relies on `--stylua: ignore` / `--stylua: ignore start`). Each project may have different
