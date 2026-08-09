@@ -41,6 +41,11 @@ parsers to function
 - People may be quick to jump to using `@nolint` for important lints. However, similarly to things like `--!nocheck`,
 that is their perogative and is better than disabling it for an entire file or in a config scope.
 
+- It may be easy to accidentally provide an invalid lint name (e.g. `LocalUnsued`), and with no direct communication
+between tools this could lead to confusion. However, it seems like linting will eventually move to being the
+sole responsibility of `lute`, which would be able to identify registered lint names and emit a configurable warning in
+and of itself.
+
 - People writing code to be compatible with lua & luau would not be able to silence lints.
 
 ## Alternatives
