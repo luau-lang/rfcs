@@ -23,7 +23,7 @@ more specific, the `@nolint` attribute should only silence warnings if they are 
 
 `@nolint` will also have optional attribute parameters allowing users to exclude specific lint names with either string
 literals (`@[nolint "LocalUnused"]`), or lists of string literals (`@[nolint("LocalUnused", "MisleadingCondition")]`).
-This is very coherent with the existing top-level comment `--!nolint LocalShadow`.
+This is very coherent with the existing top-level comment capabilities `--!nolint LocalShadow`.
 
 For now, pattern matching, message matching, et cetera are out of scope for this RFC, because they
 would be significantly more complex and leave wild room for tools to vary in implementation without
