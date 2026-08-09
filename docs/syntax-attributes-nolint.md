@@ -52,9 +52,9 @@ and of itself.
 
 ## Alternatives
 
-- `@lint` / `@[lint { name = true } ]`. This is more coherent with `.config.luau` files, but most cases for in-line lint
-silencing only need to specify which lints they are looking for, values of `true` seem like they'd become repetitive
-when compared to a declaration with a larger scope, are cumbersome to type, and don't allow people to easily mask all
+- `@lint` / `@[lint { name = true } ]`. This is more coherent with `.config.luau` files. most cases for inline lint
+silencing at most need to specify exclusions, so values of `true` seem like they'd become repetitive when compared to a
+declaration with a larger scope. this would also be cumbersome to type, and doesn't allow people to easily mask all
 lints as they could with `@nolint`.
 
 - Name it `nowarn` instead. This is disconnected from the file-wide flag `--!nolint`, which could be interpreted as a
