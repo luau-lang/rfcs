@@ -47,7 +47,8 @@ between tools this could lead to confusion. However, it seems like linting will 
 sole responsibility of `lute`, which would be able to identify registered lint names and emit a configurable warning in
 and of itself.
 
-- People writing code to be compatible with lua & luau would not be able to silence lints.
+- People writing code to be compatible with lua & luau would not be able to silence lints with an attribute, because
+`@attribute` syntax is a luau-specific feature.
 
 ## Alternatives
 
