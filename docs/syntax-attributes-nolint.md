@@ -61,8 +61,15 @@ lints as they could with `@nolint`.
 boon or a flaw. However, users might also conflate `nowarn` with runtime warnings, and we want to avoid confusing
 people.
 
-- Use a comment instead. The only direct benefit to this is compatibility when running in a lua runtime, which seems
-moot at this point as many luau features today (and from the start) are exclusive with lua's syntax expectations.
+- Use a comment instead.  This would make the implementation a fair
+bit simpler, as it would mean that all of the logic could be confined
+to the linter itself, but the ergonomics are poor:  Because comments
+are blind to the structure of the source code, there is nothing to
+prevent a developer from inadvertently disabling a warning for more
+than the intended span.  It's quite nice to be able to write a small
+annotation at the top of a declaration or statement to disable a
+warning for that entire construct with no need for an extra directive
+at the end.
 
 - Include `start` / `finish` style syntax instead of scoping it syntactically. This makes scoping much more ambiguous to
 users, and is cumbersome for simply allowing e.g. `@nolint func()`. However, this idea isn't really exclusive with this
