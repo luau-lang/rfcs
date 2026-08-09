@@ -59,7 +59,9 @@ this point as many luau features today (and from the start) are exclusive with l
 
 - Do nothing, which means linter projects will need to invent their own syntax or hot comments for this (e.g.,
 the formatter project StyLua relies on `--stylua: ignore` / `--stylua: ignore start`). Each project may have different
-syntax or rules, which is a double edged sword.
+syntax or rules, which is a double edged sword; those projects become more expressive, but users relying on multiple of
+them or migrating between them may have trouble familiarizing. These kinds of project-specific specialcasing aren't
+exclusive at all with dedicated syntax, though.
 
 - Explicit pattern matching syntax following a standard (e.g., lua(u) string patterns). The complexity hit from this
 seems like it wouldn't be worth it.
