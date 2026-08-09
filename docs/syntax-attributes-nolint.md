@@ -52,14 +52,12 @@ and of itself.
 
 ## Alternatives
 
-- `@lint` / `@[lint { name = true } ]`. This is more coherent with `.config.luau` files. most cases for inline lint
-silencing at most need to specify exclusions, so values of `true` seem like they'd become repetitive when compared to a
-declaration with a larger scope. this would also be cumbersome to type, and doesn't allow people to easily mask all
-lints as they could with `@nolint`.
+- Naming it `nowarn` instead was considered, but users might conflate
+`warn` with runtime warnings in e.g. roblox where `warn` is a global.
 
-- Name it `nowarn` instead. This is disconnected from the file-wide flag `--!nolint`, which could be interpreted as a
-boon or a flaw. However, users might also conflate `nowarn` with runtime warnings, and we want to avoid confusing
-people.
+- `allow` is a potential name candidate, and flows better than you
+might think (`@[allow "LocalShadow"]`). However, when standing on its
+own (`@allow call()`) it isn't quite as clear as `@nolint`.
 
 - Use a comment instead.  This would make the implementation a fair
 bit simpler, as it would mean that all of the logic could be confined
