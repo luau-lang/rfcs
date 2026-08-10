@@ -61,7 +61,7 @@ local VECTOR_SIZEOF = VECTOR_NDIM * 4
 
 local function doThing(buf: buffer)
   for i = 0, buffer.len(buf) - 1, VECTOR_SIZEOF do
-    local v = (vector.create :: any)(buffer.packf32(buf, i, VECTOR_NDIM))
+    local v = (vector.create :: any)(buffer.unpackf32(buf, i, VECTOR_NDIM))
     -- ...
   end
 end
