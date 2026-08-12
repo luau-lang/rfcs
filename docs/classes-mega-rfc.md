@@ -511,7 +511,7 @@ Implementation inheritance requires some mechanism by which a class constructor 
 
 This is a very well-known problem.  The well-known solution is constructors.
 
-## Syntax
+### Syntax
 
 We draw inspiration from Python and allow classes to replace the builtin constructor by defining an `__init` method:
 
@@ -542,7 +542,7 @@ To make explicit the other case, let `T` be a class object that does not define 
 2. For each field `f` of `T`'s fields, `arg` is indexed with `f` and the resulting value is assigned to `t.f`.
 3. `t` is produced as the result of the expression. As happens when any other function is invoked with too many arguments, `...args` is ignored.
 
-## Typechecking
+### Typechecking
 
 In order to make uninitialized data unobservable, constructors are required to follow some strict typing rules:
 
@@ -560,7 +560,7 @@ Once the base class has been called and all fields are initialized, constructors
 
 These rules are all enforced only by type checking.  When the program is run, uninitialized fields will have the value `nil` no matter what their types might say. This is consistent with what happens when a class `T` does not define `__init`, and `T.new(t)` is invoked where `t` does not have a key-value pair for every one of `T`'s fields.
 
-## Drawbacks
+### Drawbacks
 
 Constructors add more complexity to the language.  Some classes can be initialized via `T.new { x = x, y = y}` syntax and others must be initialized with different kinds of arguments.
 
@@ -568,7 +568,7 @@ We intentionally only check that fields are initialized in type checking.  This 
 
 Some developers will feel inconvenienced by the restrictions on uninitialized class fields.  The current rules do not, for instance, permit a developer to write a helper function that partially (or completely) initializes a new class instance.
 
-## Alternatives
+### Alternatives
 
 We could follow in Python's footsteps and do away with the default `T{}` constructor, but this means that developers have to write a lot of dull code in the typical "plain old data" case:
 
