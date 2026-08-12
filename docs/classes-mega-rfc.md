@@ -476,7 +476,120 @@ We considered a `super` keyword, but found the justification for it to be very w
 
 ## Constructors
 
-## Private Fields
+### Summary
+
+Add user-definable constructors to Luau classes.
+
+### Motivation
+
+Above, we specified that all classes can be constructed by invoking `.new` on the class object with a mapping from fields to values as its sole argument.
+
+This is great for "plain old data" classes and we could consider allowing users to write their own static `.new()` method if they have more exotic construction requirements, but this falls apart in the face of inheritance because a `.new()` factory necessarily couples the actual class instance construction with the field initialization.
+
+Concretely:
+
+```luau
+class BasePoint
+    public x: number
+    public y: number
+
+    function new(): BasePoint
+        return BasePoint { x = 0, y = 0 }
+    end
+end
+
+class DerivedPoint extends BasePoint
+    public name: string
+
+    function new(): DerivedPoint
+        -- We're stuck!  We cannot implement this function in terms of BasePoint.new()
+    end
+end
+```
+
+Implementation inheritance requires some mechanism by which a class constructor can do the work only to initialize its part of the object for some class that is at some indeterminate point in an inheritance hierarchy.
+
+This is a very well-known problem.  The well-known solution is constructors.
+
+## Syntax
+
+We draw inspiration from Python and allow classes to replace the builtin constructor by defining an `__init` method:
+
+```luau
+class A extends B
+    public x: number
+
+    function __init(self, x, y)
+        B.__init(self, x)
+        self.x = x * y
+    end
+end
+```
+
+If a class defines an `__init` function, it is understood to be a constructor.  Classes with constructors follow different rules.  We define class construction as follows:
+
+Classes are still constructed using the static method `.new`.
+
+Let `T` be a class object that defines a constructor.  When `T.new(...args)` is invoked with any arguments, the following happens:
+
+1. A fresh, uninitialized instance of `T` is allocated.  We'll call it `t` here.  All of its fields are initially `nil` irrespective of any type annotations.  
+2. `T.__init(t, ...args)` is invoked.  
+3. `t` is produced as the result of the expression.
+
+To make explicit the other case, let `T` be a class object that does not define a constructor.  It is illegal to invoke `T.new` without any arguments. When `T.new(arg, ...args)` is invoked with one or more arguments, the following happens:
+
+1. A fresh, uninitialized instance of `T` is allocated.  We'll call it `t` here.  All of its fields are initially `nil` irrespective of any type annotations.  
+2. For each field `f` of `T`'s fields, `arg` is indexed with `f` and the resulting value is assigned to `t.f`.
+3. `t` is produced as the result of the expression. As happens when any other function is invoked with too many arguments, `...args` is ignored.
+
+## Typechecking
+
+In order to make uninitialized data unobservable, constructors are required to follow some strict typing rules:
+
+* The first argument of a constructor must be called `self`.  
+* A class must define a constructor if its base class defines one.
+* If a class has a base class, the class constructor must invoke its base class's constructor before reading or writing to `self` or any of its properties.
+* A constructor must unconditionally initialize all of its fields before it can pass `self` to any function.  
+    * The delegating call to the base class constructor is of course exempt from this.  `BaseClass.__init(self, args)`  
+    * This restriction also includes all method calls (eg `self:something()`)  
+    * As a special exception, fields whose types are supertypes of `nil` are exempt from this requirement and are always considered to have been implicitly initialized with `nil`.  Explicit initialization of such fields is of course permitted.  
+    * Additionally, any subexpression where `self` is explicitly cast is exempt from this. (eg `foo(self :: any)` or even `foo(self :: FooType)`)  We offer this as an intentional way for a developer to override the type system if they need to.  
+* A constructor must not refer to any field before it has been initialized.
+
+Once the base class has been called and all fields are initialized, constructors can do anything.
+
+These rules are all enforced only by type checking.  When the program is run, uninitialized fields will have the value `nil` no matter what their types might say. This is consistent with what happens when a class `T` does not define `__init`, and `T.new(t)` is invoked where `t` does not have a key-value pair for every one of `T`'s fields.
+
+## Drawbacks
+
+Constructors add more complexity to the language.  Some classes can be initialized via `T.new { x = x, y = y}` syntax and others must be initialized with different kinds of arguments.
+
+We intentionally only check that fields are initialized in type checking.  This means that our runtime still has to be able to cope with fields that have been left uninitialized.
+
+Some developers will feel inconvenienced by the restrictions on uninitialized class fields.  The current rules do not, for instance, permit a developer to write a helper function that partially (or completely) initializes a new class instance.
+
+## Alternatives
+
+We could follow in Python's footsteps and do away with the default `T{}` constructor, but this means that developers have to write a lot of dull code in the typical "plain old data" case:
+
+```luau
+class Point
+    public x: number
+    public y: number
+
+    -- This whole function is pointless ceremony
+    function __init(self, x, y)
+        self.x = x
+        self.y = y
+    end
+end
+```
+
+Python does away with this in some cases via the `@dataclass` decorator.
+
+We could make field initialization more logical by adding C++-style initializer syntax.  We're already adding a lot of syntax and we don't think it's worth it for us.
+
+The choice to construct instances via a `.new` static function is motivated by Lua libraries that effect objects.  We sacrifice the ability for classes to define their own `.new` method but in exchange, code using classes looks more consistent with what came before.
 
 # Appendix
 
@@ -503,3 +616,9 @@ Classes have a fixed layout.  In the VM, the mapping from name to offset is stor
 In the presence of inheritance, we specify one additional rule: All inherited properties of base classes exist in memory at the same offsets.  Properties of the derived class occur afterward.
 
 This means that, if the VM knows that some object is a subtype of some class type, it can access a particular known field at a particular known offset.  That offset will be correct no matter what the concrete type is.
+
+## Constructors
+
+### Typechecking
+
+For v1, type inference does not attempt to track fields that are initialized within conditional constructs like `if` statements or loops.  Fields must be initialized directly at the function scope. 
