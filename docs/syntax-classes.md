@@ -204,9 +204,10 @@ A constructor is a special declaration used to initialize a newly allocated inst
 Fields are public only when explicitly marked `public`.  Private fields are accessible only from within the lexical body of the enclosing class declaration.
 ```luau
 class Player
+	public name: string
     private coins: number = 0
 
-    function Coins()
+    function getCoins()
         return self.coins
     end
 end
