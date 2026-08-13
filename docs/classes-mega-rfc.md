@@ -570,7 +570,7 @@ Some developers will feel inconvenienced by the restrictions on uninitialized cl
 
 ### Alternatives
 
-We could follow in Python's footsteps and do away with the default `T{}` constructor, but this means that developers have to write a lot of dull code in the typical "plain old data" case:
+We could follow in Python's footsteps and do away with the default `T.new {}` constructor, but this means that developers have to write a lot of dull code in the typical "plain old data" case:
 
 ```luau
 class Point
