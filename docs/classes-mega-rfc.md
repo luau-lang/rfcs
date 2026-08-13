@@ -274,7 +274,7 @@ class ThreeDPoint extends Point
 end
 
 local threedpoint = ThreeDPoint.new { x = 0, y = 0, z = 0 }
-local erroneous = ThreeDPoint.new { z = 1 } -- Type error.  x and y are uninitialized.  What their values are is undefined behavior.
+local erroneous = ThreeDPoint.new { z = 1 } -- Type error.  x and y are uninitialized.  They will be nil at runtime.
 ```
 
 Subclasses are forbidden from redeclaring fields declared in their superclasses. Such a redeclared field would need to type invariantly against the superclass field to maintain soundness anyway. Additionally, this reduces ambiguity for programmers coming from other languages, such as C++, where shadowed fields exist independently (i.e. `A::field` vs. `B::field`, where `B` subclasses `A`). In the case that private fields are added to classes, we expect this restriction to apply only to public fields.
