@@ -208,7 +208,7 @@ Allowing code to grab unbound method references (ie `local m = o.someMethod`) se
 
 The word `class` is doing triple duty under this RFC: It is a contextual keyword, the name of a top-level library, and the name of the top type for class objects.
 
-Object oriented codebases tend to have far more cyclic dependencies between modules because every piece of data is also coupled to a whole bunch of functions that operate on that data.  We are probably going to have to work out a way to relax the restrictions on cyclic module imports.
+Object oriented codebases tend to have far more cyclic dependencies between modules because every piece of data is also coupled to a whole bunch of functions that operate on that data.  We'll also build out better support for cyclically-dependent modules.  See https://github.com/luau-lang/rfcs/blob/master/docs/support-for-cyclic-requires.md
 
 ## Inheritance
 
