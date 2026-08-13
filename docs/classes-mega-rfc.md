@@ -536,18 +536,49 @@ Let `T` be a class object that defines a constructor.  When `T.new(...args)` is 
 2. `T.__init(t, ...args)` is invoked.  
 3. `t` is produced as the result of the expression.
 
-To make explicit the other case, let `T` be a class object that does not contain a user-defined constructor.  It is illegal to invoke `T.new` without any arguments. When `T.new(arg, ...args)` is invoked with one or more arguments, the following happens:
+### The Default Constructor
 
-1. A fresh, uninitialized instance of `T` is allocated.  We'll call it `t` here.  All of its fields are initially `nil` irrespective of any type annotations.  
-2. For each field `f` of `T`'s fields, `arg` is indexed with `f` and the resulting value is assigned to `t.f`.
-3. `t` is produced as the result of the expression. As happens when any other function is invoked with too many arguments, `...args` is ignored.
+If a class does not explicitly define a constructor, it is given a default constructor.  The default constructor takes a mapping from property name to value and initializes the newly-created class instance with those properties.  If no argument or `nil` are passed, the default constructor will raise an error.
+
+In strict mode, it is a warning to leave fields uninitialized.
+
+A class must define an explicit constructor if its base class defines one.  Attempting to construct such a class will result in a runtime exception.  Type inference will also warn in this case.
+
+If a class defines no constructor and inherits from another that also defines no constructor, the default constructor will initialize all fields of the class.  For example:
+
+```luau
+open class BasePoint
+    public x: number
+    public y: number
+end
+
+class Point3D extends BasePoint
+    public z: number
+end
+
+local p2 = Point.new { x=3, y=4 }
+local p3 = Point3D.new { x=1, y=2, z=3 }
+```
+
+The default constructor is a real function just like any other and so it can be explicitly invoked if desired.
+
+```luau
+class Point
+    public x: number
+    public y: number
+
+    function reset(self)
+        self:__init {x=0, y=0}
+    end
+end
+```
 
 ### Typechecking
 
 In order to make uninitialized data unobservable, constructors are required to follow some strict typing rules:
 
 * The first argument of a constructor must be called `self`.  
-* A class must define a constructor if its base class defines one. This rule is enforced at runtime as well.
+* A class must define a constructor if its base class defines one.
 * If a class has a base class, the class constructor must invoke its base class's constructor before reading or writing to `self` or any of its properties.
 * A constructor must unconditionally initialize all of its fields before it can pass `self` to any function.  
     * The delegating call to the base class constructor is of course exempt from this.  `BaseClass.__init(self, args)`  
