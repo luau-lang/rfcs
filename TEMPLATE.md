@@ -19,3 +19,8 @@ Why should we *not* do this?
 ## Alternatives
 
 What other designs have been considered? What is the impact of not doing this?
+
+# Prior Art
+
+* Do other programming languages have similar features? What do those look like? How do they compare and contrast to this design? 
+* What supporting features do those languages have that might _not_ be included in this design?
