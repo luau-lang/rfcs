@@ -83,7 +83,7 @@ Taking references to class methods via `ClassName.method` syntax is allowed so t
 local n = pcall(SomeClass.getName, someClassInstance)
 ```
 
-To construct an instance of a class, call the class object's `.new` static mehtod.  It accepts a single argument: a table-like value that contains initial values for all the fields.  While it will typically be most useful to pass a table literal to this function, that isn't the only use.  For example, any class object can be shallowly cloned by passing it to its class constructor: `local clone = MyClass.new(original)`
+To construct an instance of a class, call the class object's `.new` static method.  It accepts a single argument: a table-like value that contains initial values for all the fields.  While it will typically be most useful to pass a table literal to this function, that isn't the only use.  For example, any class object can be shallowly cloned by passing it to its class constructor: `local clone = MyClass.new(original)`
 
 The top type of all class objects is named `class`.  `type()` and `typeof()` return `"class"` when passed a class object.
 
