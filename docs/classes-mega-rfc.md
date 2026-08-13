@@ -526,7 +526,7 @@ class A extends B
 end
 ```
 
-If a class defines an `__init` function, it is understood to be a constructor.  Classes with constructors follow different rules.  We define class construction as follows:
+If a class defines an `__init` function, it is understood to be a constructor.  Classes with user-defined constructors follow different rules.  We define class construction as follows:
 
 Classes are still constructed using the static method `.new`.
 
@@ -536,7 +536,7 @@ Let `T` be a class object that defines a constructor.  When `T.new(...args)` is 
 2. `T.__init(t, ...args)` is invoked.  
 3. `t` is produced as the result of the expression.
 
-To make explicit the other case, let `T` be a class object that does not define a constructor.  It is illegal to invoke `T.new` without any arguments. When `T.new(arg, ...args)` is invoked with one or more arguments, the following happens:
+To make explicit the other case, let `T` be a class object that does not contain a user-defined constructor.  It is illegal to invoke `T.new` without any arguments. When `T.new(arg, ...args)` is invoked with one or more arguments, the following happens:
 
 1. A fresh, uninitialized instance of `T` is allocated.  We'll call it `t` here.  All of its fields are initially `nil` irrespective of any type annotations.  
 2. For each field `f` of `T`'s fields, `arg` is indexed with `f` and the resulting value is assigned to `t.f`.
@@ -547,7 +547,7 @@ To make explicit the other case, let `T` be a class object that does not define 
 In order to make uninitialized data unobservable, constructors are required to follow some strict typing rules:
 
 * The first argument of a constructor must be called `self`.  
-* A class must define a constructor if its base class defines one.
+* A class must define a constructor if its base class defines one. This rule is enforced at runtime as well.
 * If a class has a base class, the class constructor must invoke its base class's constructor before reading or writing to `self` or any of its properties.
 * A constructor must unconditionally initialize all of its fields before it can pass `self` to any function.  
     * The delegating call to the base class constructor is of course exempt from this.  `BaseClass.__init(self, args)`  
