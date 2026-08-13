@@ -24,3 +24,4 @@ What other designs have been considered? What is the impact of not doing this?
 
 * Do other programming languages have similar features? What do those look like? How do they compare and contrast to this design? 
 * What supporting features do those languages have that might _not_ be included in this design?
+* Are there other similar features or libraries in Luau already? How does this feature align with _those_ features in terms of naming, syntax, and semantics?
