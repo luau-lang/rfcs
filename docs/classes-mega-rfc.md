@@ -312,7 +312,7 @@ end
 
 ### Name resolution
 
-Methods defined on base classes are accessible via the derived class.
+Methods (including metamethods) defined on base classes are accessible via the derived class, with the exception of `__init`, which has its own set of rules described in the Constructors section.
 
 ```luau
 open class Base
@@ -351,7 +351,7 @@ end
 local p = Point.new(0, 0)
 local np = NamedPoint.new(0, 0, "Bob")
 
-p == np -- invokes Point.__eq and evaluates to true, not a proof
+print(p == np) -- invokes Point.__eq and evaluates to true, not a proof
 ```
 
 ### Declaration Order
