@@ -110,7 +110,7 @@ type(inst) == "object"
 typeof(inst) == "object"
 ```
 
-Comparisons between object instances is the same as with tables: If `__eq` is not defined, object comparisons use physical (pointer) equality.  `__eq` is only invoked if both operands are the same type.
+Comparisons between object instances is the same as with tables: If `__eq` is not defined, object comparisons use physical (pointer) equality.  As with Lua, `__eq` is only invoked if both operands share the same definition.
 
 ### The `class` library
 
@@ -330,6 +330,28 @@ Class instances are the same:
 ```luau
 local c = Child.new({})
 c.foo() // OK
+```
+
+Above, we mentioned that `__eq` between two class instances is only invoked if both operands share it. This rule is still followed in the presence of inheritance:
+
+```luau
+open class Point
+    x: number
+    y: number
+
+    function __eq(self, other)
+        return self.x == other.x and self.y == other.y
+    end
+end
+
+class NamedPoint extends Point
+    name: string
+end
+
+local p = Point.new(0, 0)
+local np = NamedPoint.new(0, 0, "Bob")
+
+p == np -- invokes Point.__eq and evaluates to true, not a proof
 ```
 
 ### Declaration Order
