@@ -38,7 +38,9 @@ Defining two classes with the same name in the same module is forbidden.
 
 Within a class block, two declarations are allowed: Fields and methods.
 
-For now, fields are introduced with the new `public` keyword.  We also plan to eventually offer private fields, but it is sufficiently complex that it merits its own RFC.
+For now, fields are introduced with the new `public` keyword.  Private fields will be described in their own section of this document when they are ready.
+
+Class fields are not strictly required to have an annotation, but it is very strongly encouraged.  Unannotated fields will have type `any` and strict mode will flag the field with a warning.
 
 Methods are introduced with the familiar `function` keyword.  `public function f()` is also permitted.
 
