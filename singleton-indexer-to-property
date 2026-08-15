@@ -1,0 +1,501 @@
+2# Singleton Type Literals as Table Property Keys
+
+## Summary
+
+This proposal suggests treating singleton types used as table type keys as concrete properties rather than indexers.
+
+## Motivation
+
+Luau already supports literal properties in table types:
+
+```luau
+type T = {
+    ["foo"]: number,
+    bar: string,
+}
+```
+
+Singleton types can also describe concrete values, including string literals:
+
+```luau
+type Foo = "foo"
+```
+
+However, these two capabilities cannot currently be combined directly:
+
+```luau
+type Foo = "foo"
+
+type T = {
+    [Foo]: number,
+}
+```
+
+Today, the `[T]: U` syntax treats `T` as an indexer type and does not take into account that some types unambiguously represent a single possible key. This creates a situation where a concrete key represented by a type alias cannot be expressed in the same way as when the literal is written directly.
+
+The proposed change allows singleton types to be used as components of table types without introducing new semantics for property keys themselves. It only makes the existing concept of a concrete key accessible through type-level composition.
+
+A singleton type describing a string literal represents exactly one value:
+
+```luau
+type Key = "foo"
+```
+
+Therefore, `Key` does not describe a set of possible keys. It describes one concrete property key. Internally, this corresponds to the distinction between:
+
+```text
+property:
+    "foo" -> T
+```
+
+and:
+
+```text
+indexer:
+    string -> T
+```
+
+The proposal is to use this distinction during semantic analysis of `[T]: U`.
+
+## Property Key
+
+If `T` is a singleton type representing a concrete key, `[T]: U` is interpreted as a property.
+
+For example:
+
+```luau
+type A = "any"
+
+type B = {
+    [A]: any,
+}
+```
+
+is equivalent to:
+
+```luau
+type B = {
+    ["any"]: any,
+}
+```
+
+## Indexer
+
+If `T` is not a singleton type, `[T]: U` retains its existing indexer semantics:
+
+```luau
+type B = {
+    [string]: any,
+}
+```
+
+Thus, the proposed change does not redefine the existing indexer mechanism. It only allows singleton keys to be represented in the same syntactic position.
+
+## Design
+
+The semantic rule for the following construct:
+
+```luau
+[T]: U
+```
+
+should be:
+
+```text
+T resolves to a singleton key
+    -> concrete table property
+
+T resolves to a non-singleton type
+    -> table indexer
+```
+
+For string singleton types:
+
+```luau
+type A = "any"
+type C = "unknown"
+
+type B = {
+    [A]: any,
+    ["hello"]: any,
+    hi: any,
+    [C]: any,
+
+    [string]: any,
+}
+```
+
+semantically represents:
+
+```text
+properties:
+    "any"     -> any
+    "hello"   -> any
+    "unknown" -> any
+
+indexer:
+    string -> any
+```
+
+In other words, `[A]`, `["hello"]`, and `hi` are different ways of declaring the same class of entity: a concrete property.
+
+Meanwhile:
+
+```luau
+type A = string
+
+type B = {
+    [A]: any,
+}
+```
+
+retains its existing semantics and represents an indexer:
+
+```luau
+type B = {
+    [string]: any,
+}
+```
+
+## Singleton Key Resolution
+
+The key part of the proposal is not the syntax itself, but the resolution of type `T`.
+
+A singleton should be classified as a concrete key only when the type unambiguously represents a single value that is valid as a table key.
+
+For string singleton types:
+
+```luau
+type A = "foo"
+```
+
+`[A]` is a property key.
+
+For an ordinary string type:
+
+```luau
+type A = string
+```
+
+`[A]` is an indexer.
+
+This distinction should be determined after resolving aliases:
+
+```luau
+type A = "foo"
+type B = A
+
+type T = {
+    [B]: number,
+}
+```
+
+should have the same semantics as:
+
+```luau
+type T = {
+    ["foo"]: number,
+}
+```
+
+## Unions
+
+The proposal does not automatically extend this semantics to union types.
+
+For example:
+
+```luau
+type Keys = "foo" | "bar"
+
+type T = {
+    [Keys]: number,
+}
+```
+
+should not be interpreted as automatically declaring two properties:
+
+```luau
+type T = {
+    ["foo"]: number,
+    ["bar"]: number,
+}
+```
+
+The reason is that a union represents a set of possible values rather than a single concrete key. This is important for maintaining a clear distinction:
+
+```text
+singleton      -> one known property
+non-singleton  -> indexer
+```
+
+Union types may be considered separately in the future if an independent need for such semantics arises.
+
+## Duplicate Keys
+
+The proposed change does not introduce a new model for duplicate properties. For example:
+
+```luau
+type Key = "foo"
+
+type T = {
+    foo: number,
+    [Key]: string,
+}
+```
+
+Both declarations address the same concrete property key.
+
+Therefore, they should be handled according to Luau's existing rules for repeated declarations of the same property key, rather than as two independent indexers.
+
+Similarly:
+
+```luau
+type Key = "foo"
+
+type T = {
+    [Key]: number,
+    [Key]: number,
+}
+```
+
+does not create two distinct elements of the table type. Semantically, both declarations refer to the same singleton key.
+
+Such declarations should either be reported as errors or be combined according to the existing rules for repeated property declarations, for example as a union such as `[Key]: T | U | ...`.
+
+## Interaction with Indexers
+
+Properties and indexers remain distinct entities. For example:
+
+```luau
+type Key = "foo"
+
+type T = {
+    [Key]: number,
+    [string]: string,
+}
+```
+
+means that the table has a concrete property:
+
+```text
+"foo" -> number
+```
+
+and a general indexer:
+
+```text
+string -> string
+```
+
+When accessing `T["foo"]`, the concrete property should take precedence over the general indexer according to the existing model for table properties.
+
+The proposal does not change the existing rules governing the interaction between concrete properties and indexers. It only provides an additional way to declare a concrete property.
+
+## Relation to the Existing Type System
+
+This proposal does not introduce a new type of property key.
+
+Singleton types are already part of the type system and are already used to represent concrete values. In particular, string literals can serve as statically known table keys.
+
+The proposed change allows the same singleton type to be used after an alias or other type-level composition instead of requiring the literal to be repeated directly in the table syntax.
+
+Therefore:
+
+```luau
+type Key = "foo"
+
+type T = {
+    [Key]: number,
+}
+```
+
+should not be considered a new class of table type. It is simply an alternative way of expressing the existing:
+
+```luau
+type T = {
+    ["foo"]: number,
+}
+```
+
+## Motivation from Existing Type Checker Behavior
+
+Issues involving concrete singleton keys already exist in the type checker. For example, issue #[2219](https://github.com/luau-lang/luau/issues/2219) demonstrates a situation where statically known singleton keys are not fully incorporated into the resulting table shape when passing through a `__index` chain.
+
+The proposed change does not attempt to solve that issue directly. Its purpose is to provide a correct way to express a concrete key through a singleton type.
+
+Nevertheless, unifying singleton keys with ordinary literal properties makes the table-shape model more consistent: a concrete singleton key represents a concrete known property regardless of whether it was written directly as a literal or obtained through an alias.
+
+## Runtime Considerations
+
+The change applies exclusively to the type system. It does not require any changes to Lua VM behavior or the runtime representation of tables.
+
+For example:
+
+```luau
+type Key = "foo"
+
+type T = {
+    [Key]: number,
+}
+```
+
+still describes an ordinary runtime table:
+
+```luau
+local value = {
+    foo = 1,
+}
+```
+
+The type checker simply gains an additional way to express the same concrete key. No separate runtime representation is required for aliases or singleton types.
+
+## Future Extensions
+
+In the future, the same mechanism could be extended to other singleton key types if the corresponding singleton types become valid table keys.
+
+For example, if numeric singleton types are supported:
+
+```luau
+type First = 1
+type Second = 2
+
+type T = {
+    [First]: string,
+    [Second]: number,
+}
+```
+
+could directly represent:
+
+```luau
+type T = {
+    [1]: string,
+    [2]: number,
+}
+```
+
+Thus, the rule is not inherently limited to string literals:
+
+```text
+singleton key
+    -> concrete property
+```
+
+could become a general part of the table type model. This would also allow the system to be extended in the future without introducing separate syntax for every new class of literal type.
+
+## Drawbacks
+
+For existing programs, the change should be backwards-compatible wherever `[T]` uses a non-singleton type.
+
+For example:
+
+```luau
+type T = {
+    [string]: number,
+}
+```
+
+remains unchanged.
+
+Code in which `[T]` currently treats a singleton type as an indexer would change behavior. Such usage has limited practical value because a singleton key describes only one concrete key.
+
+The new behavior should therefore be considered a normalization of a singleton key into a concrete property.
+
+The primary drawback is that the semantics of `[T]: U` become dependent on the resolved type of `T`. At the syntactic level, the following two declarations look identical:
+
+```luau
+[A]: T
+```
+
+but may represent different entities:
+
+```luau
+A = "foo"     -> property
+A = string    -> indexer
+```
+
+However, this distinction naturally follows from the difference between singleton and non-singleton types and does not require additional syntax.
+
+Another potential source of complexity is unions and other composite types. Within the scope of this proposal, they receive no special semantics and are not transformed into a set of concrete properties. More generally, representing multiple key-value pairs resulting from a single type expression is outside the scope of this proposal and should be addressed separately if needed.
+
+## Alternatives
+
+### Do Not Change the Existing Behavior
+
+Users can continue to declare concrete properties directly:
+
+```luau
+type T = {
+    ["foo"]: number,
+}
+```
+
+The disadvantage is that a key cannot be reused through a type alias:
+
+```luau
+type Key = "foo"
+```
+
+and then used as part of a table type.
+
+This also prevents composition of types in cases where a set of concrete keys is defined independently from the table itself.
+
+### Introduce Separate Syntax for Singleton Property Keys
+
+Another option would be to introduce additional syntax specifically for type-level property keys.
+
+For example, hypothetically:
+
+```luau
+type T = {
+    property<Key>: number,
+}
+```
+
+This provides no significant semantic benefit and introduces new syntax for an entity that is already represented by the existing `["foo"]` form.
+
+### Extend Indexer Semantics to Singleton Types
+
+Another option is to continue treating:
+
+```luau
+[A]: T
+```
+
+as an indexer regardless of whether `A` is a singleton type.
+
+This preserves the existing syntactic classification of the node, but makes it impossible to naturally represent a concrete property through a type alias and maintains the semantic conflation of "one known key" and "a set of possible keys."
+
+## Conclusion
+
+The proposed change makes singleton type aliases usable as concrete table property keys while preserving the existing semantics of non-singleton indexers.
+
+The central rule is straightforward:
+
+```text
+singleton key
+    -> concrete property
+
+non-singleton key
+    -> indexer
+```
+
+This allows:
+
+```luau
+type Key = "foo"
+
+type T = {
+    [Key]: number,
+}
+```
+
+to be semantically equivalent to:
+
+```luau
+type T = {
+    ["foo"]: number,
+}
+```
+
+without introducing a new runtime representation, a new property-key type, or additional syntax.
