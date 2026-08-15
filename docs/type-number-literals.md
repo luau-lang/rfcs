@@ -14,6 +14,9 @@ In particular, a numeric literal type such as:
 
 ```luau
 type N = 1337
+type N2 = 1337.0000000000000000000000 -- eq to N
+type N3 = 1337.0000000001 -- non eq to N2, N
+type N4 = 0x000000... -- eq to default key, like a 0x0003b == 59
 ```
 
 should be usable as a concrete table property key:
