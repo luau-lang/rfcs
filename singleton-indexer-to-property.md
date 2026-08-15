@@ -1,4 +1,4 @@
-2# Singleton Type Literals as Table Property Keys
+# Singleton Type Literals as Table Property Keys
 
 ## Summary
 
