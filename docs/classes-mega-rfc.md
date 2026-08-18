@@ -378,7 +378,7 @@ local function doThingsWithPoints(a: Point, b: Point)
 end
 ```
 
-The addition of the `__eq` override to `NamedPoint` now causes `doThingsWithPoints`'s behavior to change when called on a `Point` and `NamedPoint`, even though its signature implies that it should be agnostic to whether it is passed a `Point` or a subclass of `Point`. This "spooky action at a distance" is further exacerbated if the authors of `doThingsWithPoints` and `NamedPoint` are not the same person.
+The addition of the `__eq` override to `NamedPoint` now causes `doThingsWithPoints`'s behavior to change when called on a `Point` and `NamedPoint`, even though its signature implies that it should be agnostic to whether it is passed a `Point` or a subclass of `Point`. The semantics of `__eq` also make it uniquely bad for this situation, as the comparison silently falls back to physical equality, rather than throwing an error as other metamethods do. This "spooky action at a distance" is further exacerbated if the authors of `doThingsWithPoints` and `NamedPoint` are not the same person.
 
 All other metamethods can still be overridden.
 
