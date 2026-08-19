@@ -724,6 +724,8 @@ Roblox itself has used this technique and found itself forced to permanently pre
 
 Methods and fields can both be declared private by using the new `private` keyword. Private property names must be prefixed with “`_`”. A private field can only be accessed by methods of that class. Private methods can only be called by methods of that class. Static methods can also be private.
 
+All fields must be declared with an access modifier, (at this time, either `public` or `private`).
+
 As is the case with public properties, using keywords as the names of private properties is forbidden.
 
 To avoid complications involved with the notion of a private metamethod or metatable and parsing ambiguity, declaring private property that begins with `__` is forbidden. Defining a private property named `_new` is also disallowed to maintain forwards compatibility with the case that we introduce private constructors.
