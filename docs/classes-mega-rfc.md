@@ -279,7 +279,7 @@ local threedpoint = ThreeDPoint.new { x = 0, y = 0, z = 0 }
 local erroneous = ThreeDPoint.new { z = 1 } -- Type error.  x and y are uninitialized.  They will be nil at runtime.
 ```
 
-Subclasses are forbidden from redeclaring fields declared in their superclasses. Such a redeclared field would need to type invariantly against the superclass field to maintain soundness anyway. Additionally, this reduces ambiguity for programmers coming from other languages, such as C++, where shadowed fields exist independently (i.e. `A::field` vs. `B::field`, where `B` subclasses `A`). This restriction appies only to public fields.
+Subclasses are forbidden from redeclaring fields declared in their superclasses. Such a redeclared field would need to type invariantly against the superclass field to maintain soundness anyway. Additionally, this reduces ambiguity for programmers coming from other languages, such as C++, where shadowed fields exist independently (i.e. `A::field` vs. `B::field`, where `B` subclasses `A`). This restriction applies only to public fields.
 
 A subclass can redefine a method present in its superclass. However, the method declared in the subclass must be a subtype of the method in the superclass.  That is, a child class can override a parent class method with a function that is more permissive than that of the base class method, but not less.
 
