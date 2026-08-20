@@ -227,6 +227,29 @@ enable exact-by-default, but should provide an explicit suggestion in the error 
 programmer that if they _intended_ to allow tables with additional properties, they can change the
 signature of the function to include the `...`.
 
+Exact tables aren't nearly as readily composable as inexact tables.  In particular, intersections
+involving exact tables frequently collapse to `never`:
+
+```luau
+-- These are all exact tables
+type A = {x: number}
+type B = {y: string}
+type C = {x: number, y: string}
+
+-- D is inexact
+type D = {x: number, ...}
+
+type X = A & B -- never!  No value exists that simultaneously satisfies "has x as its sole property" and "has y as its sole property"
+type Y = A & C -- never
+type Z = A & D -- {x: number}
+type W = C & D -- {x: number, y: string}
+```
+
+Luau presently offers no set-theoretic operator that can combine an `{x: number}` with a
+`{y: string}` to build a `{x: number, y: string}`.  Developers can effect this with a type function.
+We could consider a type-level `..` operator for combining disjoint tables.  eg
+`type Combined = {x: number} .. {y: string}`.
+
 ## Alternatives
 
 There are two primary alternatives to this proposal. First, we could stick with the decision that
