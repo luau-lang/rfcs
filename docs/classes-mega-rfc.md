@@ -281,7 +281,7 @@ local erroneous = ThreeDPoint.new { z = 1 } -- Type error.  x and y are uninitia
 
 Subclasses are forbidden from redeclaring fields declared in their superclasses. Such a redeclared field would need to type invariantly against the superclass field to maintain soundness anyway. Additionally, this reduces ambiguity for programmers coming from other languages, such as C++, where shadowed fields exist independently (i.e. `A::field` vs. `B::field`, where `B` subclasses `A`). In the case that private fields are added to classes, we expect this restriction to apply only to public fields.
 
-A subclass can redefine a method present in its superclass. However, the method declared in the subclass must be a subtype of the method in the superclass.  That is, a child class can override a parent class method with a function that is more permissive than that of the base class method, but not less.
+A subclass can redefine any method and most metamethods present in its superclass. However, the method declared in the subclass must be a subtype of the method in the superclass.  That is, a child class can override a parent class method with a function that is more permissive than that of the base class method, but not less.
 
 ```luau
 open class Base
@@ -353,6 +353,34 @@ local np = NamedPoint.new(0, 0, "Bob")
 
 print(p == np) -- invokes Point.__eq and evaluates to true, not a proof
 ```
+
+### Overriding comparison metamethods
+
+Above, we specified that children classes can override most metamethods present on their base classes. The exceptions are the comparison metamethods `__eq`, `__lt`, and `__le`. We believe that the semantics of `__eq` are confusing enough to reason about to merit this restriction, and apply it to `__lt` and `__le` as well for consistency. We remain open to loosening this restriction in the future if it becomes clear that a good use case exists for overriding the comparison metamethods.
+
+To illustrate a potential point of confusion, consider the above `NamedPoint` example again.
+
+```luau
+class NamedPoint extends Point
+    name: string
+
+    function __eq(self, other)
+        return self.x == other.x and self.y == other.y and self.name == other.name
+    end
+end
+
+local function doThingsWithPoints(a: Point, b: Point)
+    if a == b then
+        doSomething()
+    else
+        doSomethingElse()
+    end
+end
+```
+
+The addition of the `__eq` override to `NamedPoint` now causes `doThingsWithPoints`'s behavior to change when called on a `Point` and `NamedPoint`, even though its signature implies that it should be agnostic to whether it is passed a `Point` or a subclass of `Point`. The semantics of `__eq` also make it uniquely bad for this situation, as the comparison silently falls back to physical equality, rather than throwing an error as other metamethods do. This "spooky action at a distance" is further exacerbated if the authors of `doThingsWithPoints` and `NamedPoint` are not the same person.
+
+All other metamethods can still be overridden, although we may apply this restriction to other metamethods in the future.
 
 ### Declaration Order
 
