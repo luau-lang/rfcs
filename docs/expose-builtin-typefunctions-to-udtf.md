@@ -45,22 +45,17 @@ type foo = ultra_negate<negatable_string> -- 'foo' resolves to '~string'
 
 ### Namespace Alternatives
 
-> Dump all built-in type functions into the global namespace
+* Dump all built-in type functions into the global namespace
+* * This would be highly undesirable, since now the global namespace is polluted with both value and type functions. And certain labels would clash with already existing labels like `rawget`.
 
-This would be highly undesirable, since now the global namespace is polluted with both value and type functions. And certain labels would clash with already existing labels like `rawget`.
+* `types.*`, '*' being the built-in name
+* * While this might feel right for some; for others, names like `lt` and `unm` might feel off next to verbose (but concise) names like `intersectionof` and `newfunction`.
 
-> `types.*`, '*' being the built-in name
+* `types.typefunctions.*`
+* * The name `types.builtins` might not indicate that it contains built-in type functions specifically, this alternative could alleviate this issue. Although some may consider it too-verbose.
 
-While this might feel right for some; for others, names like `lt` and `unm` might feel off next to verbose (but concise) names like `intersectionof` and `newfunction`.
+* `typefunctions.*`
+* * This would fix the problem that comes with implementing `types.builtins` as there is no precedent in luau for such a thing. But the name `typefunctions` is rather ambigous whether it contains *all* type functions (UDTFs included) or rather just the built-in ones.
 
-> `types.typefunctions.*`
-
-The name `types.builtins` might not indicate that it contains built-in type functions specifically, this alternative could alleviate this issue. Although some may consider it too-verbose.
-
-> `typefunctions.*`
-
-This would fix the problem that comes with implementing `types.builtins` as there is no precedent in luau for such a thing. But the name `typefunctions` is rather ambigous whether it contains *all* type functions (UDTFs included) or rather just the built-in ones.
-
-> `builtintypefunctions.*`
-
-This fixes the ambiguity with `typefunctions` but is too verbose and the readability is questionable at best.
+* `builtintypefunctions.*`
+* * This fixes the ambiguity with `typefunctions` but is too verbose and the readability is questionable at best.
