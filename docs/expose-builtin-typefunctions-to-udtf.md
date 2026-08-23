@@ -44,7 +44,8 @@ type foo = ultra_negate<negatable_string> -- 'foo' resolves to '~string'
 
 * Let users write aliases for the built-in type functions the way it currently can be done.
 
-* Only expose certain built-in type functions *selectively*, instead of exposing all public-facing ones. This would allow superseded built-in type functions like `setmetatable` to be omitted entirely, and also allow other built-ins like `lt` to be renamed to `lessthan`, thus making `types.*` be a more viable alternative to `types.builtins.*`.
+* Only expose certain built-in type functions *selectively*, instead of exposing all public-facing ones. This would allow superseded built-in type functions like `setmetatable` to be omitted entirely.
+	* This alternative could also lead to other built-ins like `lt` to be renamed to `lessthan`, thus making `types.*` be a more viable alternative to `types.builtins.*`.
 
 ### Namespace Alternatives
 
