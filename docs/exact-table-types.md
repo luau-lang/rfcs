@@ -44,7 +44,7 @@ used for a local definition, it is given an _unsealed_ and _exact_ type meaning 
 _precisely_ the set of properties it has, but that the type itself is stateful and assignments are
 allowed to grow the set of properties the table has.
 
-This alludes to a gap of two sorts of table types: __sealed, exact tables_ and _unsealed, inexact
+This alludes to a gap of two sorts of table types: _sealed, exact tables_ and _unsealed, inexact
 tables_. We believe the latter is undesirable in the sense that there does not appear to be a
 compelling use case for _forgetting_ some of the structure of the table you're building statefully.
 The main consequence of doing so would be that you would be unable to make further assignments to a
