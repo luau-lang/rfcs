@@ -156,11 +156,11 @@ local parent = coroutine.create(function()
     end)
 
     coroutine.resume(child) -- child prints "child started", then yields
-    coroutine.yield()        -- parent yields back to caller
+    coroutine.yield()       -- parent yields back to caller
 end)
 
 coroutine.resume(parent) -- starts parent, which starts child
-coroutine.close(parent)  -- parent's finally fires → child is closed
+coroutine.close(parent)  -- parent's finally fires -> child is closed
 ```
 
 This extends to arbitrary depth.
@@ -200,10 +200,10 @@ local function taskGroup(fn)
         local co = coroutine.create(work)
         children[co] = true
 
-        coroutine.finally(co, function(ok, err)
+        coroutine.finally(co, function(status, ...)
             children[co] = nil
-            if not ok and err ~= nil then
-                table.insert(errors, err)
+            if status == "error" then
+                table.insert(errors, (...))
             end
             if not cancelled and next(children) == nil then
                 coroutine.resume(parent)
@@ -228,16 +228,20 @@ end
 Usage:
 
 ```luau
-taskGroup(function(spawn)
-    spawn(function()
-        fetchData("endpoint-a")
+local group = coroutine.create(function()
+    taskGroup(function(spawn)
+        spawn(function()
+            fetchData("endpoint-a")
+        end)
+        spawn(function()
+            fetchData("endpoint-b")
+        end)
     end)
-    spawn(function()
-        fetchData("endpoint-b")
-    end)
+    -- Continues here only after both tasks finish.
+    -- If either task errored, the first error is re-thrown.
 end)
--- Continues here only after both tasks finish.
--- If either task errored, the first error is re-thrown.
+
+coroutine.resume(group)
 ```
 
 #### Composable observers
@@ -254,9 +258,9 @@ coroutine.finally(co, function()
 end)
 
 -- Library B: diagnostics logs failures
-coroutine.finally(co, function(ok, err)
-    if not ok then
-        log("task failed:", err)
+coroutine.finally(co, function(status, ...)
+    if status == "error" then
+        log("task failed:", ...)
     end
 end)
 
