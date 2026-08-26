@@ -203,7 +203,7 @@ Examples follow.
     -- We can check whether we have previously jumped to this mark and also obtain arguments from that
     -- operation.
     --
-    -- Since the mark is available for declaration only once, stack.hit() also works like stack.reached():
+    -- Since the mark is available for declaration only once, stack.hit() also works like stack.reentered():
     -- it remembers the movement context only for this function, and when trying to read stack.hit() outside
     -- the function where stack.mark was declared, it returns false, because for a function below the one where
     -- stack.mark() was declared this spatial mark does not exist, or does not belong to it, which is more precise.
