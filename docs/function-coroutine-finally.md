@@ -30,6 +30,11 @@ A task scheduler can register a callback to track completion while a separate lo
 coroutine.finally(co: thread, callback: (status: "finished" | "error" | "cancelled", ...any) -> ())
 ```
 
+Calling `coroutine.finally` is an error when:
+
+- coroutine is already dead
+- coroutine is the main thread of the VM
+
 ### Callback invocation
 
 The callback is called with a status and a set of values depending on it.
@@ -54,12 +59,6 @@ Callbacks can use `pcall`/`xpcall` inside to not interrupt other listeners with 
 
 Callbacks fire synchronously after the coroutine has transitioned into its terminal state but before `coroutine.resume` or `coroutine.close` returns to its caller.
 The thread that called `coroutine.resume` or `coroutine.close` executes the callbacks.
-
-Calling `coroutine.finally` is an error when:
-
-- coroutine is already dead
-- coroutine is running or has resumed another coroutine ('normal' state)
-- coroutine is the main thread of the VM
 
 Each callback fires at most once.
 Inside the callbacks, operations on a coroutine such as reset (`lua_resetthread`) and reuse are allowed and do not interfere with callback result delivery.
@@ -118,7 +117,6 @@ Callback cannot be `nil`.
 An error is raised if:
 
 - `co` is already dead
-- `co` is running or has resumed another coroutine ('normal' state)
 - `co` is the main thread of the VM
 
 ```c
