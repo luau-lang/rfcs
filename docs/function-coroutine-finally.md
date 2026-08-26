@@ -93,8 +93,8 @@ LUA_API int lua_runfinalizers(lua_State* L, lua_State* co);
 Runs the 'finally' callbacks of the thread `co` using thread `L`.
 
 `co` cannot equal `L`.
-`co` should have reached the completion.
-`L` must not be running.
+`co` must have reached its completion.
+`L` must be idle or reset.
 
 Note that the host is not required to run 'finally' callbacks after each terminal `lua_resume`.
 Host should call `lua_runfinalizers` after terminal resumes performed by their own scheduler (for example on threads that have used host-provided yielding primitives).
