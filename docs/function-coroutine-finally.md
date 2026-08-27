@@ -51,7 +51,6 @@ Multiple callbacks can be registered on the same coroutine.
 They are called in LIFO order (last registered, first called).
 
 If a callback errors, callback invocations are interrupted and the callback error is returned to `coroutine.resume` and `coroutine.close` overriding the original one.
-In case of a host `lua_runfinalizers` call, it reports the resulting outcome.
 It is important to not have silent errors and allow debugging of callbacks.
 Callbacks can use `pcall`/`xpcall` inside to not interrupt other listeners with their mistakes, but that choice is explicit.
 
@@ -86,25 +85,23 @@ Checks if 'finally' callbacks have been installed on a thread `L`.
 Returns 1 if it has and 0 otherwise.
 
 ```c
-LUA_API int lua_runfinalizers(lua_State* L, lua_State* co);
+LUA_API void lua_pushfinalizerfunction(lua_State* L);
 ```
 
-Runs the 'finally' callbacks of the thread `co` using thread `L`.
+Places a 'finalization' function on top of the stack.
+This function expects a coroutine ('co') as the argument and will perform the callback dispatch.
 
-`co` cannot equal `L`.
+`co` cannot be the thread executing the function.
 `co` must have reached its completion.
-`L` must be idle or reset.
+`co` must have pending callbacks as reported by `lua_hasfinalizers`.
 
 Note that the host is not required to run 'finally' callbacks after each terminal `lua_resume`.
-Host should call `lua_runfinalizers` after terminal resumes performed by their own scheduler (for example on threads that have used host-provided yielding primitives).
+Host should run the 'finalization' function after terminal resumes performed by their own scheduler (for example on threads that have used host-provided yielding primitives).
 User-defined coroutine lifecycles using `coroutine.resume`/`coroutine.close` do not require host involvement.
 
-Returns a status similar to `lua_resume`.
-
-If the result status is `LUA_YIELD` or `LUA_BREAK`, callback execution is suspended on thread `L`.
-Host must `lua_resume` the `L` at the appropriate time and will observe the results on it, `co` can be discarded.
-
-Otherwise, the result behavior follows the terminal `coroutine.resume`, but the status `boolean` is not placed on the stack.
+Function returns the coroutine results or raises an error.
+It can also yield if any of the callbacks yields.
+Recommended way is to run it using either `lua_resume` or `lua_pcallyieldable`.
 
 ```c
 LUA_API void lua_addfinalizer(lua_State* L, lua_State* co, int idx);
