@@ -53,6 +53,7 @@ type foo = ultra_negate<negatable_string> -- 'foo' resolves to '~string'
 
 * `types.*`, '*' being the built-in name
 	* This seems like the idiomatic alternative; although, names like `lt` and `unm` might feel off next to verbose (but concise) names like `intersectionof` and `newfunction`.
+	* Mixing built-in type functions directly into the `types` library might be undesirable, because the `types` library specifically contains type functions with _known_ return types. For example, when `types.optional` is used, the return type is guaranteed to be an `optionaltype`. In contrast, built-in type functions (especially those that resolve overloadable operators) can evaluate to _any_ arbitrary `type`.
 
 * `types.typefunctions.*`
 	* The name `types.builtins` might not indicate that it contains built-in type functions specifically, this alternative could alleviate this issue. Although some may consider it too-verbose.
