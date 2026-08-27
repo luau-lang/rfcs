@@ -280,17 +280,11 @@ If a coroutine is abandoned (becomes unreachable without being closed or run to 
 
 ## Prior Art
 
-Python has [`asyncio.Task.add_done_callback`](https://docs.python.org/3/library/asyncio-task.html#asyncio.Task.add_done_callback) which attaches completion callbacks to a scheduled task.
+Python has [`asyncio`](hhttps://docs.python.org/3/library/asyncio-task.html) where it's possible to attach completion callbacks to a scheduled task.
 The callback receives the task object and can inspect its result, error, or cancellation state.
 
-Unlike `coroutine.finally`, callbacks are attached to a scheduler-owned wrapper and scheduled through its event loop rather than executed synchronously by the coroutine lifecycle operation.
-Luau hosts such as Roblox or Lute will likely integrate 'finally' callback dispatch within their schedulers in a similar way, using the host API described above.
-
-JavaScript has [`Promise.prototype.finally`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise/finally) which invokes a callback after a promise settles.
+JavaScript implements a [`Promise`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise) which invokes callbacks after a promise settles.
 It preserves the original outcome unless the callback throws or returns a rejected promise, in which case the callback error takes precedence.
-
-Unlike `coroutine.finally`, the callback receives no outcome values and the operation produces a new promise representing the combined outcome.
-`coroutine.finally` instead registers the callback on the existing coroutine and reports the effective outcome through the lifecycle operation that dispatches its callbacks.
 
 Lua 5.4 introduced [to-be-closed variables](https://www.lua.org/manual/5.4/manual.html#3.3.8) (`local x <close> = resource()`).
 A variable marked with `<close>` has its `__close` metamethod called automatically when the variable goes out of scope, whether by normal control flow or an error.
@@ -299,10 +293,8 @@ This gives Lua 5.4 scoped, deterministic cleanup similar to RAII in C++.
 One major difference is that to-be-closed variables require new language syntax and VM support for the variable annotation and running the handlers.
 `coroutine.finally` provides more coarse-grained (thread vs scope) cleanup guarantees as a plain library function with no other changes to the language.
 
-Go has [`defer`](https://go.dev/blog/defer-panic-and-recover) that provides LIFO cleanup tied to lexical function scope, similarly to Lua 5.4.
+Go has [`defer`](https://go.dev/blog/defer-panic-and-recover) in a similar way to to Lua 5.4.
 Deferred calls run on normal return and during panic unwinding, but cannot be attached externally to observe another goroutine's lifecycle.
-
-`coroutine.finally` instead associates callbacks with the coroutine object and also covers external cancellation through `coroutine.close`.
 
 ## Alternatives
 
@@ -321,3 +313,5 @@ This adds complexity to the API surface; the minimal design here can be extended
 
 The name `coroutine.onclose` was considered but rejected because the callback fires on all terminal events (return, error, close), not just `coroutine.close`.
 The name `finally` communicates "runs regardless of outcome," mirroring the widely understood semantics of `try/finally` in other languages.
+
+This RFC does not close the possibility of a lexically-scoped finalizers in the feature, but is valuable enough on its own so that if a feature like 'to-be-closed' is added, `coroutine.finally` remains relevant.
