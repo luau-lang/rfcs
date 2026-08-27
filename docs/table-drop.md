@@ -51,3 +51,6 @@ While there are no compatibility concerns, this does add a new standard library 
 ## Alternatives
 
 - Simply adding the linter rule would stop the footgun, but it would leave the verbose use of `if` statements as the only solution.
+- Make the linter rule only apply to uses of `table.remove` where function calls that return `number?` are used for the 2nd argument
+- Have `table.drop` return how many times it removed `value`
+- Renaming `table.drop` (`table.erase`, `table.remval`, etc)
