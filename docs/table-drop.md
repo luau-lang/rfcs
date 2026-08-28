@@ -14,17 +14,17 @@ table.remove(t, table.find(t, element))
 ```
 
 However, `table.find` returns `nil` when it cannot find the element specified in the second argument of the function and
-`table.remove` defaults to removing the last element of a table when its second argument is either missing or `nil`. This creates the footgun of unintentionally removing the last element of the table unless you use an `if` statement.
+`table.remove` defaults to removing the last element of a table when its second argument is either missing or `nil`. This creates the footgun of unintentionally removing the last element of the table unless you use an `if` statement or the global `assert` function.
 
 ## Design
 
 First, I am proposing a standard library function for tables to remove elements by value rather than index:
 
-```table.drop(t: {V}, value: V, max: number?)```
+```table.drop(t: {V}, value: V, count: number?)```
 
-`t` refers to the table you're using, `value` is the value you want removed, and `max` is an optional argument specifying the limit of how many occurrences of `value` you want removed.. If `max` is `nil`, every occurrence of `value` is removed from the table. This function does not return anything due to the existence of `table.remove`.
+`t` refers to the table you're using, `value` is the value you want removed, and `count` is an optional argument specifying the limit of how many occurrences of `value` you want removed. If `count` is `nil`, every occurrence of `value` is removed from the table. This function does not return anything.
 
-This function traverses front-to-back (index 1 to `#t`) to find indices where the table element at that index is equal to `value` (using `__eq` semantics), breaking early if `max` is specified and `max` elements have already been found. The indices of elements to remove are pushed in a last-in first-out manner (adding later matches in the table closer to the front of the stack), so that we can directly iterate the stack to remove indices back-to-front so that elements are removed in the correct order. This ensures that we remove the correct indices without worrying about shifting during array removal.
+This function traverses front-to-back (index 1 to `#t`) to find indices where the table element at that index is equal to `value` (using `__eq` semantics), breaking early if `count` is specified and `count` elements have already been found.
 
 For example:
 ```luau
@@ -41,7 +41,7 @@ Next, I am proposing to add a linter rule warning the user about the `table.remo
 local t = {"apple", "banana", "orange"}
 
 table.remove(t, nil) -- OK
-table.remove(t, table.find("banana")) -- Warning: Using optional variables as the 2nd arg for table.remove is a footgun. Use table.drop instead.
+table.remove(t, table.find(t, "banana")) -- Warning: Using optional variables as the 2nd arg for table.remove is a footgun. Use table.drop instead.
 ```
 
 ## Drawbacks
@@ -50,7 +50,8 @@ While there are no compatibility concerns, this does add a new standard library 
 
 ## Alternatives
 
-- Simply adding the linter rule would stop the footgun, but it would leave the verbose use of `if` statements as the only solution.
-- Make the linter rule only apply to uses of `table.remove` where function calls that return `number?` are used for the 2nd argument
-- Have `table.drop` return how many times it removed `value`
-- Renaming `table.drop` (`table.erase`, `table.remval`, etc)
+- Simply adding the linter rule would help prevent the `table.remove` footgun, but it would leave `if` statements and `assert` calls as the only solutions, both of which being fairly verbose.
+- Make the linter rule only apply to uses of `table.remove` where function calls that return `number?` are used for the 2nd argument.
+- Have `table.drop` return how many times it removed `value`.
+- Renaming `table.drop` (`table.erase`, `table.remval`, etc).
+- Adding optional `start` and `finish` arguments to `table.drop` to specify search distance within the table.
