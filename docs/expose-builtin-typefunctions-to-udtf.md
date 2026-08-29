@@ -8,7 +8,7 @@ Exposes the built-in type functions present in Luau such as `keyof` to the user-
 
 Currently, built-in type functions are not immediately accessible within the user-defined type function environment. We would like to be able to use them because the built-in type functions include both utilities like `keyof` and `index`,  and functions to resolve the types of overloadable operators like `add` and `unm`.
 
-Since user-defined type aliases _are_ exposed to type functions, you can workaround the existing limitation by defining a new alias like `type aliasKeyOf<T> = keyof<T>`. However, we find this workaround to be unnecessarily cumbersome since it must be repeated in each module the user might define a type function using that builtin.
+Since user-defined type aliases _are_ exposed to type functions, you can workaround the existing limitation by defining a new alias like `type alias_keyof<T> = keyof<T>`. However, we find this workaround to be unnecessarily cumbersome since it must be repeated in each module the user might define a type function using that builtin.
 
 ## Design
 
@@ -29,7 +29,7 @@ type negatable_string = setmetatable<{}, {
 type foo = ultra_negate<negatable_string> -- 'foo' resolves to '~string'
 
 -- * this example previously would have needed to use an alias for 'unm' like seen below
--- type aliasUnm<T> = unm<T>
+-- type alias_unm<T> = unm<T>
 ```
 
 ## Drawbacks
@@ -53,7 +53,7 @@ type foo = ultra_negate<negatable_string> -- 'foo' resolves to '~string'
 
 * `types.*`, '*' being the built-in name
 	* This seems like the idiomatic alternative; although, names like `lt` and `unm` might feel off next to verbose (but concise) names like `intersectionof` and `newfunction`.
-	* Mixing built-in type functions directly into the `types` library might be undesirable, because the `types` library specifically contains type functions with _known_ return types. For example, when `types.optional` is used, the return type is guaranteed to be an `optionaltype`. In contrast, built-in type functions (especially those that resolve overloadable operators) can evaluate to _any_ arbitrary `type`.
+	* Mixing built-in type functions directly into the `types` library might be undesirable, because the `types` library specifically contains type functions with _known_ return types. For example, when `types.newtable` is used, the return type is guaranteed to be an `tabletype`. In contrast, built-in type functions (especially those that resolve overloadable operators) can evaluate to _any_ arbitrary `type`.
 
 * `types.typefunctions.*`
 	* The name `types.builtins` might not indicate that it contains built-in type functions specifically, this alternative could alleviate this issue. Although some may consider it too-verbose.
