@@ -1,5 +1,7 @@
 # `extern` tag in User-Defined Type Functions.
 
+**Status**: Implemented
+
 ## Summary
 
 Currently, in user-defined type functions, the ``tag`` field for an external type is ``class``. This RFC proposes changing the value of the tag to ``extern``.
