@@ -214,21 +214,38 @@ In this case, `t` has two constraints: one indicating that it should be the exac
 `{x: number, y: number}` and the other indicating that it should have the property `z`. These
 constraints cannot be reconciled, and so we will get an error at the call site of `dootherstuff`.
 
-## Drawbacks
+### Subtyping
 
-The main drawback of doing this is that the existing RFC for [sealed table
-subtyping][width-subtyping] was already implemented as of March 1st, meaning that this is ultimately
-a breaking change. As such, it would be important to manage the change as a gradual rollout to
-mitigate problems. Since Luau currently only has sealed, inexact table types we can start by adding
-the syntax for explicit inexact tables (e.g. `{x: number, y: number, ...}`) and implement a warning
-that explains the default behavior will change in the future and to change it to the explicit
-inexact syntax if the programmer would like to keep the current behavior. At a later date, we can
-enable exact-by-default, but should provide an explicit suggestion in the error message to tell the
-programmer that if they _intended_ to allow tables with additional properties, they can change the
-signature of the function to include the `...`.
+Width subtyping applies only when the table in the supertype position is exact.
 
-Exact tables aren't nearly as readily composable as inexact tables.  In particular, intersections
-involving exact tables frequently collapse to `never`:
+```
+{x: T, y: U, ...} <:  {x: T, ...}
+{x: T, y: U}      <:  {x: T, ...}
+{x: T, y: U}      </: {x: T}
+{x: T, ...}       </: {x: T}
+```
+
+If either the supertype or the subtype has a metatable, and if either the table or its metatable are
+exact, the corresponding table in the other position must also match exactly.
+
+```
+{x: T, ...} <: setmetatable<{...}, MT where MT = {__index: MT, x: T, ...}> -- ok.  All inexact
+
+{x: T, ...} </: setmetatable<{...}, MT where MT = {__index: MT, x: T}>
+{x: T, ...} </: setmetatable<{}, MT where MT = {__index: MT, x: T, ...}>
+{x: T} </: setmetatable<{...}, MT where MT = {__index: MT, x: T, ...}>
+```
+
+If the metatables match, subtyping works on the table part as usual:
+
+```
+type MT = {__index: MT, x: T}
+setmetatable<{x: T, y: U, ...}, MT> <: setmetatable<{x: T, ...}, MT>
+```
+
+### Intersections
+
+Unlike inexact tables, exact tables do not compose under intersection:
 
 ```luau
 -- These are all exact tables
@@ -239,7 +256,7 @@ type C = {x: number, y: string}
 -- D is inexact
 type D = {x: number, ...}
 
-type X = A & B -- never!  No value exists that simultaneously satisfies "has x as its sole property" and "has y as its sole property"
+type X = A & B -- never.  No value exists that simultaneously satisfies "has x as its sole property" and "has y as its sole property"
 type Y = A & C -- never
 type Z = A & D -- {x: number}
 type W = C & D -- {x: number, y: string}
@@ -249,6 +266,31 @@ Luau presently offers no set-theoretic operator that can combine an `{x: number}
 `{y: string}` to build a `{x: number, y: string}`.  Developers can effect this with a type function.
 We could consider a type-level `..` operator for combining disjoint tables.  eg
 `type Combined = {x: number} .. {y: string}`.
+
+## Drawbacks
+
+### Differences from Inexact Tables
+
+Exact tables are a different kind of thing and they behave quite differently from inexact tables.
+
+It could very fairly be argued that these properties are actually quite a good thing: The rules are
+very simple and easy to predict.  The drawback primarily lies in the fact that inexact tables are
+also essential and so won't be going anywhere.
+
+The coexistence of these two systems in the same language is going to add some mental burden to the
+developer.
+
+### Migration
+
+The existing RFC for [sealed table subtyping][width-subtyping] was already implemented. This is
+therefore a breaking change. As such, it would be important to manage the change as a gradual rollout to
+mitigate problems. Since Luau currently only has sealed, inexact table types we can start by adding
+the syntax for explicit inexact tables (e.g. `{x: number, y: number, ...}`) and implement a warning
+that explains the default behavior will change in the future and to change it to the explicit
+inexact syntax if the programmer would like to keep the current behavior. At a later date, we can
+enable exact-by-default, but should provide an explicit suggestion in the error message to tell the
+programmer that if they _intended_ to allow tables with additional properties, they can change the
+signature of the function to include the `...`.
 
 ## Alternatives
 
