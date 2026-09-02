@@ -124,7 +124,9 @@ this does mean that internally the system would still have to feed singletons. B
 
 ## Drawbacks
 **Complexity** Allowing generics to transfer singletons can complicate analysis in the type functions if it would be implemented as the new default behavior, as compared to simple tags like `string`,`boolean`,`nil` and `number` analysis would have to be done via checking the actual value via `singletontype:value()`
+
 **Syntax additions** Depending on the implementation we would have to introduce a new token to analyze for, which complicates the language and introduce additional type analyzing time.
+
 **Compatibility** Existing type function code that relies on transferring of the upper type rather than the singleton will break in the new default behavior
 
 ## Alternatives
