@@ -53,21 +53,21 @@ local errorservice = GetService("GoodService") -- type error "Property 'string' 
 local goodservice:index<ServiceTable,"GoodService"> = GetService("GoodService") -- the variable is now typed but the function still type errors
 ```
 
-Currently exsiting enviroments (such as Roblox) have to cheat and introduce third-party code to make this analysis. This is unwanted as we want to make the typing features operate standalone without relying on outside code:
+Currently existing enviroments (such as Roblox) have to cheat and introduce third-party code to make this analysis. This is unwanted as we want to make the typing features operate standalone without relying on outside code:
 
 - `ServiceProvider:GetService()`
 - `Instance:FindFirstChild()`
 - `Instance:WaitForChild()`
 
-This proposal can open up a possibility to make these functions entirely rely on built-in type functions via feeding them the singleton (such as with index<>)
+This proposal can open up a possibility to make these functions entirely rely on built-in type functions via feeding them the singleton (like using something similar to index<>)
 
 ## Design
-We allow function generics to transfer over the underlying singleton rather than its broader type to allow further analysis via type functions.
+We allow function generics to transfer over the underlying singleton rather than its broader type to allow further analysis.
 
 This will make function generics transfer (if possible) underlying singletons directly. 
 The circumstances under which this is possible depend entirely on the generic parameter value, specifically if it can be a singleton or not.
 
-We also introduce a new built-in type function called `broad` which accepts any type and outputs stripped of their singleton type, for example the result of `broad<"Singleton string">` would actually be a `string`, not the singleton we fed it. The reason it accepts any type and not just singletons is that there are circumstances where we want to refine generics while accepting other non-singleton types such as in table.insert where we technically allow any type not just singletons.
+We also introduce a new built-in type function called `broad` which accepts any type and outputs stripped of the singleton type, for example the result of `broad<"Singleton string">` would actually be a `string`, not the singleton we fed it. The reason it accepts any type and not just singletons is that there are circumstances where we want to refine generics while accepting other non-singleton types such as in `table.insert`.
 
 The way this can be done is by either making this behavior the new default or by making it explicit.
 
@@ -75,8 +75,9 @@ The way this can be done is by either making this behavior the new default or by
 Under this behavior we make generics transfer the default behavior, this does break existing code pieces like:
 
 ```luau
-local t:{string} = {}
+local t = {}
 table.insert(t,"string") --not ok, "string" is a singleton
+table.insert(t,"string2") --not ok, "string2" is not a "string"
 ```
 
 The fix would be to change the underlying table.insert function type to as an example:
@@ -85,16 +86,17 @@ The fix would be to change the underlying table.insert function type to as an ex
 type insert = <T>(t:{broad<T>},insert:T) -> ()
 ```
 
-this makes it so when we do feed a singleton to the function, the table type refines it to the it's broader type instead of singleton, making the code above work properly:
+this makes it so when we do feed a singleton to the function, the table type refines it to the broader type instead of the singleton, making the code above work properly:
 
 ```luau
-local t:{string} = {}
-insert(t,"Singleton string") -- ok, table takes in string, not the "Singleton string"
+local t = {}
+insert(t,"Another string")
+insert(t,"Singleton string") -- ok, table takes in a string, not the "Singleton string"
 ```
 
 ### Explicit behavior
 
-Under this behavior existing generic type transfer remains. Instead we introduce a new token `!` which can be put before a type to tell the type system to feed the underlying singleton directly. As an example:
+Under this behavior existing generic type transfer remains. So we instead introduce a new token `!` which can be put before a type to tell the type system to feed the underlying singleton directly. As an example:
 
 ```luau
 type function analyzestring(t:type)
@@ -120,10 +122,10 @@ Test1("Cool,string") -- not ok, error "Not a singleton"
 Test2("foo,bar") -- ok, hint appears "foo","bar" but no errors
 ```
 
-this does mean that internally the system would still have to feed singletons. But it will choose to instead feed the broad type unless explicitly told by the `!` token to feed the singleton directly.
+this does mean that internally the system would still have to consider singletons. But it will choose to instead feed the broad type unless explicitly told otherwise by the `!` token.
 
 ## Drawbacks
-**Complexity** Allowing generics to transfer singletons can complicate analysis in the type functions if it would be implemented as the new default behavior, as compared to simple tags like `string`,`boolean`,`nil` and `number` analysis would have to be done via checking the actual value via `singletontype:value()`
+**Complexity** Allowing generics to transfer singletons can complicate analysis in the type functions if it would be implemented as the new default behavior, as compared to the simple tags like `string`,`boolean`,`nil` and `number` analysis would have to be done via checking the actual value via `singletontype:value()`
 
 **Syntax additions** Depending on the implementation we would have to introduce a new token to analyze for, which complicates the language and introduce additional type analyzing time.
 
