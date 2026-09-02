@@ -309,7 +309,7 @@ reflect the belief that the added safety of exact table types is only rarely nec
 believes it is worth considering, however, that Flow has also been migrating to
 [exact-by-default][flow-exact-by-default] for their object types.
 
-[unsealed-tables]: https://github.com/Roblox/luau/blob/master/rfcs/unsealed-table-literals.md
+[unsealed-tables]: https://github.com/luau-lang/rfcs/blob/master/docs/unsealed-table-literals.md
 [ts-exact-types]: https://github.com/microsoft/TypeScript/issues/12936
-[width-subtyping]: https://github.com/Roblox/luau/blob/master/rfcs/sealed-table-subtyping.md
+[width-subtyping]: https://github.com/luau-lang/rfcs/blob/master/docs/sealed-table-subtyping.md
 [flow-exact-by-default]: https://medium.com/flow-type/how-to-upgrade-to-exact-by-default-object-type-syntax-7aa44b4d08ab
