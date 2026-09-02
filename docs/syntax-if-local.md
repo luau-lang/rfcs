@@ -99,6 +99,37 @@ if local user = users[id] then
 end
 ```
 
+#### Explicit type annotations
+
+An explicit annotation is checked exactly as it would be for an ordinary `local`, so
+
+```lua
+if local x: T = y then
+    -- ...
+end
+```
+
+behaves like
+
+```lua
+local x: T = y
+if x then
+    -- ...
+end
+```
+
+The initializer must be assignable to the annotation, so a mismatch is a type error even when the annotation is optional:
+
+```lua
+local function f(v: number?)
+    if local x: string = v then -- error: number? is not assignable to string
+        print(x)
+    end
+end
+```
+
+The annotation only constrains the declared type; the branch still refines to non-nilness, so in `if local x: number? = v then` the declared type is `number?` but `x` is refined to `number` inside the block.
+
 ### Expressions
 
 `if local` also works in `if` expressions (Luau's ternary form). The binding is visible in the `then` expression but not the `else` branch:
