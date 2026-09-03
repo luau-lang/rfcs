@@ -42,18 +42,18 @@ type foo = ultra_negate<negatable_string> -- 'foo' resolves to '~string'
 
 ## Alternatives
 
-* Do nothing. This means any uses of built-in type functions will continue to be through aliases introduced by the use.
+* Do nothing. This means any uses of built-in type functions will continue to be through aliases introduced by the user.
 
 * Only expose certain built-in type functions _selectively_, instead of exposing all public-facing ones. This would allow potentially confusing or redundant builtin type functions like `setmetatable` to be omitted entirely.
 
 ### Naming Alternatives
 
 * Dump all built-in type functions into the global scope
-	* This would be highly undesirable, since now the global namespace is polluted with both value and type functions. And certain labels would clash with already existing labels like `rawget`.
+	* This would be highly undesirable, since now the global namespace is polluted with both value and type functions. Additionally, certain labels would clash with already existing ones like `rawget`.
 
 * `types.*`, '*' being the built-in name
 	* This seems like the idiomatic alternative; although, names like `lt` and `unm` might feel off next to verbose (but concise) names like `intersectionof` and `newfunction`.
-	* Mixing built-in type functions directly into the `types` library might be undesirable, because the `types` library specifically contains type functions with _known_ return types. For example, when `types.newtable` is used, the return type is guaranteed to be an `tabletype`. In contrast, built-in type functions (especially those that resolve overloadable operators) can evaluate to _any_ arbitrary `type`.
+	* Mixing built-in type functions directly into the `types` library might be undesirable, because the `types` library specifically contains type functions with _known_ return types. For example, when `types.newtable` is used, the return type is guaranteed to be a `tabletype`. In contrast, built-in type functions (especially those that resolve overloadable operators) can evaluate to _any_ arbitrary `type`.
 
 * `types.typefunctions.*`
 	* The name `types.builtins` might not indicate that it contains built-in type functions specifically, this alternative could alleviate this issue. Although some may consider it too-verbose.
@@ -66,8 +66,8 @@ type foo = ultra_negate<negatable_string> -- 'foo' resolves to '~string'
 
 <!--
 This was a previous alternative proposed, though has been removed due to it's redundancy (i think), here's why:
-1. the built-in type functions are already accessible with names like `lt`. this naming scheme is already consistent with metamethods.
-2. this inconsistency in the name would also be confusing due to, well, it's inconsistency in the name... leading to questions about whether these two things (e.g. `lt` and `lessthan`) are actually 1:1 or not!
+1. built-in type functions have names like `lt` for a good reason, this naming scheme is already consistent with metamethods.
+2. this inconsistency in names would also be confusing due to, well, it's inconsistency in the name... leading to questions about whether these two things (e.g. `lt` and `lessthan`) are actually 1:1 or not!
 3. unnecessary burden for language developers to define new names for these functions, not the biggest deal ever, but considering the previous two points, this alternative would most likely seem redundant more than anything.
 
 * Only expose certain built-in type functions selectively _and_ rename certain built-in type functions like `lt` to be more verbose like `lessthan`. The main appeal for this would be that, if the naming alternative `types.*` was to be preffered, short and potentially cryptic names like `lt` could look off next to more verbose names like `intersectionof` as was mentioned in the `types.*` alternative; renaming would thus make `types.*` be prefferable.
