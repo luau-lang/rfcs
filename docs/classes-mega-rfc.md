@@ -14,7 +14,7 @@ class Point
     end
 
     function __add(self, other: Point)
-        return Point.new(self.x + other.x, self.y + other.y)
+        return Point { x = self.x + other.x, y = self.y + other.y }
     end
 
     function __tostring(self)
@@ -22,7 +22,7 @@ class Point
     end
 end
 
-local p = Point.new { x = 3, y = 4 }
+local p = Point { x = 3, y = 4 }
 print(`Check out my cool point: {p}  length = {p:length()}`)
 ```
 ### Motivation
@@ -50,7 +50,7 @@ If a method's first argument is named `self`, it should be invoked with the fami
 
 If a method accepts no arguments or if its first argument is not named `self`, it should be invoked via `Class.method()` syntax.  This is the same as "static methods" from other languages.
 
-To create a new instance of a class, invoke its static method `.new`. It accepts one argument: A table that describes the initial values of all its properties. Classes are forbidden from expressly defining a `.new` method.  It is reserved by the language.
+To create a new instance of a class, call the class object itself: `ClassName(args)`.  By default, it accepts one argument: A table that describes the initial values of all its properties.
 
 Classes can define the following Luau metamethods.  They all work just like they do on a metatable:
 
@@ -85,7 +85,7 @@ Taking references to class methods via `ClassName.method` syntax is allowed so t
 local n = pcall(SomeClass.getName, someClassInstance)
 ```
 
-To construct an instance of a class, call the class object's `.new` static method.  It accepts a single argument: a table-like value that contains initial values for all the fields.  While it will typically be most useful to pass a table literal to this function, that isn't the only use.  For example, any class object can be shallowly cloned by passing it to its class constructor: `local clone = MyClass.new(original)`
+To construct an instance of a class, call the class object.  By default, it accepts a single argument: a table-like value that contains initial values for all the fields.  While it will typically be most useful to pass a table literal, that isn't the only use.  For example, any class instance can be shallowly cloned by passing it to its class constructor: `local clone = MyClass(original)`.
 
 The top type of all class objects is named `class`.  `type()` and `typeof()` return `"class"` when passed a class object.
 
@@ -101,7 +101,7 @@ We introduce a new top type for class instances: `object`.  The builtin `type()`
 
 ```luau
 class Cls end
-local inst = Cls.new {}
+local inst = Cls {}
 
 type(Cls) == "class"
 typeof(Cls) == "class"
@@ -165,7 +165,7 @@ class Counter
     function create()
         local count = globalCount
         globalCount += 1
-        return Counter.new { count = count }
+        return Counter { count = count }
     end
 end
 ```
@@ -179,7 +179,7 @@ An example:
 
 ```luau
 -- illegal: MyClass is not yet defined
-local a = MyClass.new {}
+local a = MyClass {}
 
 -- OK: MyClass can appear in a type annotation anywhere
 function use(c: MyClass)
@@ -187,7 +187,7 @@ end
 
 function create()
     -- OK as long as this function is invoked after the class definition statement
-    return MyClass.new {}
+    return MyClass {}
 end
 
 -- We can't statically catch this in the general case, but this will fail at runtime!
@@ -196,7 +196,7 @@ create()
 class MyClass
 end
 
-local b = MyClass.new {} -- OK
+local b = MyClass {} -- OK
 local c = create() -- OK
 ```
 
@@ -241,8 +241,8 @@ class Cat extends Animal
     end
 end
 
-local dog = Animal.new { species = "Canis familiaris" }
-local cat = Cat.new { species = "Felis catus", meowMult = 3 }
+local dog = Animal { species = "Canis familiaris" }
+local cat = Cat { species = "Felis catus", meowMult = 3 }
 ```
 
 ### Motivation
@@ -275,8 +275,8 @@ class ThreeDPoint extends Point
     public z: number
 end
 
-local threedpoint = ThreeDPoint.new { x = 0, y = 0, z = 0 }
-local erroneous = ThreeDPoint.new { z = 1 } -- Type error.  x and y are uninitialized.  They will be nil at runtime.
+local threedpoint = ThreeDPoint { x = 0, y = 0, z = 0 }
+local erroneous = ThreeDPoint { z = 1 } -- Type error.  x and y are uninitialized.  They will be nil at runtime.
 ```
 
 Subclasses are forbidden from redeclaring fields declared in their superclasses. Such a redeclared field would need to type invariantly against the superclass field to maintain soundness anyway. Additionally, this reduces ambiguity for programmers coming from other languages, such as C++, where shadowed fields exist independently (i.e. `A::field` vs. `B::field`, where `B` subclasses `A`). In the case that private fields are added to classes, we expect this restriction to apply only to public fields.
@@ -328,7 +328,7 @@ Child.foo() -- ok
 Class instances are the same:
 
 ```luau
-local c = Child.new({})
+local c = Child {}
 c.foo() // OK
 ```
 
@@ -348,8 +348,8 @@ class NamedPoint extends Point
     name: string
 end
 
-local p = Point.new(0, 0)
-local np = NamedPoint.new(0, 0, "Bob")
+local p = Point(0, 0)
+local np = NamedPoint(0, 0, "Bob")
 
 print(p == np) -- invokes Point.__eq and evaluates to true, not a proof
 ```
@@ -429,7 +429,7 @@ function get_class(a: Animal)
     return class.classof(a)
 end
 
-get_class(Cat.new {...}) -- returns Cat
+get_class(Cat {...}) -- returns Cat
 ```
 
 ### Type System
@@ -448,7 +448,7 @@ However, class objects never have any subtyping relationship.  For example, the 
 
 ```luau
 function initialize(cls: typeof(Animal))
-    return cls.new { species = "Homo sapiens" }
+    return cls { species = "Homo sapiens" }
 end
 
 initialize(Cat) -- type error
@@ -456,7 +456,7 @@ initialize(Cat) -- type error
 
 The reason for this is simple: Subtyping of the constructor is not at all guaranteed.
 
-However, constructors are ordinary functions and so can be passed by value if desired.  They obey ordinary function subtyping rules:
+However, class objects are callable values, so they can be passed where a function is expected.  When compared against a function type, a class object obeys ordinary function subtyping rules:
 
 ```luau
 function initialize(factory: () -> Animal)
@@ -464,8 +464,8 @@ function initialize(factory: () -> Animal)
 end
 
 local a = if some_flag
-    then initialize(Cat.new)
-    else initialize(Elephant.new)
+    then initialize(Cat)
+    else initialize(Elephant)
 ```
 
 #### Typechecking overridden methods
@@ -534,9 +534,9 @@ Add user-definable constructors to Luau classes.
 
 ### Motivation
 
-Above, we specified that all classes can be constructed by invoking `.new` on the class object with a mapping from fields to values as its sole argument.
+Above, we specified that all classes can be constructed by calling the class object with a mapping from fields to values as its sole argument.
 
-This is great for "plain old data" classes and we could consider allowing users to write their own static `.new()` method if they have more exotic construction requirements, but this falls apart in the face of inheritance because a `.new()` factory necessarily couples the actual class instance construction with the field initialization.
+This is great for "plain old data" classes, and users with more exotic construction requirements could write their own static factory function, but that falls apart in the face of inheritance because a factory necessarily couples the actual class instance construction with the field initialization.
 
 Concretely:
 
@@ -580,9 +580,9 @@ end
 
 If a class defines an `__init` function, it is understood to be a constructor.  Classes with user-defined constructors follow different rules.  We define class construction as follows:
 
-Classes are still constructed using the static method `.new`.
+Classes are still constructed by calling the class object.
 
-Let `T` be a class object that defines a constructor.  When `T.new(...args)` is invoked with any arguments, the following happens:
+Let `T` be a class object that defines a constructor.  When `T(...args)` is invoked with any arguments, the following happens:
 
 1. A fresh, uninitialized instance of `T` is allocated.  We'll call it `t` here.  All of its fields are initially `nil` irrespective of any type annotations.  
 2. `T.__init(t, ...args)` is invoked.  
@@ -608,8 +608,8 @@ class Point3D extends BasePoint
     public z: number
 end
 
-local p2 = Point.new { x=3, y=4 }
-local p3 = Point3D.new { x=1, y=2, z=3 }
+local p2 = Point { x=3, y=4 }
+local p3 = Point3D { x=1, y=2, z=3 }
 ```
 
 The default constructor is a real function just like any other and so it can be explicitly invoked if desired.
@@ -641,11 +641,11 @@ In order to make uninitialized data unobservable, constructors are required to f
 
 Once the base class has been called and all fields are initialized, constructors can do anything.
 
-These rules are all enforced only by type checking.  When the program is run, uninitialized fields will have the value `nil` no matter what their types might say. This is consistent with what happens when a class `T` does not define `__init`, and `T.new(t)` is invoked where `t` does not have a key-value pair for every one of `T`'s fields.
+These rules are all enforced only by type checking.  When the program is run, uninitialized fields will have the value `nil` no matter what their types might say. This is consistent with what happens when a class `T` does not define `__init`, and `T(t)` is invoked where `t` does not have a key-value pair for every one of `T`'s fields.
 
 ### Drawbacks
 
-Constructors add more complexity to the language.  Some classes can be initialized via `T.new { x = x, y = y}` syntax and others must be initialized with different kinds of arguments.
+Constructors add more complexity to the language.  Some classes can be initialized via `T { x = x, y = y }` syntax and others must be initialized with different kinds of arguments.
 
 We intentionally only check that fields are initialized in type checking.  This means that our runtime still has to be able to cope with fields that have been left uninitialized.
 
@@ -653,7 +653,7 @@ Some developers will feel inconvenienced by the restrictions on uninitialized cl
 
 ### Alternatives
 
-We could follow in Python's footsteps and do away with the default `T.new {}` constructor, but this means that developers have to write a lot of dull code in the typical "plain old data" case:
+We could follow in Python's footsteps and do away with the default `T {}` constructor, but this means that developers have to write a lot of dull code in the typical "plain old data" case:
 
 ```luau
 class Point
@@ -672,7 +672,7 @@ Python does away with this in some cases via the `@dataclass` decorator.
 
 We could make field initialization more logical by adding C++-style initializer syntax.  We're already adding a lot of syntax and we don't think it's worth it for us.
 
-The choice to construct instances via a `.new` static function is motivated by Lua libraries that effect objects.  We sacrifice the ability for classes to define their own `.new` method but in exchange, code using classes looks more consistent with what came before.
+We considered constructing instances via a reserved `.new` static function, which would have been motivated by Lua libraries that effect objects.  We moved away from this because it sacrifices the ability for classes to define their own `.new` method, as is common today with metatable-based OOP.
 
 # Appendix
 
