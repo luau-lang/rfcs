@@ -25,8 +25,8 @@ type singletonString = checkSingleton<"Singleton string"> -- ok
 local a:singletonString = refine("Singleton string") -- not ok, error "Singleton expected, got: string"
 ```
 
-This is counter-intuitive and limits the usage of function generics for type functions. 
-Some common string ordering operations aren't possible with the current behavior and currently require separate typing.
+This limits the usage of function generics for type functions due to automatic widening of the singleton via the generic. 
+Some common string ordering operations have to be implemented on the developer side rather than api side.
 
 As an example:
 
@@ -40,7 +40,7 @@ local service_table:ServiceTable = {
   GoodService = {};
 }
 
-local function GetService<T>(service:T) : index<ServiceTable,T>
+local function GetService(service:string) : {}
   --we ignore the internal type errors here as they do not serve the purpose of explaining the current motivation
   if not service_table[service] then
     service_table[service] = {}
@@ -48,31 +48,28 @@ local function GetService<T>(service:T) : index<ServiceTable,T>
   return service_table[service]
 end
 
-local errorservice = GetService("GoodService") -- type error "Property 'string' does not exist on type '{ GoodService: Workspace }'"
+local unknownservice = GetService("GoodService") -- ok but untyped
 
-local goodservice:index<ServiceTable,"GoodService"> = GetService("GoodService") -- the variable is now typed but the function still type errors
+local goodservice:index<ServiceTable,"GoodService"> = GetService("GoodService") -- the variable is now typed but requires boilerplate
 ```
 
-Currently existing enviroments (such as Roblox) have to cheat and introduce third-party code to make this analysis. This is unwanted as we want to make the typing features operate standalone without relying on outside code:
+Currently existing enviroments (such as Roblox) have to cheat and introduce third-party code to make this analysis on the api end. This is unwanted as we want to make the typing features operate standalone without relying on outside code:
 
 - `ServiceProvider:GetService()`
 - `Instance:FindFirstChild()`
 - `Instance:WaitForChild()`
 
-This proposal can open up a possibility to make these functions entirely rely on built-in type functions via feeding them the singleton (like using something similar to index<>)
+This proposal can open up a possibility to make these functions entirely rely on built-in type functions via feeding them the singleton via the methods proposed below:
 
 ## Design
-We allow function generics to transfer over the underlying singleton rather than its broader type to allow further analysis.
+We allow function generics to transfer over the underlying singleton rather than its widened type to allow further analysis.
 
-This will make function generics transfer (if possible) underlying singletons directly. 
-The circumstances under which this is possible depend entirely on the generic parameter value, specifically if it can be a singleton or not.
-
-We also introduce a new built-in type function called `broad` which accepts any type and outputs stripped of the singleton type, for example the result of `broad<"Singleton string">` would actually be a `string`, not the singleton we fed it. The reason it accepts any type and not just singletons is that there are circumstances where we want to refine generics while accepting other non-singleton types such as in `table.insert`.
-
-The way this can be done is by either making this behavior the new default or by making it explicit.
+We propose 2 ways to implement the new behavior
 
 ### New default behavior
-Under this behavior we make generics transfer the default behavior, this does break existing code pieces like:
+We introduce a new rule for the keyword `const`, where now it can also be put before a type to explicitly widen it to the original type. So `const "A string"` resolves to `string`
+
+Under this behavior we disable automatic type widening similar to typescript, this does break existing code pieces like:
 
 ```luau
 local t = {}
@@ -80,13 +77,13 @@ table.insert(t,"string") --not ok, "string" is a singleton
 table.insert(t,"string2") --not ok, "string2" is not a "string"
 ```
 
-The fix would be to change the underlying table.insert function type to as an example:
+The fix would be to change the underlying table.insert function type to, as a proposal:
 
 ```luau
-type insert = <T>(t:{broad<T>},insert:T) -> ()
+type insert = <T>(t:{const T},insert:T) -> ()
 ```
 
-this makes it so when we do feed a singleton to the function, the table type refines it to the broader type instead of the singleton, making the code above work properly:
+this makes it so when we do feed a singleton to the function, the table type refines it to the widened type instead of the singleton, making the code above work properly:
 
 ```luau
 local t = {}
@@ -96,7 +93,7 @@ insert(t,"Singleton string") -- ok, table takes in a string, not the "Singleton 
 
 ### Explicit behavior
 
-Under this behavior existing generic type transfer remains. So we instead introduce a new token `!` which can be put before a type to tell the type system to feed the underlying singleton directly. As an example:
+Under this behavior existing automatic type widening remains. So we instead introduce a new token `!` which can be put before a type to disable automatic widening. As an example:
 
 ```luau
 type function analyzestring(t:type)
@@ -121,8 +118,6 @@ local function Test2<T>(a:T) : analyzestring<!T> return a end
 Test1("Cool,string") -- not ok, error "Not a singleton"
 Test2("foo,bar") -- ok, hint appears "foo","bar" but no errors
 ```
-
-this does mean that internally the system would still have to consider singletons. But it will choose to instead feed the broad type unless explicitly told otherwise by the `!` token.
 
 ## Drawbacks
 **Complexity** Allowing generics to transfer singletons can complicate analysis in the type functions if it would be implemented as the new default behavior, as compared to the simple tags like `string`,`boolean`,`nil` and `number` analysis would have to be done via checking the actual value via `singletontype:value()`
