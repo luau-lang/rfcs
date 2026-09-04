@@ -73,7 +73,7 @@ Under this behavior we disable automatic type widening similar to typescript, th
 
 ```luau
 local t = {}
-table.insert(t,"string") --not ok, "string" is a singleton
+table.insert(t,"string") --ok
 table.insert(t,"string2") --not ok, "string2" is not a "string"
 ```
 
