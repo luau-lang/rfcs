@@ -38,11 +38,11 @@ Defining two classes with the same name in the same module is forbidden.
 
 Within a class block, two declarations are allowed: Fields and methods.
 
-For now, fields are introduced with the new `public` keyword.  Private fields will be described in their own section of this document when they are ready.
+Public fields are introduced with the new `public` keyword.  Private fields are described in their own section of this document.
 
 Class fields are not strictly required to have an annotation, but it is very strongly encouraged.  Unannotated fields will have type `any` and strict mode will flag the field with a warning.
 
-Methods are introduced with the familiar `function` keyword.  `public function f()` is also permitted.
+Methods are introduced with the familiar `function` keyword.  `public function f()` is also permitted. Both syntaxes declare public methods.
 
 Methods defined on class objects can be accessed either via `Class.method()` or `instance:method()` syntax.
 
@@ -279,7 +279,7 @@ local threedpoint = ThreeDPoint.new { x = 0, y = 0, z = 0 }
 local erroneous = ThreeDPoint.new { z = 1 } -- Type error.  x and y are uninitialized.  They will be nil at runtime.
 ```
 
-Subclasses are forbidden from redeclaring fields declared in their superclasses. Such a redeclared field would need to type invariantly against the superclass field to maintain soundness anyway. Additionally, this reduces ambiguity for programmers coming from other languages, such as C++, where shadowed fields exist independently (i.e. `A::field` vs. `B::field`, where `B` subclasses `A`). In the case that private fields are added to classes, we expect this restriction to apply only to public fields.
+Subclasses are forbidden from redeclaring fields declared in their superclasses. Such a redeclared field would need to type invariantly against the superclass field to maintain soundness anyway. Additionally, this reduces ambiguity for programmers coming from other languages, such as C++, where shadowed fields exist independently (i.e. `A::field` vs. `B::field`, where `B` subclasses `A`). This restriction applies only to public fields.
 
 A subclass can redefine any method and most metamethods present in its superclass. However, the method declared in the subclass must be a subtype of the method in the superclass.  That is, a child class can override a parent class method with a function that is more permissive than that of the base class method, but not less.
 
@@ -674,6 +674,407 @@ We could make field initialization more logical by adding C++-style initializer 
 
 The choice to construct instances via a `.new` static function is motivated by Lua libraries that effect objects.  We sacrifice the ability for classes to define their own `.new` method but in exchange, code using classes looks more consistent with what came before.
 
+## Private Class Fields
+
+### Summary
+
+We add private fields and methods.
+
+Throughout this PR, we use “properties” to mean the set of a class’s field and methods.
+
+```
+class Point
+    private _x: number
+    private _y: number
+
+    public function getX(self)
+        return self._x
+    end
+
+    public function getY(self)
+        return self._y
+    end
+
+    private function _computeMagnitude(self)
+        return math.sqrt(self._x ^ 2 + self._y ^ 2)
+    end
+
+    public function getMagnitude(self)
+        return self:_computeMagnitude()
+    end
+
+    public function __init(self, x, y)
+        self._x = x
+        self._y = y
+    end
+end
+```
+
+Private properties are declared with the `private` keyword and must be prefixed with an underscore `_`. We recognize that this is a departure from how other languages use just a `private` keyword. We have a strong reasoning for this divergence, and make the case for it in the Alternatives section.
+
+Private properties can only be accessed by the methods of the class in which they are defined. 
+
+Private properties are not visible outside the class in which they are declared. As a result, instances of classes with private fields can only be directly constructed within the class where they are declared. If such a class is to be instantiated elsewhere, it must define a constructor.
+
+Subclasses do not have access to their parent’s private properties. This means that private properties can be shadowed. A base class and a derived class can both have private properties `_x` that do not collide or interact in any way. A derived class can also define a public property `x` that "shadows" a base class's `_x` field.
+
+### Motivation
+
+An important feature for library authors is a way to hide implementation details and force users through a curated interface that is intentionally kept stable.
+
+There are two ways to afford this in Luau today, and both of them have problems:
+
+#### Closures
+
+First, data can be hidden away inside a closure.  This is effective, but forces library authors into a particular coding style that isn't the most efficient: Every instance of every method is a distinct closure.
+
+```
+function Counter()
+    local private_count = 0
+
+    return {
+        method = function()
+            local result = private_count
+            private_count += 1
+            return result
+        end
+    }
+end
+```
+
+#### Convention
+
+Secondly, library authors can use a naming convention (like `_prop`) to indicate data that is not part of the public interface and ask developers not to use those symbols.  This is more efficient because it allows method implementations to be shared between instances and so introduces way fewer closures, but tends not to work very well because users inevitably write code that depends on this state.
+
+Roblox itself has used this technique and found itself forced to permanently preserve supposedly "private" properties.
+
+### Syntax
+
+Methods and fields can both be declared private by using the new `private` keyword. Private property names must be prefixed with “`_`”. A private field can only be accessed by methods of that class. Private methods can only be called by methods of that class. Static methods can also be private.
+
+All fields must be declared with an access modifier, (at this time, either `public` or `private`).
+
+As is the case with public properties, using keywords as the names of private properties is forbidden.
+
+To avoid complications involved with the notion of a private metamethod or metatable and parsing ambiguity, declaring private property that begins with `__` is forbidden. Defining a private property named `_new` is also disallowed to maintain forwards compatibility with the case that we introduce private constructors.
+
+Public fields will continue to be indicated with the `public` keyword. Methods with no access modifiers will continue to be interpreted as `public`. With the exception of metamethods, public properties may not begin with `_`. We considered having no keyword at all for non-private fields, but the lack of required separators between fields makes it difficult to introduce contextual keywords in the future, such as for `const` or `protected` fields.
+
+To access private fields and methods, we introduce two new operators, `._` and `:_`, which are only parsed within method bodies. The only way that private properties can be accessed is using these operators: `obj._privateField` or `obj:_privateMethod()`.
+
+We could theoretically elide the requirement that property names begin with `_`, but we include it so that private property accesses look like normal accesses on properties that happen to begin with `_`, and to align conventions that already exist in many Luau libraries. 
+
+This syntax also makes it easier to disambiguate between public and private properties, especially within large classes where a property access might be lexically far from where the property was declared.
+
+The `._` and `:_` operators collide with the syntax for indexing into a table with a key that begins with `_`. Within the body of a method, indexing notation (`t[“_propName”]`) must be used instead to access the property of a table prefixed with `_`. Outside method bodies, indexing for properties prefixed with `_` is available using the `.` and `:` operators as normal. 
+
+While this restriction imposes some inconvenience, it does not restrict the semantic space of expressible programs in any way.
+
+A class’s private property names cannot shadow any of its or any ancestor’s public properties.
+
+### Semantics
+
+Inside a method body, the private fields of any instance of the enclosing class (not just self) are available. This means in the following, the `__eq` metamethod can access `other`’s private properties. (Recall that the `__eq` metamethod is only invoked for two values of the same type).
+
+```
+open class Point
+    private _x: number
+    private _y: number
+
+    ...
+
+    -- Note that no annotation is required for 'other' here
+    function __eq(self: Point, other)
+        return self._x == other._x and self._y == other._y
+    end
+end
+```
+
+#### Private Fields and Inheritance
+
+It is safe for private class properties to be shadowed, since child classes cannot access private fields and methods of their ancestors.
+
+An instance of a class has values for the private properties of every class that it is a member of. This means that instances of `Point` can still be compared to `ThreeDPoint`.
+
+```
+class ThreeDPoint extends Point
+    private _z: number
+end
+```
+
+Type inference can also be extended so that private field access in a method body applies a subtyping constraint between the object being accessed and the enclosing class. In the above example, `other` would be inferred to have supertype `Point`.
+
+The operators `._` and `:_` allow child classes to shadow private properties with public ones:
+
+```
+open class Base
+    private _x: number
+
+    function compare(self, other)
+        return self._x == other._x
+    end
+end
+
+class Derived extends Base
+    public x: number
+end
+
+local a = Base.new(...)
+local b = Derived.new(...)
+
+-- This unambiguously compares a._x and b._x
+local res = a:compare(b)
+```
+
+#### Private Fields and Constructors
+
+We have two overarching goals for how constructors should interact with private fields:
+
+- Minimize how often instances can have uninitialized state  
+- Don’t make behavior too complex to reason about.
+
+To these ends, classes that have private properties must explicitly define a constructor.  The default constructor will raise a runtime exception when called.  This is necessary because the default constructor would otherwise need to initialize private fields--fields that users of the class shouldn't even be aware of\!
+
+Note that this restriction interacts with the existing requirement that if a base class defines a constructor, then any derived class must also do so. Consequently, if a class inherits from a base class with private fields, then it must now define a constructor.
+
+We considered making the default constructor private if the class has any private fields, but this requires either allowing a single instance where a private method be callable without `._` or adding `._new` to the language. We also considered adding private constructors, declared via `private __init` and invoked via `._new`, but we opted against it, both to align with the second goal above and to limit the scope of this RFC.
+
+### Drawbacks
+
+As mentioned above, table accesses are slightly complicated by the addition of the `._` and `:_` operators to method body contexts.
+
+### Alternatives
+
+#### No Leading Underscore
+
+One alternative we considered is to use a conventional `private` keyword without any requirement that fields start with an underscore.
+
+This is extremely tempting, but our requirement that private fields be able to shadow interacts with the gradual type system in very unfortunate ways.
+
+For instance, in the following code, the reference to `other.x` could either refer to a private field of a `Base` instance, a public field of some other class, or a table key:
+
+```
+open class Base
+    private x: number
+
+    function compare(self, other)
+        return self.x == other.x
+    end
+end
+
+class Derived extends Base
+    public x: number
+end
+
+local a = Base.new(...)
+local b = Derived.new(...)
+
+-- Should this compare Base.x to Base.x, or Base.x to Derived.x?
+local res = a:compare(b)
+local res2 = a:compare({x=5})
+```
+
+In a prior revision, we considered having the VM do a runtime test to figure it out on the fly, but this hides a very scary maintenance bug:
+
+```
+open class BaseClass
+    private x: number
+
+    function __init(self, x)
+        self.x = x
+    end
+
+    function equalTo(self, other)
+        return self.x == other.x
+    end
+end
+
+class ThirdClass -- extends BaseClass
+    public x: number
+
+    function test(self, other: BaseClass)
+        if other:equalTo(self) then
+            print('equal')
+        else
+            print('inequal')
+        end
+    end
+end
+
+local b = BaseClass.new(4)
+local third = ThirdClass.new { x=2 }
+
+third:test(b)
+```
+
+As-written, this code would be completely fine:  When `third:test(b)` is invoked, the `Base.equalTo` method reads the private `x` field of `b` and compares it to the public `x` field of `third`.
+
+However, something spooky happens if the author updates the definition of `ThirdClass` to extend `BaseClass`: The `test` method does something completely different now *because the `equalTo` method now does something completely different*.
+
+This is pretty scary\!
+
+Our stance is that, while it is unfortunate to take `._` as a special operator, it hits an important sweet spot: Developers are already used to prefixing nonpublic fields with underscores and it looks much nicer than a higher-profile glyph like `#`.
+
+Asking authors to write `o["_foo"]` every once and awhile seems like a worthy tradeoff.
+
+#### Secret Property Names
+
+Something we considered was replacing private field labels with secret opaque key values.  For instance:
+
+```
+class A
+    #x: number
+
+    function __init(self)
+        self.#x = 0
+    end
+
+    function get_x(self)
+        return self.#x
+    end
+end
+
+-- ... would be rewritten as ...
+
+const x_symbol = {}
+
+class A
+    [x_symbol]: number
+
+    function get_x(self)
+        return self[x_symbol]
+    end
+end
+```
+
+The reasoning goes that, if you can't iterate over the object, then you can't get at the secret token and therefore you can't read the property.
+
+However, this approach raises an issue: `x_symbol` could now be visible from another module. To mitigate this, each class could maintain a mapping of private property names to key values, with some extra information in the keys to prevent collisions:
+
+```
+-- module1.luau
+class A
+    #x: number
+    function __init(self) self.#x = 0 end
+end
+
+-- main.luau
+local module = require("./module1")
+
+class B
+    #x: number
+    function __init(self) self.#x = 3 end
+end
+
+class A
+    #x: number
+    function __init(self) self.#x = 1 end
+    function printX(self)
+        local n = math.random()
+        local obj = if n > 0.67 then self elseif n > 0.33 then module.A.new() else B.new()
+        print(obj.#x)
+    end
+end
+
+-- ... would become ...   
+     
+-- module1.luau
+class A [private_props: { module1_A_x = {} }]
+    [A.private_props.module1_A_x]: number
+    function __init(self) self[A.private_props.module1_A_x] = 0 end
+end
+
+-- main.luau
+local module = require("./module1")
+
+class B [private_props: { main_B_x = {} }]
+    [B.private_props.main_B_x]: number
+    function __init(self) self[B.private_props.main_B_x] = 3 end
+end
+
+class A [private_props: { main_A_x = {} }]
+    [private_props[main_A_x]]: number
+    function __init(self) self[A.private_props[main_A_x]] = 1 end
+    function printX(self)
+        local n = math.random()
+        local obj = if n > 0.67 then self elseif n > 0.33 then module.A.new() else B.new()
+        print(obj[A.private_props[main_A_x]]) -- errors if obj isn't an instance of main.A
+    end
+end
+```
+
+Property access on a private field `a.#x` where `a` is an instance of `A` would: construct the key for `private_props` by concatenating the chunk name, class name, and prop name (say `init_A_x`), index into `A.private_props` for the opaque key value, and use that key value to finally index into `a`.
+
+This approach would have the advantage that we wouldn’t need to check that `a` is an instance of the correct class at runtime, but introduces added complexity, not to mention the added runtime and memory cost of a mapping to hold the opaque key values. 
+
+#### Property rewriting
+
+Another idea we considered was a rewrite rule for properties whose names follow some convention.  Like `_foo`.  We would extend the language to automatically rewrite each such property with a module-local, anonymous name that is unutterable elsewhere.  For instance:
+
+```sql
+export a = { _privateKey = 0 }
+export b = a._privateKey
+a._privateKey += 1
+
+-- to
+
+local _privateKey = { name="_privateKey" }
+
+export a = { [_privateKey] = 0 }
+export b = a[_privateKey]
+a[_privateKey] += 1
+```
+
+This is quite easy to implement and works orthogonally to classes, but is a significant backwards-compatibility break.
+
+#### Restrict private field access to `self`
+
+We considered allowing private field access on only `self`, but this is quite restrictive.
+
+#### Module-specific `private` fields
+
+One possibility was for `private` fields to be accessible from throughout the module in which they’re defined, but this permissiveness seems more appropriate for something like a `friend` access modifier, and the Luau VM would require significant reworking to make this work.
+
+#### Private constructors
+
+We considered adding private constructors, declared via `private __init` and invoked via `._new`.
+
+If a class defines a private method `__init` or has at least one private property, the class would instead have a private builtin static method `new`, which could be used by other methods of the class.  Concretely:
+
+```
+class Point
+    private _x: number
+    private _y: number
+
+    function zero(): Point
+        return Point._new { x = 0, y = 0}
+    end
+end
+```
+
+We've decided not to implement this at this time because such a private constructor can only be called by public methods of the class, so the encapsulation benefit here is pretty minor.  In order to offer more, we would have to introduce some mechanism for a symbol to be private to a larger organizational unit like a package. We are opting not to open this particular can of worms just yet.
+
+#### Protected fields
+
+In the future, we may add `protected` fields that are accessible to classes which inherit from the class in which they are declared. Note that the syntax we have chosen is compatible with `protected` if we also prefix `protected` fields with `_`:
+
+```
+class Point
+    protected _x: number
+    protected _y: number
+end
+
+class ThreeDPoint extends Point
+    protected _z: number
+    
+    function __init(self, x, y, z):
+        self._x = x
+        self._y = y
+        self._z = z
+    end
+end
+```
+
 # Appendix
 
 This appendix contains considerations that are related more to the underlying implementation of each feature, rather than the features themselves.
@@ -705,3 +1106,25 @@ This means that, if the VM knows that some object is a subtype of some class typ
 ### Typechecking
 
 For v1, type inference does not attempt to track fields that are initialized within conditional constructs like `if` statements or loops.  Fields must be initialized directly at the function scope. 
+
+## Private Class Fields
+
+Here, we describe a possible implementation strategy.
+
+### `GET/SETCLASSFIELD`
+
+Accessing private fields can be implemented via a pair of new `GET/SETPRIVATEFIELD` (actual name TBD) instructions. They are emitted if and only if the bytecode compiler observes `._` or `:_`, and will have roughly the following format:
+
+| Slot | Content |
+| :---- | :---- |
+| A | Target/source register |
+| B | Register containing class instance |
+| C | Register containing expected class |
+| AUX\[0:14\] | Private property index We will restrict the number of private instance properties and private static properties a class can have to 32,768 each |
+| AUX\[15\] | Whether property is instance property or static property |
+
+We restrict our usage of AUX to just 16 bits to leave room for potential future changes.
+
+At runtime, `GET/SETPRIVATEFIELD` will perform a tag check to ensure that `B` is both a class object and an instance of the correct class. Since `._` and `:_` can only occur inside class method bodies, the bytecode compiler can statically determine which class an instance should belong to. Additionally, hoisting means that the relevant `LuauClass*` will be present in a register, which the compiler can include in `C`.
+
+To facilitate statically computing the index of private properties, we will add a `TValue` array to `LuauObject` that will hold the values of private fields, and another `TValue` array to `LuauClass` to hold the values of private static members (currently only methods). The indices into each array are known at compile time since classes cannot access the private properties of their ancestors.  
