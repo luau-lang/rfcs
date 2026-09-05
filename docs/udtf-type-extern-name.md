@@ -37,7 +37,7 @@ type a = vectorOnly<typeof(vector.zero), vector>
 
 **What it would solve:**
 - You don't have to pass in a sample of a type that you want to check
-- Drawback: If two ``ExternType`` are ever named the same, it would be an inaccurate check, hence why above it mentions _"lazy"_
+- Drawback: If two ``ExternType`` have the same name, it would be an inaccurate to directly check it via a string, hence why above it mentions _"lazy"_. e.g. two ``ExternType`` named ``Extern_A`` and doing ``x == "Extern_A"``.
 
 
 ## Design
