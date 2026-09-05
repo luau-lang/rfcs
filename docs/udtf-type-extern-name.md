@@ -9,7 +9,7 @@ Add a new method for User Defined Type Functions called ``type.externname``. Whi
 **Use cases:**
 - A lazy _(due to it being string comparison, not structural check)_ to filter out extern types (e.g. from ``declare extern type``)
   - e.g. external types that are not accessible through ``types.@1`` such as ``vector`` for instance
-  - embedders may also have their own defiend external types that can't be filtered without passing a type into the function.
+  - embedders may also have their own defined external types that can't be filtered without passing a type into the function.
 - Useful for debug purposes when using ``print`` within a type function.
 
 
