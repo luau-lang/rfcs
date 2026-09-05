@@ -68,13 +68,6 @@ type b = pass<vector, "vector">
 | ------------- | ------------- | ------------- | ------------- |
 | New | `externname()` | `string?` | Returns the name of an ExternType or 'nil' if there's no name. |
 
-**OR**
-
-| New/Update | Instance Methods | Type | Description |
-| ------------- | ------------- | ------------- | ------------- |
-| Update | `name()` | `string?` | Returns the name of a generic or ExternType, or 'nil' if there's no name. |
-
-
 
 ### Example
 
@@ -112,3 +105,8 @@ Hence why I am wondering whether if something like this should exist, whether it
 ## Alternatives
 
 An alternative would be to have the ability to require "upvalue" or external types into the type function.
+
+
+| New/Update | Instance Methods | Type | Description |
+| ------------- | ------------- | ------------- | ------------- |
+| Update | `name()` | `string?` | Returns the name of a generic or ExternType, or 'nil' if there's no name. |
