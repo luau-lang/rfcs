@@ -2,18 +2,18 @@
 
 ## Summary
 
-Add a new method to ``type`` for User Defined Type Functions, ``type.externname``. Which will retrieve a ``ExternType``'s name.
+Add a new method for User Defined Type Functions called ``type.externname``. Which will retrieve a ``ExternType``'s name.
 
 ## Motivation
 
 **Use cases:**
-- A lazy _(but therefore also quick way?)_ to filter out extern types (e.g. from ``declare extern type``)
-  - e.g. external based types that are not accessible through ``types.`` such as ``vector`` for instance
-  - embedders such as Roblox, may also have external based types that can't be filtered without passing a type into the function.
+- A lazy _(due to it being string comparison, not structural check)_ to filter out extern types (e.g. from ``declare extern type``)
+  - e.g. external types that are not accessible through ``types.@1`` such as ``vector`` for instance
+  - embedders may also have their own defiend external types that can't be filtered without passing a type into the function.
 - Useful for debug purposes when using ``print`` within a type function.
 
 
-Currently, you can only do this, or other tricks:
+Currently, you can only do this or other tricks:
 
 ```lua
 --!strict
@@ -37,18 +37,12 @@ type a = vectorOnly<typeof(vector.zero), vector>
 
 **What it would solve:**
 - You don't have to pass in a sample of a type that you want to check
-- Drawback: If two ExternTypes are ever named the same, it would be an inaccurate check, hence why above it mentions _"lazy"_
+- Drawback: If two ``ExternType`` are ever named the same, it would be an inaccurate check, hence why above it mentions _"lazy"_
 
 
 ## Design
 
-This is the bulk of the proposal. Explain the design in enough detail for somebody familiar with the language to understand, and include examples of how the feature is used.
-
-I tried an implementation:
-- https://github.com/karl-police/luau/commit/26b66c79d4d68e5f18601f619082b4d9b62473aa
-- https://github.com/karl-police/luau/commit/03bef7130a9cdbf550b6e0bbcdaf5c9a562ef427
-
-This is its **Unit Test**.
+Here's how an Unit Test for it would look like.
 
 ```lua
 declare extern type CustomExternType with
@@ -106,8 +100,7 @@ type a = onlyCustomExternType<CustomExternType>
 
 ## Drawbacks
 
-I don't know if a generic can be directly passed into a type function and then use ``type:name()``.
-But Generic Names are being collected.
+I don't know if a generic can be directly passed into a type function and then use ``type:name()``. But Generic Names are being collected.
 
 If ``type:externname()`` would copy the ``externType->name`` into the TypeFunction's ExternType, maybe it would be inefficient for memory, because the name already exists.
 In my first implementation, it doesn't do that though within the "serialize" process, instead it's just "read on request", but without caching.
