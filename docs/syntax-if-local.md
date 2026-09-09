@@ -101,7 +101,7 @@ end
 
 #### Explicit type annotations
 
-An explicit annotation is checked exactly as it would be for an ordinary `local`, so
+Since `if local` is syntactic sugar for a `local` declaration followed by a truthiness test (see [Desugaring](#desugaring)), an annotation is checked exactly as it would be for that `local`, so
 
 ```lua
 if local x: T = y then
@@ -118,7 +118,16 @@ if x then
 end
 ```
 
-The initializer must be assignable to the annotation, so a mismatch is a type error even when the annotation is optional:
+Additionally, like a `local` declaration, the annotation is optional. When the initializer returns an optional or `any` type, we annotate with the optional type (or omit it) and let the branch refine it:
+
+```lua
+-- expr(): number?
+if local x: number? = expr() then
+    -- declared type is number?, but x is refined to number here
+end
+```
+
+The value being bound still has to match the annotation's type, so an incompatible annotation is a type error:
 
 ```lua
 local function f(v: number?)
@@ -127,8 +136,6 @@ local function f(v: number?)
     end
 end
 ```
-
-The annotation only constrains the declared type; the branch still refines to non-nilness, so in `if local x: number? = v then` the declared type is `number?` but `x` is refined to `number` inside the block.
 
 ### Expressions
 
@@ -234,6 +241,19 @@ end
 ```
 
 Each binding would be visible to subsequent bindings in the stack, short-circuiting on the first falsy one.
+
+### `if not local` statements
+
+A negated form that takes the branch when the initializer is *falsy* was raised as a fit for early-return guards:
+
+```lua
+if not local x = expr() then
+    return -- expr() was falsy
+end
+-- would x be usable (and refined) here?
+```
+
+To be useful the binding would need to be in scope *after* the block, not inside the `then`\-block where it is falsy — the opposite of the scoping every other form here uses. That needs its own scoping and refinement story, so it is left for a separate proposal.
 
 ### `while local` loops
 
