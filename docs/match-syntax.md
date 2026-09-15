@@ -40,7 +40,7 @@ There are multiple patterns proposed here:
 - Literal pattern: Consists of any number / string / nil / table literal
 - Or pattern: Consists of two **patterns** seperated by the `or` keyword
 - Range pattern: Consists of two **literals** seperated with a hashtag (or the `until` keyword) and indicates a range of numbers to match
-- Guard pattern: Consists of a pattern followed by the `if` keyword and an expression (condition does not get evaluated until the inital pattern was matched)
+- Guard pattern: Consists of a pattern followed by the `if` keyword and an expression (condition does not get evaluated until the initial pattern was matched)
 - Assignment pattern: Consists of a named token (optionally a guard pattern)
 
 The `else` arm can be written multiple times if it's a guard pattern and the same guard pattern is not used in any other `else` arm.
