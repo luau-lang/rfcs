@@ -1,4 +1,4 @@
-# Feature name
+# Match statements and expressions
 
 ## Summary
 
@@ -6,16 +6,15 @@ This RFC proposes new syntax which allows the developer to write match statement
 
 Syntax:
 ```luau
-local exp = player.exp
-local rank = match exp
+local rank = match player.exp
     1 or 2 => "Noob",
-    3 # 10 => "Amateur",
-    11 # 20 => "Normal",
-    21 # 30 => "Experienced",
-    31 # 40 => "Pro",
+    3 until 10 => "Amateur",
+    11 until 20 => "Normal",
+    21 until 30 => "Experienced",
+    31 until 40 => "Pro",
     45 => "The 45th point",
-    46 # 50 => "Master",
-    else if exp <= 60 => "Super Experienced",
+    46 until 50 => "Master",
+    value if value <= 60 => "Super Experienced",
     else => do
         print("unknown rank")
 
@@ -42,6 +41,7 @@ There are multiple patterns proposed here:
 - Or pattern: Consists of two **patterns** seperated by the `or` keyword
 - Range pattern: Consists of two **literals** seperated with a hashtag (or the `until` keyword) and indicates a range of numbers to match
 - Guard pattern: Consists of a pattern followed by the `if` keyword and an expression (condition does not get evaluated until the inital pattern was matched)
+- Assignment pattern: Consists of a named token (optionally a guard pattern)
 
 The `else` arm can be written multiple times if it's a guard pattern and the same guard pattern is not used in any other `else` arm.
 
