@@ -1,8 +1,8 @@
-# Match statements and expressions
+# Match syntax and pattern matching
 
 ## Summary
 
-This RFC proposes new syntax which allows the developer to write match statements/expressions.
+This RFC proposes new syntax which allows the developer to write match statements/expressions. The proposed match syntax allows developers to match against any pattern.
 
 Syntax:
 ```luau
@@ -27,11 +27,25 @@ print(`Your rank is: {rank}`)
 
 ## Motivation
 
-This syntax elimiates long and partially unreadable and/or chains and if/else chains while providing the same functionality and being more modern.
+This syntax eliminates long and partially unreadable and/or chains and if/else chains while providing the same functionality and being more modern. Roblox developers also tend to write
+repeated code in those large if statements (or and/or chains) just like in this example:
+
+```luau
+local status
+
+if workspace:FindFirstChild("Indicator").Value == 1 then
+    status = "active"
+elseif workspace:FindFirstChild("Indicator").Value == 2 then
+    status = "inactive"
+elseif workspace:FindFirstChild("Indicator").Value == 3 then
+    status = "under maintenance"
+...
+end
+```
 
 ## Design
 
-The initial match expression starts with the match keyword (contextual and can only be followed by an identifier) and then with the value to match.
+The initial match expression (which is only evaluated once) starts with the match keyword (contextual and can only be followed by an identifier) and then with the value to match.
 
 Every match arm is followed by a pattern and then either an expression (which gets returned) _or_ a `do` block with executes and returns.
 The only exception is the `else` match arm which is a wildcard and only runs if the value was not matchable to any pattern and always has to be declared last.
@@ -62,7 +76,7 @@ Duplicate patterns or invalid ranges **will** throw a compiler error.
 
 ## Drawbacks
 
-Adding this syntax would introduce a lot of complications in the parser and make typecheck more difficult.
+Adding this syntax would introduce a lot of complications in the parser and make typecheck more difficult. Implementing this without desugaring will also complicate the compiler and add possible performance loss on runtime. It would also introduce complicated syntax (or even ugly syntax with the fat arrow!) and may not fit Luau's keyword vision (fat arrow can be replaced with the `then` keyword)
 
 ## Alternatives
 
@@ -91,4 +105,4 @@ let rank = match exp {
 };
 ```
 
-The design is very similar to the proposed one.
+The design is very similar to the proposed one and this is the main inspiration for this feature.
