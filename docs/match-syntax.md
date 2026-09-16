@@ -6,7 +6,7 @@ This RFC proposes new syntax which allows the developer to write match statement
 
 Syntax:
 ```luau
-local rank = match player.exp
+local rank = if player.exp match
     1 or 2 => "Noob",
     3 until 10 => "Amateur",
     11 until 20 => "Normal",
@@ -45,7 +45,7 @@ end
 
 ## Design
 
-The initial match expression (which is only evaluated once) starts with the match keyword (contextual and can only be followed by an identifier) and then with the value to match.
+The initial match expression (which is only evaluated once) starts with the if keyword followed by the expression to match and the match keyword (contextual and can only be followed by an identifier).
 
 Every match arm is followed by a pattern and then either an expression (which gets returned) _or_ a `do` block with executes and returns.
 The only exception is the `else` match arm which is a wildcard and only runs if the value was not matchable to any pattern and always has to be declared last.
