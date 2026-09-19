@@ -1,5 +1,7 @@
 # Math constants
 
+**Status**: Implemented
+
 ## Summary
 
 Expand the constants provided in the `math` library.
