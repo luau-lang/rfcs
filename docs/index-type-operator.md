@@ -78,14 +78,19 @@ type idxType3 = index<Person | Person2, "age"> -- idxType3 = number | string
 type idxType4 = index<Person | Person2, "alive" | "age"> -- Error message: Property '"age" | "alive"' does not exist on type 'Person | Person2'
 ```
 
-In the circumstance that the indexee's type is a class or table with an `__index` metamethod, the `__index` metamethod will *only* be invoked if the indexer is not found within the current scope:
+In the circumstance that the indexee's type is a class or table with an `__index` metamethod, and the result from the
+main table is nilable, the type should reflect the result of the expression `(tableValue & ~nil) | (__indexValue)` where
+`~` is the negation type symbol. This fits with Luau's runtime behavior of metatables, falling back to a value from
+__index if the main value is nonpresent.
 ```luau
 local exampleClass = { Foo = "eight" }
 local exampleClass2 = setmetatable({ Foo = 8 }, { __index = exampleClass })
 local exampleClass3 = setmetatable({ Bar = "nine" }, { __index = exampleClass })
+local exampleClass4 = setmetatable({ Foo = ... :: number? }, { __index = exampleClass })
 
 type exampleTy2 = index<typeof(exampleClass2), "Foo"> -- exampleTy2 = number
 type exampleTy3 = index<typeof(exampleClass3), "Foo"> -- exampleTy3 = string
+type exampleTy4 = index<typeof(exampleClass4), "Foo"> -- exampleTy4 = number | string
 ```
 
 One edge case to consider when using/designing this type function is that `__index` only supports 100 nested `__index` metamethods until it gives up. In the case that a property is not found within the 100 recursive calls, this type function will fail to reduce.
