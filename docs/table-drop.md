@@ -41,7 +41,7 @@ Next, I am proposing to add a linter rule warning the user about the `table.remo
 local t = {"apple", "banana", "orange"}
 
 table.remove(t, nil) -- OK
-table.remove(t, table.find(t, "banana")) -- Warning: If this is nil, table.remove will remove the last element of the array. This is a common mistake—consider using table.drop instead, or if order is not important, use a key/value table with true values for better performance.
+table.remove(t, table.find(t, "banana")) -- Warning: If this is nil, table.remove will remove the last element of the array. Consider using table.drop instead, or if order is not important, use a key/value table with true values for better performance.
 ```
 
 ## Drawbacks
