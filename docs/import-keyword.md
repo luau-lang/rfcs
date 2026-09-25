@@ -150,6 +150,8 @@ type Wow = require("./A").Wow
 type Ok = require("./A").Ok
 ```
 
+
+
 Finally, we'll also support requalifying the wildcard import via `as` syntax:
 
 ```luau
@@ -163,7 +165,8 @@ Equivalent to:
 const B = require("./A")
 ```
 
-This RFC proposes one restriction on imports - namely that the string passed after `from` must be a static string literal. We will explicitly not support:  
+This RFC proposes the following restrictions on imports:
+1) The string passed after `from` must be a static string literal. We will explicitly not support:  
 ```luau  
 local A = "./Mod3"  
 local pathC
@@ -171,6 +174,10 @@ import * from A
 import * from if math.random() then "./Mod1" else "./Mod2"  
 import * from (function() return "./Mod4" end) ()
 ```
+
+2) Imports at the top level are hoisted, so their effects occur at the beginning of the file.
+3) Non top level imports are treated like dynamic requires.
+
 Finally, imports that contain only types can be trivially elided, and imports that mix types and values, will only elide the types.
 
 ## Drawbacks
@@ -193,3 +200,19 @@ means that we can provide recommendations for imports since we'll know which mod
 
 ## Alternatives
 This RFC proposes imports as a solution to the issue of overly verbose requires + as a pathway to performing more static analysis at compile time. Table Destructuring syntax can solve the first problem, and formally 'blessing' top level require-by-string with the same static compilation guarantees would solve the latter. As always, we could also not do any of this work.
+
+## Prior Art
+This section is explicitly focused on other dynamic languages. For the most part, the state of the art does involve unqualified
+and renaming of qualified imports. While all the examples listed support wildcard imports, it's typically considered bad practice to use them as they mutate the global namespace.
+
+
+### Python
+```python
+import math # imports a module and binds it to the name `math`
+from math import sqrt # only binds sqrt to exported value from the math module
+import math as builtin_math # requalifies the math import
+from math import s
+```
+
+### Javascript / Typescript
+This syntax is more or less similar to ours. The main difference here is the presence of explicit table destructuring syntax, and additional details around how `module.exports` interacts with the wildcard operator.
