@@ -32,9 +32,8 @@ print(`Check out my cool point: {p}  length = {p:length()}`)
 
 ### Design
 
-Class definitions are a block construct.  They can only be written at the topmost scope.  `export class X` is allowed.
-
-Defining two classes with the same name in the same module is forbidden.
+Class definitions are a block construct, with the same assignment semantics as `function` and `local function` (See "Scoping" below).
+`export class X` is allowed.
 
 Within a class block, two declarations are allowed: Fields and methods.
 
@@ -75,7 +74,8 @@ For forward-compatibility, it is a syntax error to define any other method whose
 
 ### Class Objects
 
-The action of evaluating a class definition statement introduces a *class object* in the module scope.  A class object is a value that serves as a factory for instances of the class and as a namespace for any functions that are defined on the class.
+The action of evaluating a class definition statement creates a *class object*.
+A class object is a value that serves as a factory for instances of the class and as a namespace for any functions that are defined on the class.
 
 Class objects behave like class instances in most ways, but are always `const` and frozen.
 
@@ -97,7 +97,7 @@ Class instances are a new type of value in the VM.  They are similar but not qui
 
 Reading or writing a nonexistent class property raises an exception.  In contrast to tables, this makes it easy to disambiguate between a nonexistent property and a property whose value is nil.
 
-We introduce a new top type for class instances: `object`.  The builtin `type()` and `typeof()` functions return `"object"` for any class instance.  We chose this over having them return the class name because class names do not have to be globally unique (they must only unique within a single module) and because we do not want to make it possible for classes to impersonate other types.
+We introduce a new top type for class instances: `object`.  The builtin `type()` and `typeof()` functions return `"object"` for any class instance.  We chose this over having them return the class name because class names do not have to be unique and because we do not want to make it possible for classes to impersonate other types.
 
 ```luau
 class Cls end
@@ -135,7 +135,7 @@ Unlike tables, which are structurally typed, class types are nominal.  Two diffe
 
 Inferring the types of class fields is fraught with difficulty, so un-annotated fields are given the type `any`.
 
-The type introduced by a class definition is available anywhere in the source file.
+The type introduced by a class definition is available anywhere in its lexical scope, following the same scoping rules as explicitly defining a type alias.
 
 The `class.isa` function participates in refinement:
 
@@ -169,19 +169,24 @@ class Counter
     end
 end
 ```
-### Hoisting
+### Scoping
 
-We do, however, *hoist* the class identifier's binding to the top of the script so that it can be referred to within functions or classes that lexically appear before the class definition.  This makes it easy and straightforward for developers to write classes or functions that mutually refer to one another.
+In terms of assignment semantics, `class` and `local class` behave identically to `function` and `local function`.
 
-Static analysis also considers the class's type to be global to the whole module so that it can appear in any type annotation anywhere in the script.
+The statement `local class X ... end` creates a new local named `X` and assigns the new class object to it.
+The statement `class X ... end` assigns the class object to the binding `X` if one exists in scope and creates a new global binding if not.
+Just as with `local function`, a `local class X` can shadow an earlier local named `X`.
+
+One divergence from functions is that we do not support anonymous classes.
+We do not see a compelling use case yet, but the current design is entirely forwards compatible with anonymous classes if desired in the future.
 
 An example:
 
 ```luau
--- illegal: MyClass is not yet defined
+-- illegal: MyClass is not yet defined, and there is no local named MyClass in scope
 local a = MyClass.new {}
 
--- OK: MyClass can appear in a type annotation anywhere
+-- OK: MyClass can appear in a type annotation anywhere in this scope
 function use(c: MyClass)
 end
 
@@ -199,6 +204,60 @@ end
 local b = MyClass.new {} -- OK
 local c = create() -- OK
 ```
+
+Mutually recursive classes require predeclaration, similar to mutually recursive functions:
+
+```luau
+local Node
+
+local class Tree
+    function addNode(self)
+        local newNode = Node.new {}
+        -- ...
+    end
+end
+
+class Node
+    function addTree(self)
+        local newTree = Tree.new {}
+        -- ...
+    end
+end
+
+local node = Node.new {}
+node:addTree()
+local tree = Tree.new {}
+tree:addNode()
+```
+
+#### Alternatives: Hoisting
+
+We had originally considered hoisting class declarations to make mutually recursive behavior simpler to implement.
+However, supporting hoisting inside arbitrary lexical scopes created semantics that became difficult to reason about.
+We ultimately decided to prioritize keeping the semantics of classes similar to those of functions.
+
+Consider:
+
+```luau
+class Turtle
+end
+
+do
+    -- is this accessing the outer Turtle (succeeds) or the hoisted inner Turtle (currently nil, would error)
+    local turtle = Turtle()
+
+    ...
+
+    class Turtle
+    end
+
+    assert(class.isa(turtle, Turtle)) -- ??
+end
+```
+
+If the `...` represented many lines of code, `Turtle()` erroring might be a surprising result.
+A programmer might expect it to succeed since the initial declaration of class Turtle is both lexically closer and would match Luau’s existing scoping semantics for non-class values.
+On the other hand, if it were to succeed, we would need to define unintuitive per-scope hoisting semantics.
 
 ### Drawbacks
 
@@ -384,9 +443,8 @@ All other metamethods can still be overridden, although we may apply this restri
 
 ### Declaration Order
 
-The Classes section above states that class names are hoisted and so can be used before the class declaration has been evaluated.  This is unchanged by this section, but carries with it a consequence that is important to call out:
-
-Class declarations have effects at the top level.  Therefore, a class cannot inherit from another class that occurs lexically after it within the module.
+A class definition takes effect when it is executed.
+Therefore, a class cannot inherit from another class that occurs lexically after it within the module.
 
 ```luau
 class Child extends Base -- error: Base is nil here!
@@ -1085,7 +1143,6 @@ This appendix contains considerations that are related more to the underlying im
 These are performance-related bonuses that fall out of implementing classes.
 
 * A construct with a fixed shape and a completely locked-down metatable will open up optimization opportunities that could improve performance:
-    * If classes can only be declared at the top scope, then we know that each method of each class has exactly one instance.  This makes it simple for the compiler to know the exact function that will be invoked for any method call expression.
     * If a value is known to be an instance of a particular class, the bytecode compiler should be able optimize method calls to skip the whole `__index` metamethod process and instead generate code to directly call the correct method.
     * By the same token, method calls can be inlined more aggressively.  Particularly self-method calls eg `self:SomeOtherMethod()`
     * Field accesses can compile to a simple integral table offset so that the VM doesn't need to do a hashtable lookup as the program runs.
@@ -1125,6 +1182,6 @@ Accessing private fields can be implemented via a pair of new `GET/SETPRIVATEFIE
 
 We restrict our usage of AUX to just 16 bits to leave room for potential future changes.
 
-At runtime, `GET/SETPRIVATEFIELD` will perform a tag check to ensure that `B` is both a class object and an instance of the correct class. Since `._` and `:_` can only occur inside class method bodies, the bytecode compiler can statically determine which class an instance should belong to. Additionally, hoisting means that the relevant `LuauClass*` will be present in a register, which the compiler can include in `C`.
+At runtime, `GET/SETPRIVATEFIELD` will perform a tag check to ensure that `B` is both a class object and an instance of the correct class. Since `._` and `:_` can only occur inside class method bodies, the bytecode compiler can statically determine which class an instance should belong to.
 
 To facilitate statically computing the index of private properties, we will add a `TValue` array to `LuauObject` that will hold the values of private fields, and another `TValue` array to `LuauClass` to hold the values of private static members (currently only methods). The indices into each array are known at compile time since classes cannot access the private properties of their ancestors.  
