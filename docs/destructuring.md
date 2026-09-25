@@ -163,12 +163,14 @@ One possible option is to co-opt the same syntax used by tables instead of intro
 ```luau
 const .{x = reboundX, y = reboundY, z = .{reboundU, reboundV}} = makeATable()
 ```
-OCaml uses this approach too, but a reasonable objection might be that assignment **to** occcurs on the lhs of a statement usually. Moreover, the glyph means we might be able to avoid nested `.` inside of this destructuring statement, if that is also
+OCaml uses this approach too, but a reasonable objection might be that assignment *to* usually occcurs on the lhs. 
+Moreover, the glyph means we might be able to avoid nested `.` inside of this destructuring statement, if that is also
 too verbose.
-Assuming the glyph approach is reasonable, it might mean we could also co-opt square braces for sugar over unpack:
+If we end up not hating the glyph approach, we could also consider extending this syntax to `[]` for sugar over unpack:
 ```luau
 const .[x, y] = {1, 2}
 ```
+
 This RFC is written assuming that incurring the backtracking is untenable and that we'd need to design around this. As always,
 we could just do nothing.
 
