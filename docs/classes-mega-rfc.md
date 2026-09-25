@@ -157,6 +157,9 @@ The action of a class definition statement is to allocate the class object, defi
 
 Because class definition is a statement, class methods can capture upvalues just like ordinary functions do.
 
+One divergence from functions is that we do not support defining a class within an existing table: `class SomeTable.SomeClass ... end`.
+The current design is entirely forwards compatible with this if desired in the future.
+
 ```luau
 local globalCount = 0
 
@@ -176,9 +179,9 @@ In terms of assignment semantics, `class` and `local class` behave identically t
 
 The statement `local class X ... end` creates a new local named `X` and assigns the new class object to it.
 The statement `class X ... end` assigns the class object to the binding `X` if one exists in scope and creates a new global binding if not.
-Just as with `local function`, a `local class X` can shadow an earlier local named `X`.
+Just as with `local function`, a `local class X` will shadow an earlier local named `X`.
 
-One divergence from functions is that we do not support anonymous classes.
+A divergence from functions is that we do not support anonymous classes.
 We do not see a compelling use case yet, but the current design is entirely forwards compatible with anonymous classes if desired in the future.
 
 An example:
@@ -206,7 +209,7 @@ local b = MyClass.new {} -- OK
 local c = create() -- OK
 ```
 
-Mutually recursive classes require predeclaration, similar to mutually recursive functions:
+Mutually referential classes require predeclaration, similar to mutually recursive functions:
 
 ```luau
 local Node
@@ -233,11 +236,11 @@ tree:addNode()
 
 #### Alternatives: Hoisting
 
-We had originally considered hoisting class declarations to make mutually recursive behavior simpler to implement.
+We had originally considered hoisting class declarations to make mutually referential behavior simpler to declare.
 However, supporting hoisting inside arbitrary lexical scopes created semantics that became difficult to reason about.
 We ultimately decided to prioritize keeping the semantics of classes similar to those of functions.
 
-Consider:
+Consider the following example, where we hoist inside lexical scopes:
 
 ```luau
 class Turtle
@@ -314,6 +317,9 @@ Other languages with support for object-oriented programming support inheritance
 We introduce two new contextual keywords: `open` and `extends`.
 
 We observe that, in real programs, almost all classes are either not intended to participate in inheritance at all, or they are expressly crafted to be used as a base class.  We therefore require developers to use the `open class` keyword-pair to declare a class that can be inherited from.
+
+Note that `open` behaves as a modifier on `class`.
+To create a local, open class, the syntax `local open class Foo ... end` is correct; `open local class Foo ... end` is a syntax error.
 
 Attempting to inherit from a class that is not `open` is an error.  Type checking will flag it and the runtime will raise an exception.
 
