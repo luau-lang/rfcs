@@ -32,7 +32,7 @@ print(`Check out my cool point: {p}  length = {p:length()}`)
 
 ### Design
 
-Class definitions are a block construct, with the same assignment semantics as `function` and `local function` (See "Scoping" below).
+Class definitions are a block construct, with the same assignment semantics as `function` and `local function` (See [Scoping](#scoping) below).
 `export class X` is allowed.
 
 Within a class block, two declarations are allowed: Fields and methods.
