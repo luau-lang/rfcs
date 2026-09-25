@@ -74,7 +74,7 @@ print(fieldA) -- prints 1
 print(fieldB) -- prints 2
 ```
 
-Moreover, we will also support punning bound fields via `as` syntax:
+Moreover, we will also support punning fields via `as` syntax:
 ```luau
 const .{fieldA as bing, fieldB as bong} = {"fieldA" = 1, "fieldB" = 2, "fieldC" = 3}
 print(fieldA) -- nil
@@ -153,6 +153,9 @@ local _rhs = require("./A")
 type X = rhs.X
 _rhs = nil
 ```
+
+## Drawbacks
+Most features take on implementation drawbacks, but in this case, the implementation is quite straightforward. The main drawback here is the syntax - it might be that the glyph is just too ugly and it would make the language worse.
 
 
 ## Alternatives
