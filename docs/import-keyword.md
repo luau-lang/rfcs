@@ -27,10 +27,10 @@ local function snapReporter(result: snapty.SnapResult)
 Under the design proposed by this rfc, this might end up looking like:
 
 ```luau
-import combine, 
-       red, green, bold,  
+import combine, red, green, bold,  
        yellow as errlabel, dim as separator from "@batteries/richterm"  
 import format from "@std/path"  
+
 import type FailedTest from "@std/test/types"
 import type SnapResult as SnapshotTestResult from "./snap/types"  
   
@@ -82,11 +82,13 @@ export type Ok = string | typeof(bar)
 import foo, bar from "./A" 
 ```
 
-Will be equivalent to:
+Will be effectively equivalent to:
 
 ```luau
-const foo = require("./A").foo  
-const bar = require("./A").bar
+local _A = require("./A")
+const foo = _A.foo  
+const bar = _A.bar
+_A = nil
 ```
 
 ### Rebinding Unqualified Imports
@@ -102,13 +104,14 @@ print(foo) -- prints nil
 print(bar) -- prints nil
 ```
 
-Will be equivalent to:
+Will be effectively equivalent to:
 
 ```luau  
-const A = require("./A")
-const constantFoo = require("./A").foo  
-const printer = require("./A").bar  
-  
+local _A = require("./A")
+const constantFoo = _A.foo  
+const printer = _A.bar  
+_A = nil
+
 printer()  
 print(constantFoo)  
 
@@ -118,18 +121,20 @@ print(bar)
 
 ### Type Imports
 
-Type imports can exist in the same statement as regular import statements and will support all the standard rebinding we expect.
+Type imports can exist in the same statement as regular import statements and will support all the standard rebinding described above.
 ```luau
 -- Module main.luau  
 import foo, type Wow, type Ok as AliasedOk, from "./A  
 ```
 
-Will be equivalent too:
+Will be effectively equivalent too:
 
 ```luau  
-const foo = require("./A")  
-type Wow = require("./A").Wow  
-type AliasedOk = require("./A").Ok
+local _A = require("./A")
+const foo = _A.foo
+type Wow = _A.Wow  
+type AliasedOk = _A.Ok
+_A = nil
 ```
 
 ### Wildcard Imports
@@ -139,18 +144,20 @@ type AliasedOk = require("./A").Ok
 import * from "./A"
 ```
 
-Equivalent to:
+Effectively equivalent to:
 
-```luau  
-const foo = require("./A").foo  
-const bar = require("./A").bar  
-const bim = require("./A").bim  
+```luau
+local _A = require("./A")
+foo = _A.foo  
+bar = _A.bar  
+bim = _A.bim  
   
-type Wow = require("./A").Wow  
-type Ok = require("./A").Ok
+type Wow = _A.Wow  
+type Ok = _A.Ok
+_A = nil
 ```
 
-
+This has the unfortunate property of mutating the global namespace.
 
 Finally, we'll also support requalifying the wildcard import via `as` syntax:
 
@@ -159,22 +166,42 @@ Finally, we'll also support requalifying the wildcard import via `as` syntax:
 import * as B from "./A"
 ```
 
-Equivalent to:
+Effectively equivalent to:
 
 ```luau
 const B = require("./A")
 ```
 
+### Scoped Imports
+The design here will also support import statements at any scope, except for wildcard imports.
+```luau
+function foo()
+    import foo, bar from "./A" -- yes - evaluates on call
+end
+
+do
+     import foo as aliased from "./A" -- yes!
+     print("hello")
+     import bar from "./A" -- yes!
+     import type Ok from "./A" -- yes! (and elided too)
+end
+
+while true do
+     import * from "./A" -- NO!!!! No wildcard imports
+end
+```
+
+As above, the first two examples will desugar to dynamic requires. We will perform no hoisting on import statements anywhere but the top level.
+
+
 This RFC proposes the following restrictions on imports:
 1) The string passed after `from` must be a static string literal. We will explicitly not support:  
 ```luau  
 local A = "./Mod3"  
-local pathC
 import * from A  
-import * from if math.random() then "./Mod1" else "./Mod2"  
-import * from (function() return "./Mod4" end) ()
+import * from (if math.random() then "./Mod1" else "./Mod2")
+import * from ((function() return "./Mod4" end) ())
 ```
-
 2) Imports at the top level are hoisted, so their effects occur at the beginning of the file.
 3) Non top level imports are treated like dynamic requires.
 
@@ -183,10 +210,19 @@ Finally, imports that contain only types can be trivially elided, and imports th
 ## Drawbacks
 This RFC is explicitly designed with the idea in mind that we cannot support reserving keywords and that we must maintain backwards compatibility. Luau's existing "cool-call" (parenless function call) syntax means that:
 ```luau
-import "..."
-import { ... }
+import "..." -- equivalent to requiring a module name as its own binding
+import { ... } -- destructuring syntax
 ```
-are off the table, since they are valid today as syntax.
+are off the table, since they are valid today as syntax. Trying to parse the second form requires too much backtracking, although this might be more easily disambiguated with a glyph:
+```luau
+import .{ foo as f, bar, type Ok, type Wow as Bim } from "./A"
+```
+
+We also still have to parse:
+```luau
+print(import * from "..")
+```
+as valid syntax within the expression context, which might be confusing to users. There is no ambiguity here, since the only expression allowed in statement position is a function call, and the proposed syntax would parse as a new statement (and is invalid in expression context).
 
 The main implementation related drawback here is the additional work the compiler must be augmented to perform. Specifically, for top level imports, we can perform static require tracing and inlining of modules or even conspire for imported modules and imported subsets of modules to be cached in registers for faster access.
 
@@ -202,16 +238,24 @@ means that we can provide recommendations for imports since we'll know which mod
 This RFC proposes imports as a solution to the issue of overly verbose requires + as a pathway to performing more static analysis at compile time. Table Destructuring syntax can solve the first problem, and formally 'blessing' top level require-by-string with the same static compilation guarantees would solve the latter. As always, we could also not do any of this work.
 
 ## Prior Art
-This section is explicitly focused on other dynamic languages. For the most part, the state of the art does involve unqualified
-and renaming of qualified imports. While all the examples listed support wildcard imports, it's typically considered bad practice to use them as they mutate the global namespace.
+This section is explicitly focused on other dynamic languages. Most commonly used dynamic languages do support unqualified
+and renaming of unqualified imports. While all the examples listed support wildcard imports, it's typically considered bad practice to use them as they mutate the global namespace.
 
 
 ### Python
+Python supports wildcard imports, but rejects them as a parse error at non-top level contexts.
+
 ```python
 import math # imports a module and binds it to the name `math`
 from math import sqrt # only binds sqrt to exported value from the math module
 import math as builtin_math # requalifies the math import
 from math import s
+
+from foo import * # allowed and rewrites the global namespace
+def sum(a, b):
+    from foo import * # not allowed - rejected as a syntax error
+    import foo # allowed! assuming it has a field myfn, 
+    return foo.myfn(a + b)
 ```
 
 ### Javascript / Typescript
