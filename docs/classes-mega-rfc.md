@@ -136,7 +136,7 @@ Unlike tables, which are structurally typed, class types are nominal.  Two diffe
 Inferring the types of class fields is fraught with difficulty, so un-annotated fields are given the type `any`.
 
 The type introduced by a class definition is available anywhere in its lexical scope, following the same scoping rules as explicitly defining a type alias.
-If two classes with the same name are defined in the same scope, a type error will be reported and the type will be replaced with `any`.
+If multiple classes with the same name are defined in the same scope, a type error will be reported and the types of all involved classes will be replaced with `any`.
 
 The `class.isa` function participates in refinement:
 
