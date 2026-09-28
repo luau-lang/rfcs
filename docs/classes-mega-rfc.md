@@ -136,13 +136,15 @@ Unlike tables, which are structurally typed, class types are nominal.  Two diffe
 Inferring the types of class fields is fraught with difficulty, so un-annotated fields are given the type `any`.
 
 The type introduced by a class definition is available anywhere in its lexical scope, following the same scoping rules as explicitly defining a type alias.
-If multiple classes with the same name are defined in the same scope, a type error will be reported and the types of all involved classes will be replaced with `any`.
+Multiple classes with the same name can inhabit the same scope at runtime.
+However, type inference is complicated in this situation because class declarations introduce identifiers into both the value and type namespace.
+For now, we resolve this complexity by enforcing that if multiple classes with the same name are defined in the same scope, a type error will be reported and the types of all involved classes will be typed as `any`.
 
 ```luau
 local class Point
 end
 
--- type error reported: both classes become typed as `any`
+-- type error reported; both classes become typed as `any`
 -- still valid at runtime, with the second `Point` shadowing the first
 local class Point
 end
