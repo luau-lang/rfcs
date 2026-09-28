@@ -138,6 +138,16 @@ Inferring the types of class fields is fraught with difficulty, so un-annotated 
 The type introduced by a class definition is available anywhere in its lexical scope, following the same scoping rules as explicitly defining a type alias.
 If multiple classes with the same name are defined in the same scope, a type error will be reported and the types of all involved classes will be replaced with `any`.
 
+```luau
+local class Point
+end
+
+-- type error reported: both classes become typed as `any`
+-- still valid at runtime, with the second `Point` shadowing the first
+local class Point
+end
+```
+
 The `class.isa` function participates in refinement:
 
 ```luau
@@ -157,9 +167,6 @@ The action of a class definition statement is to allocate the class object, defi
 
 Because class definition is a statement, class methods can capture upvalues just like ordinary functions do.
 
-One divergence from functions is that we do not support defining a class within an existing table: `class SomeTable.SomeClass ... end`.
-The current design is entirely forwards compatible with this if desired in the future.
-
 ```luau
 local globalCount = 0
 
@@ -173,6 +180,10 @@ class Counter
     end
 end
 ```
+
+One divergence from functions is that we do not support defining a class within an existing table: `class SomeTable.SomeClass ... end`.
+The current design is entirely forwards compatible with this if desired in the future.
+
 ### Scoping
 
 In terms of assignment semantics, `class` and `local class` behave identically to `function` and `local function`.
