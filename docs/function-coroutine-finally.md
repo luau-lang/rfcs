@@ -85,15 +85,17 @@ Checks if 'finally' callbacks have been installed on a thread `L`.
 Returns 1 if it has and 0 otherwise.
 
 ```c
-LUA_API void lua_pushfinalizerfunction(lua_State* L);
+LUA_API void lua_pushfinalizerfunction(lua_State* L, lua_State* co, int toclose);
 ```
 
-Places a 'finalization' function on top of the stack.
-This function expects a coroutine ('co') as the argument and will perform the callback dispatch.
+Places a function which will run 'finally' callbacks for the thread `co` on top of the stack.
 
-`co` cannot be the thread executing the function.
-`co` must have reached its completion.
-`co` must have pending callbacks as reported by `lua_hasfinalizers`.
+When `toclose` is not zero, thread `co` is cancelled and reset, as if by calling `coroutine.close`.
+
+- `co` cannot be the thread executing the function.
+- `co` must have pending callbacks as reported by `lua_hasfinalizers`.
+- `co` must have reached its completion if `toclose` is 0.
+- `co` must not be in error or break state if `toclose` is not 0.
 
 Note that the host is not required to run 'finally' callbacks after each terminal `lua_resume`.
 Host should run the 'finalization' function after terminal resumes performed by their own scheduler (for example on threads that have used host-provided yielding primitives).
@@ -101,6 +103,7 @@ User-defined coroutine lifecycles using `coroutine.resume`/`coroutine.close` do 
 
 Function returns the coroutine results or raises an error.
 It can also yield if any of the callbacks yields.
+It can only be called once, subsequent calls will raise an error.
 Recommended way is to run it using either `lua_resume` or `lua_pcallyieldable`.
 
 ```c
