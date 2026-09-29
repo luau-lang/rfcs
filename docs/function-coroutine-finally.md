@@ -293,7 +293,7 @@ This gives Lua 5.4 scoped, deterministic cleanup similar to RAII in C++.
 One major difference is that to-be-closed variables require new language syntax and VM support for the variable annotation and running the handlers.
 `coroutine.finally` provides more coarse-grained (thread vs scope) cleanup guarantees as a plain library function with no other changes to the language.
 
-Go has [`defer`](https://go.dev/blog/defer-panic-and-recover) in a similar way to to Lua 5.4.
+Go has [`defer`](https://go.dev/blog/defer-panic-and-recover) in a similar way to Lua 5.4.
 Deferred calls run on normal return and during panic unwinding, but cannot be attached externally to observe another goroutine's lifecycle.
 
 ## Alternatives
@@ -314,4 +314,4 @@ This adds complexity to the API surface; the minimal design here can be extended
 The name `coroutine.onclose` was considered but rejected because the callback fires on all terminal events (return, error, close), not just `coroutine.close`.
 The name `finally` communicates "runs regardless of outcome," mirroring the widely understood semantics of `try/finally` in other languages.
 
-This RFC does not close the possibility of a lexically-scoped finalizers in the feature, but is valuable enough on its own so that if a feature like 'to-be-closed' is added, `coroutine.finally` remains relevant.
+This RFC does not close the possibility of a lexically-scoped finalizers in the future, but is valuable enough on its own so that if a feature like 'to-be-closed' is added, `coroutine.finally` remains relevant.
