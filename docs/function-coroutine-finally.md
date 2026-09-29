@@ -277,7 +277,7 @@ If a coroutine is abandoned (becomes unreachable without being closed or run to 
 
 ## Prior Art
 
-Python has [`asyncio`](hhttps://docs.python.org/3/library/asyncio-task.html) where it's possible to attach completion callbacks to a scheduled task.
+Python has [`asyncio`](https://docs.python.org/3/library/asyncio-task.html) where it's possible to attach completion callbacks to a scheduled task.
 The callback receives the task object and can inspect its result, error, or cancellation state.
 
 JavaScript implements a [`Promise`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise) which invokes callbacks after a promise settles.
