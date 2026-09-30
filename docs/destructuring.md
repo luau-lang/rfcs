@@ -63,7 +63,7 @@ buffer.writeu8(buf, cursor + 1 + sl, 0x22)
 ## Design
 This RFC proposes the following syntax to support table destructuring.
 ```luau
-local .{fieldA, fieldB} = {"fieldA" = 1, "fieldB" = 2, "fieldC" = 3}
+local .{fieldA, fieldB} = {["fieldA"] = 1, ["fieldB"] = 2, ["fieldC"] = 3}
 print(fieldA) -- prints 1
 print(fieldB) -- prints 2
 ```
