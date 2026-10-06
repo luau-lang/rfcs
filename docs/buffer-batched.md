@@ -16,35 +16,28 @@ Working closely with buffers often requires verbose loops or repeated function c
 - **Current:** `buffer.read*(buffer: buffer, index: number) -> number`
 - **Proposed:** `buffer.unpack*(buffer: buffer, index: number, count: number) -> ...number`
 
+Providing a number literal to `count`, with 3 as an example, would make use of a magic function transforming `-> ...number` to `-> (number, number, number)`. 
+
 Batched reads allow direct forwarding of return values into constructors or any Luau function accepting `...number`.
 
 Example: Consolidating the need for type-specific buffer read/writes originating from [the luau team's RFC](https://github.com/luau-lang/rfcs/pull/198):
 
 *Current Luau capabilities:*
 ```luau
-local VECTOR_NDIM = pcall(function() return (vector.one :: any).w end) and 4 or 3
-local VECTOR_SIZEOF = VECTOR_NDIM * 4
+local VECTOR_BYTES = 4 -- Default is f32, 4 bytes
+local VECTOR_WIDTH = 3 -- Default is 3 components
+local VECTOR_SIZEOF = VECTOR_WIDTH * VECTOR_BYTES
 
-local function buf_ReadVec3(buf: buffer, i: number)
+local function buffer_readvector(buf: buffer, i: number): (number, number, number)
   return
     buffer.readf32(buf, i),
     buffer.readf32(buf, i + 4),
     buffer.readf32(buf, i + 8)
 end
 
-local function buf_ReadVec4(buf: buffer, i: number)
-  return
-    buffer.readf32(buf, i),
-    buffer.readf32(buf, i + 4),
-    buffer.readf32(buf, i + 8),
-    buffer.readf32(buf, i + 12)
-end
-
-local buf_ReadVec = if VECTOR_NDIM == 4 then buf_ReadVec4 else buf_ReadVec3
-
 local function doThing(buf: buffer)
   for i = 0, buffer.len(buf) - 1, VECTOR_SIZEOF do
-    local v = (vector.create :: any)(buf_ReadVec(buf, i))
+    local v = vector.create(buffer_readvector(buf, i))
     -- ...
   end
 end
@@ -52,16 +45,16 @@ end
 doThing(buffer.create(128 * VECTOR_SIZEOF))
 ```
 
-*Proposed batch approach:*
+*Proposed batch approach, in `--!strict` mode:*
 ```luau
-local VECTOR_NDIM = pcall(function() return (vector.one :: any).w end) and 4 or 3
-local VECTOR_SIZEOF = VECTOR_NDIM * 4
-
--- No 'buf_ReadVec' function needed; less logic to be considered, removing complexity from interacting with buffers in this case.
+--!strict
+local VECTOR_BYTES = 4 -- Default is f32, 4 bytes
+local VECTOR_WIDTH = 3 -- Default is 3 components
+local VECTOR_SIZEOF = VECTOR_WIDTH * VECTOR_BYTES
 
 local function doThing(buf: buffer)
   for i = 0, buffer.len(buf) - 1, VECTOR_SIZEOF do
-    local v = (vector.create :: any)(buffer.unpackf32(buf, i, VECTOR_NDIM))
+    local v = vector.create(buffer.unpackf32(buf, i, 3))
     -- ...
   end
 end
@@ -93,7 +86,8 @@ end
 *Proposed batched approach (`buffer.unpacku32`, `buffer.packu8`):*
 ```luau
 local function u32_to_u8(from_b: buffer, to_b: buffer, from_i: number, to_i: number, from_n: number)
-  buffer.packu8(to_buf, to_i, buffer.unpacku32(from_buf, from_i, from_n))
+  -- buffer.pack* accepts `...number`; inline unpacking is valid in `--!strict`
+  buffer.packu8(to_b, to_i, buffer.unpacku32(from_b, from_i, from_n))
 end
 ```
 
@@ -101,38 +95,32 @@ end
 
 *Current Luau capabilities (`buffer.writef32`):*
 ```luau
-local VECTOR_NDIM = pcall(function() return (vector.one :: any).w end) and 4 or 3
-local VECTOR_SIZEOF = VECTOR_NDIM * 4
+local VECTOR_BYTES = 4 -- Default is f32, 4 bytes
+local VECTOR_WIDTH = 3 -- Default is 3 components
+local VECTOR_SIZEOF = VECTOR_WIDTH * VECTOR_BYTES
 
-local function buf_WriteVec3(buf: buffer, i: number, vX: number, vY: number, vZ: number)
+local function buffer_writevector(buf: buffer, i: number, vX: number, vY: number, vZ: number)
   buffer.writef32(buf, i, vX)
   buffer.writef32(buf, i + 4, vY)
   buffer.writef32(buf, i + 8, vZ)
 end
 
-local function buf_WriteVec4(buf: buffer, i: number, vX: number, vY: number, vZ: number, vW: number)
-  buffer.writef32(buf, i, vX)
-  buffer.writef32(buf, i + 4, vY)
-  buffer.writef32(buf, i + 8, vZ)
-  buffer.writef32(buf, i + 12, vW)
-end
-
-local buf_WriteVec = if VECTOR_NDIM == 4 then buf_WriteVec4 else buf_WriteVec3
 local b = buffer.create(VECTOR_SIZEOF)
 local v = vector.one
-buf_WriteVec(b, 0, v.x, v.y, v.z, VECTOR_NDIM == 4 and (v :: any).w)
+buffer_writevector(b, 0, v.x, v.y, v.z)
 ```
 
 *Proposed batch approach (`buffer.packf32`):*
 ```luau
-local VECTOR_NDIM = pcall(function() return (vector.one :: any).w end) and 4 or 3
-local VECTOR_SIZEOF = VECTOR_NDIM * 4
+local VECTOR_BYTES = 4 -- Default is f32, 4 bytes
+local VECTOR_WIDTH = 3 -- Default is 3 compoonents
+local VECTOR_SIZEOF = VECTOR_WIDTH * VECTOR_BYTES
 
--- No 'buf_WriteVec' function needed; less logic to be considered, removing complexity from interacting with buffers in this case.
+-- No 'buffer_writevector' helper function needed
 
 local b = buffer.create(VECTOR_SIZEOF)
 local v = vector.one
-buffer.packf32(b, 0, v.x, v.y, v.z, VECTOR_NDIM == 4 and (v :: any).w)
+buffer.packf32(b, 0, v.x, v.y, v.z)
 ```
 
 ### Emergent Patterns
