@@ -276,10 +276,13 @@ type Z = A & D -- {x: number}
 type W = C & D -- {x: number, y: string}
 ```
 
-Luau presently offers no set-theoretic operator that can combine an `{x: number}` with a
-`{y: string}` to build a `{x: number, y: string}`.  Developers can effect this with a type function.
-We could consider a type-level `..` operator for combining disjoint tables.  eg
-`type Combined = {x: number} .. {y: string}`.
+Luau presently offers no set-theoretic operator that can combine an `{x: number}` with a `{y:
+string}` to build a `{x: number, y: string}`.  Developers can effect this with a type function if
+they must.
+
+In a future revision, we could consider a type-level `..` operator for combining disjoint tables. eg
+`type Combined = {x: number} .. {y: string}`.  However, this RFC does not propose such an operator
+because it's unclear as to how it could be useful.
 
 ## Drawbacks
 
