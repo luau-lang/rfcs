@@ -73,7 +73,7 @@ for `Vec3` since it does not take into account the `z`-component. While we could
 that instead worked for both, it may be reasonable to instead say that this function only operates
 on the _exact_ table. While this particular example is admittedly a bit contrived,
 [similar proposals][ts-exact-types] for other languages like TypeScript have collected many examples
-where API designers wanted to be able specify exact types. One general pattern of use cases is 
+where API designers wanted to be able specify exact types. One general pattern of use cases is
 state machines where you might define a number of types representing individual states and then a
 union over all such types. With only inexact types, the type system permits undesirable combinations
 that can introduce unwanted behavior in code using the state machine.
@@ -141,6 +141,8 @@ actually have (since tables with arbitrarily many additional properties can be a
 inexact table type). The author is unaware of existing syntax that carries the same strong
 connotation, but for exactness. One proposal discussed in the alternatives would be to follow Flow
 in using `{| x: number, y: number |}` to mean a sealed, exact table.
+
+### Parameter Inference
 
 Though we are proposing to make the default interpretation of table _annotations_ sealed and exact,
 we maintain that the sensible default inference behavior is to default to inferring inexact table
@@ -213,6 +215,18 @@ end
 In this case, `t` has two constraints: one indicating that it should be the exact table type
 `{x: number, y: number}` and the other indicating that it should have the property `z`. These
 constraints cannot be reconciled, and so we will get an error at the call site of `dootherstuff`.
+
+### Direct Table Construction
+
+When a table is directly created, we will infer an exact table.
+
+```luau
+local t = {}
+t.foo = 0
+function t.bar() end
+
+-- t : { foo: number, bar: () -> () }
+```
 
 ### Subtyping
 
