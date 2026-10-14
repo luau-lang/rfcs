@@ -6,8 +6,8 @@
 
 ## Motivation
 
-calling `table.clone` unfreezes frozen tables. This can be a useful
-pattern when treating tables immutably:
+calling `table.clone` unfreezes frozen tables at runtime. This can be
+a useful pattern when treating tables immutably:
 
 ```luau
 const value = table.clone(get())
