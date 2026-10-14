@@ -39,6 +39,8 @@ type function unfreeze(tbl: type)
 			tbl:setwriteindexer(read_indexer.index, read_indexer.result)
 		end
 	end
+
+	return tbl
 end
 ```
 
