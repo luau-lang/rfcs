@@ -84,5 +84,5 @@ type removereadonly<T> = {
 ```
 
 Typescript has `readonly<T>` as a utility type, which Luau does not.
-However, Luau could (and in my opinion should) introduce one. Doing so
-is not exclusive with this RFC.
+However, Luau could (and maybe should) introduce one. Doing so is not
+exclusive with this RFC.
