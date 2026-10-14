@@ -25,7 +25,7 @@ a table with `read` only properties and/or indexers will still be
 as a UDTF, it could look something like this:
 
 ```luau
-type function unfreeze(tbl: type)
+type function unfreeze(tbl: type): type
 	for field, prop in tbl:properties() do
 		if not prop.write then
 			tbl:setwriteproperty(field, prop.read)
