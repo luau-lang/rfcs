@@ -23,7 +23,7 @@ Before opening an RFC, consider how your change interacts with other existing co
 
 ### Is your feature compositional?
 
-We often propose new features to solve a problem users currently have. However, language changes do not exist in a vacuum, and not all features will compose nicely with each other. We consider removing features impossible, and judge new language features with that bar in mind.
+We often propose new features to solve a problem users currently have. However, language changes do not exist in a vacuum, and not all features will compose nicely with each other. We consider removing features impossible: features that do not compose well together will be stuck in that state _forever_.
 
 ### Do I need to care about performance?
 
