@@ -1,33 +1,12 @@
 Background
 ===
 
-Whenever Luau language changes its syntax or semantics (including behavior of builtin libraries), we need to consider many implications of the changes.
-
-Whenever new syntax is introduced, we need to ask:
-
-- Is it backwards compatible?
-- Is it easy for machines and humans to parse?
-- Does it create grammar ambiguities for current and future syntax?
-- Is it stylistically coherent with the rest of the language?
-- Does it present challenges with editor integration like autocomplete?
-
-For changes in semantics, we should be asking:
-
-- Is behavior easy to understand and non-surprising?
-- Can it be implemented performantly today?
-- Can it be sandboxed assuming malicious usage?
-- Is it compatible with type checking and other forms of static analysis?
-
-For new standard library functions, we should be asking:
-
-- Is the new functionality used/useful often enough in existing code?
-- Does the standard library implementation carry important performance benefits that can't be achieved in user code?
-- Is the behavior general and unambiguous, as opposed to solving a problem / providing an interface that's too specific?
-- Is the function interface amenable to type checking / linting?
+New user facing changes to Luau require deep consideration due to myriad downstream impacts. An RFC process ensures that we are able to consider
+the many implications of those changes and can effectively evolve the language in the best way possible.
 
 In addition to these questions, we also need to consider that every addition carries a cost, and too many features will result in a language that is harder to learn, harder to implement and ensure consistent implementation quality throughout, slower, etc. In addition, any language is greater than the sum of its parts and features often have non-intuitive interactions with each other.
 
-Since reversing these decisions is incredibly costly and can be impossible due to backwards compatibility implications, all user facing changes to Luau language and core libraries must go through an RFC process.
+Reversing these decisions is incredibly costly and can be impossible due to backwards compatibility implications, so all user facing changes to Luau language and core libraries must go through an RFC process.
 
 RFC Design Principles
 ===
@@ -51,6 +30,28 @@ We often propose new features to solve a problem users currently have. However, 
 When we design language features, we should consider whether the feature is good for the language as a whole. Generic statements about a feature being non-performant are not useful without evidence, and oftentimes it is impossible to know without implementing the feature. Historically, the first implementation of a new language feature might be non-performant, but with additional time and care, can be made much faster. The introduction of your change should not regress performance for users who decide not to use this feature. Features developed under the RFC process explicitly spend time in an experimental/debug state internally so any performance issues may be surfaced at this time.
 Your change is runtime focused, what about the type system?
 Changes to the runtime should also articulate what changes to the type system will occur. The type system may reject programs, but is ultimately an optional extension to the language. Additionally, changes that are type system forward need to consider the runtime behavior: types are optional and are not present at runtime, so features which depend on type inference for runtime behavior will be rejected outright.
+
+### Other questions you should think about:
+Whenever new syntax is introduced, you should also think about:
+
+- Is it easy for machines and humans to parse?
+- Is it stylistically coherent with the rest of the language?
+- Does it present challenges with editor integration like autocomplete?
+
+For changes in semantics, we should be asking:
+
+- Is behavior easy to understand and non-surprising?
+- Can it be sandboxed assuming malicious usage?
+- Is it compatible with type checking and other forms of static analysis?
+
+For new standard library functions, we should be asking:
+
+- Is the new functionality used/useful often enough in existing code?
+- Does the standard library implementation carry important performance benefits that can't be achieved in user code?
+- Is the behavior general and unambiguous, as opposed to solving a problem / providing an interface that's too specific?
+- Is the function interface amenable to type checking / linting?
+
+
 
 ## Non-constraints
 
