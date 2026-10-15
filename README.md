@@ -28,7 +28,9 @@ We often propose new features to solve a problem users currently have. However, 
 ### Do I need to care about performance?
 
 When we design language features, we should consider whether the feature is good for the language as a whole. Generic statements about a feature being non-performant are not useful without evidence, and oftentimes it is impossible to know without implementing the feature. Historically, the first implementation of a new language feature might be non-performant, but with additional time and care, can be made much faster. The introduction of your change should not regress performance for users who decide not to use this feature. Features developed under the RFC process explicitly spend time in an experimental/debug state internally so any performance issues may be surfaced at this time.
-Your change is runtime focused, what about the type system?
+
+### Your change is runtime focused, what about the type system?
+
 Changes to the runtime should also articulate what changes to the type system will occur. The type system may reject programs, but is ultimately an optional extension to the language. Additionally, changes that are type system forward need to consider the runtime behavior: types are optional and are not present at runtime, so features which depend on type inference for runtime behavior will be rejected outright.
 
 ### Other questions you should think about:
