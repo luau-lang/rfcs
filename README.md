@@ -34,7 +34,7 @@ RFC Design Principles
 
 This section (non-exhaustively) articulates some design principles RFCs should follow.
 
-** Examples, examples, examples! **
+**Examples, examples, examples!**
 
 Talking about code in the abstract is hard. The more examples you provide of your feature, the easier it is for everyone to participate in the discussion and visualize what life will be like with it. Feel free to draw upon prior art, especially if you cite the design of those features.
 
@@ -55,6 +55,7 @@ Changes to the runtime should also articulate what changes to the type system wi
 ### Non-constraints
 
 **Backtracking**
+
 Historically, the Luau team has rejected RFCs that would require parser backtracking. This was originally done to keep our LL(2) parser simple to write, easy to reason about, and performant. 
 
 After much deliberation, the Luau team is lifting the blanket restriction on language features that involve parser backtracking or unbounded lookahead (as of Oct 15, 2026). Our new policy is to consider new features that would benefit from the lifting of this restriction on a case by case basis, paying careful attention to performance, the editor experience (syntax highlighting, autocomplete etc), and ergonomics. Our aim is still to ensure that our parser still remains reasonably fast, and that the error messages are of high quality.
