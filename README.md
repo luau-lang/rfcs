@@ -19,7 +19,7 @@ Talking about code in the abstract is hard. The more examples you provide of you
 
 ### Is your change backwards compatible?
 
-Before opening an RFC, consider how your change interacts with other existing code. Luau has a fairly generous backwards compatibility guarantee: there are no tools for versioning such as epochs, language editions, or standards. If you are introducing new syntax, how might this interact with paren-less function calls in Luau? How might it interact with code using your new keyword as an identifier? You should have good answers to these questions.
+Before opening an RFC, consider how your change interacts with other existing code. Luau has a fairly generous backwards compatibility guarantee: there are no tools for versioning such as epochs, language editions, or standards. Some common backwards compatibility concerns include: how might this feature interact with paren-less function calls in Luau? How might it interact with code using your new keyword as an identifier?
 
 ### Is your feature compositional?
 
