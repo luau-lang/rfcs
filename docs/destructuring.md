@@ -2,8 +2,7 @@
 This RFC proposes (yet another) table destructuring syntax for Luau to make it convenient for Luau programmers to extract table keys.
 
 ## Summary
-Table destructuring is a common ask for Luau of how often programmers interact with tables. It is a convenience feature, intended to make it syntactically easy to write programs that unpack table values in a single line of code. Prior RFC's have suggested similar syntax, but these have often suffered from excess verbosity or would break backwards compatibility. This RFC
-suggests a third way forward.
+Table destructuring is a common ask for Luau because of how often programmers interact with tables. It is a convenience feature, intended to make it syntactically easy to write programs that unpack table values in a single line of code. Prior RFC's have suggested similar syntax, but these have often suffered from excess verbosity or would break backwards compatibility. This RFC requires us to perform unbounded lookahead in the lexer, but in return, provides us a symmetric syntax for constructing and destructuring tables.
 
 ## Motivation
 Broadly, this feature makes it easier to work with tables. 
@@ -30,8 +29,8 @@ would become:
 ```luau
 function fslib.removeDirectory(path: Pathlike, options: RemoveDirectoryOptions?): ()
 	...
-    for _, .{name, type as entryType} in entries do
-				local entryPath = pathlib.join(path, entry)
+    for _, {name = name, type = entryType} in entries do
+				local entryPath = pathlib.join(path, name)
 				if entryType == "dir" then
 					fslib.removeDirectory(entryPath, { recursive = true })
 				else
@@ -54,29 +53,30 @@ buffer.writeu8(buf, cursor + 1 + sl, 0x22)
 
 would become:
 ```luau
-local .{buf, cursor} = state
+local {buf = buf, cursor = cursor} = state
 buffer.writeu8(buf, cursor, 0x22)
 buffer.writestring(buf, cursor + 1, escaped)
 buffer.writeu8(buf, cursor + 1 + sl, 0x22)
 ```
 
 ## Design
-This RFC proposes the following syntax to support table destructuring.
+This RFC proposes the following syntax to support table and array destructuring.
+
 ```luau
-local .{fieldA, fieldB} = {"fieldA" = 1, "fieldB" = 2, "fieldC" = 3}
+local {fieldA = fieldA, fieldB = fieldB} = {"fieldA" = 1, "fieldB" = 2, "fieldC" = 3}
 print(fieldA) -- prints 1
 print(fieldB) -- prints 2
 ```
 as well as `const`:
 ```luau
-const .{fieldA, fieldB} = {"fieldA" = 1, "fieldB" = 2, "fieldC" = 3}
+const {fieldA = fieldB, field = fieldB} = {"fieldA" = 1, "fieldB" = 2, "fieldC" = 3}
 print(fieldA) -- prints 1
 print(fieldB) -- prints 2
 ```
 
-Moreover, we will also support punning fields via `as` syntax:
+This syntax is symmetric with table construction, so we get renaming of fields for free:
 ```luau
-const .{fieldA as bing, fieldB as bong} = {"fieldA" = 1, "fieldB" = 2, "fieldC" = 3}
+const {fieldA = bing, fieldB = bong} = {"fieldA" = 1, "fieldB" = 2, "fieldC" = 3}
 print(fieldA) -- nil
 print(bing) -- 1
 print(bong) -- 2
@@ -84,26 +84,45 @@ print(bong) -- 2
 
 We should also support arbitrary levels of nesting:
 ```luau
-const .{fieldA as bing, fieldB as .{bing, bong}} = {"fieldA" = 1, "fieldB" = {"bing" = false, "bong" = true}, "fieldC" = 3}
-print(fieldA) -- nil
+const {fieldA = renamed, fieldB = {bing = bing, bong = bong}} = {"fieldA" = 1, "fieldB" = {"bing" = false, "bong" = true}, "fieldC" = 3}
+print(renamed) -- 1
 print(bing) -- false
 print(bong) -- true
 ```
+Destructuring expressions are processed from left to right, and outside in, so a field that introduces a fresh binding may get shadowed by a later destructuring expression.
+
 Finally, one would expect to see table destructuring at other points where bindings get introduced too:
 ```luau
-function foo(.{x, y} : ...)
-    print(x,y)
-end
-
-for k, .{x, y} in {{x = "1", y = "1"}, {x = "2", y = "3"}, {x = "5", y = "8"}} do
+for k, {x = x, y = y} in {{x = "1", y = "1"}, {x = "2", y = "3"}, {x = "5", y = "8"}} do
     print(x, y) -- prints 1,1\n2,3\n,5,8\n
 end
+
+if local {x = x, y = y} = {x = 1, y = 2, z = 3} then
+    print(x, y)
+end
+
+for _, {x, y} in {{"a", "b"}, {"c", "d"}, {"e", "f"}} do
+	print(x,y)
+end
+
 ```
 
-Tables destructuring syntax will be explicitly disambiguated by a new glyph. We must do so, otherwise we risk incurring excess backtracking and ambiguity in the grammar. The classic example here is a function named const:
+We will also explicitly support array destructuring for symmetry with the above feature.
+
+For example:
 ```luau
-local local = function(x) end
+local {x, y, z} = {1,2,3,4,5}
+print(x, y, z) -- prints 1, 2, 3
+
+```
+
+This feature will explicitly use lookahead in the lexer to disambiguate in this situation whether we are trying to parse a paren-less call to a function named `const` or a const destructuring. There is a possible performance penalty here, and we must pay special care to avoid providing poor error messages. In practice, calling a function named `const` is so unlikely that we should consider whether this regression is acceptable.
+
+```luau
+local const = function(x) end
 const {x, y} -- equivalent to const({x, y})
+
+const {x, y} = ... -- destructuring
 ```
 In Luau, function calls may omit parenthesis, and are valid as both expressions and statements.
 Without a glyph, we would have to pay for an explicit sweep forward until the end of the array, before deciding if we
@@ -112,7 +131,7 @@ are evaluating a function call or a structured binding. A glyph makes this expli
 
 The semantics of structured bindings are as follows:
 ```luau
-local .{fieldA, fieldB} = {"fieldA" = 1, "fieldB" = 2, "fieldC" = 3}
+local {fieldA = fieldA, fieldB = fieldB} = {"fieldA" = 1, "fieldB" = 2, "fieldC" = 3}
 ```
 will effectively be:
 ```luau
@@ -125,7 +144,7 @@ Fields that do not exist will be bound to nil.
 
 Nested accesses, such as:
 ```luau
-local .{fieldA as .{A, C}} = {fieldA = {A = 1, B = 2, C = 3}}
+local {fieldA = {A = A, C = C}} = {fieldA = {A = 1, B = 2, C = 3}}
 ```
 will effectively be:
 ```luau
@@ -135,55 +154,46 @@ local C = rhs.fieldA.C
 _rhs = nil
 ```
 
-Finally, destructured tables will compose neatly with the `if local` feature:
+Finally, the semantics for destructuring arrays:
 ```luau
-if local .{x , y} = foo() then
-end
+local {x, y, z} = foo()
 ```
-In this case, the runtime here will evaluate `foo()` and bind the values in the return table to the identifiers `x` and `y` in the then block.
-
-This RFC also proposes that the grammar for structured imports reserves `type ident` as a possible assignee. This is to make it convenient to work with associated table types / requires:
+will effectively be:
 ```luau
-const .{type X, type Y as Z} = require("./A")
-const .{foo, type X, type Y as Z} = require("./A")
-```
-Type bindings can also be elided, but will desugar to the equivalent table access used to define types:
-```luau
-local _rhs = require("./A")
-type X = rhs.X
+local _rhs = foo()
+local x = _rhs[1]
+local y = _rhs[2]
+local z = _rhs[3]
 _rhs = nil
 ```
 
+
+
+
 ## Drawbacks
-Most features take on implementation drawbacks, but in this case, the implementation is quite straightforward. The main drawback here is the syntax - it might be that the glyph is just too ugly and it would make the language worse.
+The main drawback of this feature is that when examining a const binding, we will have to do lookahead to determine whether or not we are using an identifier named `const` as a paren-less function call:
+```luau
+const = function() end
+const { x = 1, y = 2}
+```
+or as a structured binding:
+```luau
+const {x = x, y = y} = ...
+```
+This requires potentially unbounded lookahead, but once we balance out braces, once we see the first `equals` sign, we can disambiguate which of the above cases we are trying to parse. The main issue is here is increased lexing complexity, a more complicated parser, and a possible regression in error message quality. This will require more work to get right, and may cause users of `const` as an identifier to incur a performance penalty during parsing. However, we have determined that this is rather unlikely, and so by predictively parsing as a structured binding, we are likely to not have to roll back lexer state.
 
 
 ## Alternatives
-One possible option is to co-opt the same syntax used by tables instead of introducing a new `as` keyword:
+One possible option is to use a glyph instead of introducing a new parsing rule that requires us to use unbounded lookahead:
 ```luau
 const .{x = reboundX, y = reboundY, z = .{reboundU, reboundV}} = makeATable()
 ```
-OCaml uses this approach too, but a reasonable objection might be that assignment *to* usually occcurs on the lhs. 
-Moreover, the glyph means we might be able to avoid nested `.` inside of this destructuring statement, if that is also
-too verbose.
-If we end up not hating the glyph approach, we could also consider extending this syntax to `[]` for sugar over unpack:
-```luau
-const .[x, y] = {1, 2}
-```
-
-This RFC is written assuming that incurring the backtracking is untenable and that we'd need to design around this. As always,
-we could just do nothing.
-
 
 ## Non-goals
-This RFC explicitly does not propose a destructuring syntax for 'arrays'. Luau notionally supports arrays - these are effectively
-tables with numeric keys:
+This RFC explicitly does not propose extracting types from a table. This is because most tables in the language (aside from require, which is treated specially)
+do not have any implicitly associated types. Thus, we will not support:
 ```luau
-local x = {"a", "b", "c"} -- { [1] = "a", [2] = "b", [3] = "c"}
-```
-The runtime provides `table.unpack`, which lets you destructure arrays as:
-```luau
-local a,b,c = table.unpack(x)
+local {type x = x, ...} = require("./someModule")
 ```
 
 ## Prior Art
