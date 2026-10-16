@@ -105,8 +105,6 @@ for _, {x, y} in {{"a", "b"}, {"c", "d"}, {"e", "f"}} do
 	print(x,y)
 end
 
-function f({x = x, y = y})
-end
 ```
 
 We will also explicitly support array destructuring for symmetry with the above feature.
@@ -183,6 +181,9 @@ do not have any implicitly associated types. Thus, we will not support:
 local {type x = x, ...} = require("./someModule")
 ```
 Supporting this would also break the symmetry with table construction - there is no way to place a type in a table.
+
+Finally, we will explicitly not support destructuring expressions in function argument position. The motivation for doing this is that we've previously declined RFCs for changes to function declarations that would affect the call time behaviour. One such feature was default arguments.
+Not supporting this here doesn't prevent us from re-litigating this topic for discussion, and this RFC as written, would not prevent us from adopting destructuring in function arguments. 
 
 ## Prior Art
 Table destructuring is a common feature in many languages - Javascript, Python, OCaml, Zig all support this.
