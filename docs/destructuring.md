@@ -5,14 +5,14 @@ This RFC proposes (yet another) table destructuring syntax for Luau to make it c
 Table destructuring is a common ask for Luau because of how often programmers interact with tables. It is a convenience feature, intended to make it syntactically easy to write programs that unpack table values in a single line of code. Prior RFC's have suggested similar syntax, but these have often suffered from excess verbosity or would break backwards compatibility. This RFC requires us to perform unbounded lookahead in the lexer, but in return, provides us a symmetric syntax for constructing and destructuring tables.
 
 ## Motivation
-Broadly, this feature makes it easier to work with tables. 
+This feature makes it easier to work with tables. 
 
 ### Example 1
 Abbreviated from [lute](https://github.com/luau-lang/lute/blob/8965cd90c1a23bc56f017eb0fc973a0e0c5e8291/lute/std/libs/fs.luau#L224)
 
 ```luau
 function fslib.removeDirectory(path: Pathlike, options: RemoveDirectoryOptions?): ()
-	...
+    ...
     for _, entry in entries do
 				local entryPath = pathlib.join(path, entry.name)
 				if entry.type == "dir" then
@@ -28,7 +28,7 @@ end
 would become:
 ```luau
 function fslib.removeDirectory(path: Pathlike, options: RemoveDirectoryOptions?): ()
-	...
+    ...
     for _, {name = name, type = entryType} in entries do
 				local entryPath = pathlib.join(path, name)
 				if entryType == "dir" then
@@ -104,6 +104,9 @@ end
 for _, {x, y} in {{"a", "b"}, {"c", "d"}, {"e", "f"}} do
 	print(x,y)
 end
+
+function f({x = x, y = y})
+end
 ```
 
 We will also explicitly support array destructuring for symmetry with the above feature.
@@ -113,15 +116,6 @@ For example:
 local {x, y, z} = {1,2,3,4,5}
 print(x, y, z) -- prints 1, 2, 3
 
-```
-
-This feature will explicitly use lookahead in the lexer to disambiguate in this situation whether we are trying to parse a paren-less call to a function named `const` or a const destructuring. There is a possible performance penalty here, and we must pay special care to avoid providing poor error messages. In practice, calling a function named `const` is so unlikely that we should consider whether this regression is acceptable.
-
-```luau
-local const = function(x) end
-const {x, y} -- equivalent to const({x, y})
-
-const {x, y} = ... -- destructuring
 ```
 
 
@@ -163,9 +157,6 @@ local z = _rhs[3]
 _rhs = nil
 ```
 
-
-
-
 ## Drawbacks
 The main drawback of this feature is that when examining a const binding, we will have to do lookahead to determine whether or not we are using an identifier named `const` as a paren-less function call:
 ```luau
@@ -191,6 +182,7 @@ do not have any implicitly associated types. Thus, we will not support:
 ```luau
 local {type x = x, ...} = require("./someModule")
 ```
+Supporting this would also break the symmetry with table construction - there is no way to place a type in a table.
 
 ## Prior Art
 Table destructuring is a common feature in many languages - Javascript, Python, OCaml, Zig all support this.
