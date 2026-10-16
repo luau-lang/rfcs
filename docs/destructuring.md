@@ -104,7 +104,6 @@ end
 for _, {x, y} in {{"a", "b"}, {"c", "d"}, {"e", "f"}} do
 	print(x,y)
 end
-
 ```
 
 We will also explicitly support array destructuring for symmetry with the above feature.
@@ -124,9 +123,6 @@ const {x, y} -- equivalent to const({x, y})
 
 const {x, y} = ... -- destructuring
 ```
-In Luau, function calls may omit parenthesis, and are valid as both expressions and statements.
-Without a glyph, we would have to pay for an explicit sweep forward until the end of the array, before deciding if we
-are evaluating a function call or a structured binding. A glyph makes this explicit, and this RFC proposes the use of `.`, since this is the operator used for table accesses. The benefit of the glyph is that it a) nests extremely nicely, and b) can be given whatever grammar we want for it!
 
 
 The semantics of structured bindings are as follows:
