@@ -1,0 +1,83 @@
+# Syntax Attribute for Silencing Warnings
+
+## Summary
+
+Introduce a syntax attribute (`@nolint`) for expressions and statements to silence editor warnings.
+
+## Motivation
+
+Users today may have many lints enabled in their projects. With [`lute lint`](https://lute.luau.org/cli/lint/), the
+number is likely to only grow. `--!nolint` hot comments do not allow users to granularly disable warnings in specific
+areas of their code. Adding standardized syntax for silencing in-editor warnings can improve the granularity and
+visibility of this feature.
+
+## Design
+
+The `@nolint` attribute will be allowed preceding function bodies, `do end` blocks, `for` / `while` / `repeat` loops,
+variable assignment, types, type aliases, and type functions. Inside the following syntax node, editor warnings will be
+silenced by default.
+
+Warnings derived from those things (e.g., if a function is deprecated and has `@nolint`), will not be silenced. To be
+more specific, the `@nolint` attribute should only silence warnings if they are fully enclosed by the syntax node
+`@nolint` is attached to.
+
+`@nolint` will also have optional attribute parameters allowing users to exclude specific lint names with either string
+literals (`@[nolint "LocalUnused"]`), or lists of string literals (`@[nolint("LocalUnused", "MisleadingCondition")]`).
+This is very coherent with the existing top-level comment capabilities `--!nolint LocalShadow`.
+
+For now, pattern matching, message matching, et cetera are out of scope for this RFC, because they
+would be significantly more complex and leave wild room for tools to vary in implementation without
+much immediately obvious benefit.
+
+## Drawbacks
+
+- This augments attribute syntax, so it comes with natural costs to updating parsers / tooling and integrating the
+feature with existing software. This is more permissive than existing attribute parsing, which might be a point of
+contention.
+
+- People implementing lint tooling for Luau will need to actively consider `@nolint` and interpret
+parameters to exclude named lints, but this should be fine because most linters already require luau
+parsers to function
+
+- People may be quick to jump to using `@nolint` for important lints. However, similarly to things like `--!nocheck`,
+that is their perogative and is better than disabling it for an entire file or in a config scope.
+
+- It may be easy to accidentally provide an invalid lint name (e.g. `LocalUnsued`), and with no direct communication
+between tools this could lead to confusion. However, it seems like linting will eventually move to being the
+sole responsibility of `lute`, which would be able to identify registered lint names and emit a configurable warning in
+and of itself.
+
+- People writing code to be compatible with lua & luau would not be able to silence lints with an attribute, because
+`@attribute` syntax is a luau-specific feature.
+
+## Alternatives
+
+- Naming it `nowarn` instead was considered, but users might conflate
+`warn` with runtime warnings in e.g. roblox where `warn` is a global.
+
+- `allow` is a potential name candidate, and flows better than you
+might think (`@[allow "LocalShadow"]`). However, when standing on its
+own (`@allow call()`) it isn't quite as clear as `@nolint`.
+
+- Use a comment instead.  This would make the implementation a fair
+bit simpler, as it would mean that all of the logic could be confined
+to the linter itself, but the ergonomics are poor:  Because comments
+are blind to the structure of the source code, there is nothing to
+prevent a developer from inadvertently disabling a warning for more
+than the intended span.  It's quite nice to be able to write a small
+annotation at the top of a declaration or statement to disable a
+warning for that entire construct with no need for an extra directive
+at the end.
+
+- Include `start` / `finish` style syntax instead of scoping it syntactically. This makes scoping much more ambiguous to
+users, and is cumbersome for simply allowing e.g. `@nolint func()`. However, this idea isn't really exclusive with this
+RFC as it serves a different purpose.
+
+- Do nothing, which means linter projects will need to invent their own syntax or hot comments for this (e.g.,
+the formatter project StyLua relies on `--stylua: ignore` / `--stylua: ignore start`). Each project may have different
+syntax or rules, which is a double edged sword; those projects become more expressive, but users relying on multiple of
+them or migrating between them may have trouble familiarizing. These kinds of project-specific specializations aren't
+exclusive at all with dedicated syntax, though.
+
+- Explicit pattern matching syntax following a standard (e.g., lua(u) string patterns). The complexity hit from this
+seems like it wouldn't be worth it.
