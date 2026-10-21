@@ -14,14 +14,7 @@ local Y_AXIS = vector.create(0, 1, 0)
 local Z_AXIS = vector.create(0, 0, 1)
 ```
 
-Roblox already provides [`Vector3.xAxis`](https://create.roblox.com/docs/reference/engine/datatypes/Vector3#xAxis), [`Vector3.yAxis`](https://create.roblox.com/docs/reference/engine/datatypes/Vector3#yAxis), and [`Vector3.zAxis`](https://create.roblox.com/docs/reference/engine/datatypes/Vector3#zAxis) for this, but those constants are not available in portable Luau code. Adding equivalent builtins to the `vector` library closes that gap.
-
-Alongside this, as of writing the type solver rejects `Vector3` where `vector` is expected and vise versa, even though both are the same primitive at runtime:
-
-```luau
--- TypeError: Expected this to be 'vector', but got 'Vector3'
-vector.magnitude(Vector3.yAxis)
-```
+Roblox already provides [`Vector3.xAxis`](https://create.roblox.com/docs/reference/engine/datatypes/Vector3#xAxis), [`Vector3.yAxis`](https://create.roblox.com/docs/reference/engine/datatypes/Vector3#yAxis), and [`Vector3.zAxis`](https://create.roblox.com/docs/reference/engine/datatypes/Vector3#zAxis) for this, but those constants are not available for code in other runtimes or code thats meant to be able to run cross-runtime. Adding equivalent builtins to the `vector` library closes this gap.
 
 ## Design
 
