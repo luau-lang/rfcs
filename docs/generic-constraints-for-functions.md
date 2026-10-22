@@ -15,12 +15,13 @@ local function f(s)
 end
 ```
 
-The inferred type of `f` should be `f: <T: string>(s: T): { T }`. Today, it is inferred as `f: (s: string): { string }` ,
+The inferred type of `f` should be `f: <T: string>(s: T) -> { T }`. Today, it is inferred as `f: (s: string) -> { string }` ,
 preventing the use of string singletons.
 
 ```luau
 local function f(s)
     print(s .. ", world!")
+    return s
 end
 ```
 
