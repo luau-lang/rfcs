@@ -4,7 +4,7 @@
 
 Implement `G: T` syntax to specify that a function with generic parameter `G` has restricted the domain of that generic to be a subtype of `T`.
 
-Implement "`where`" clauses to specify that a type function must reduce on a generic parameter.
+Implement "`where`" clauses to specify that a type function must be reducible given a set of generic parameters as arguments.
 
 Implement inference rules to automatically infer constraints on generics based on the body of the function:
 
@@ -17,8 +17,6 @@ end
 
 The inferred type of `f` should be `f: <T: string>(s: T): { T }`. Today, it is inferred as `f: (s: string): { string }` ,
 preventing the use of string singletons.
-
-Furthermore, we also want to infer "witness" types:
 
 ```luau
 local function f(s)
@@ -35,10 +33,10 @@ Programmers write code that supports many types, but not all.
 
 ## Design
 
-At callsites, we have two types of constraints on generics to check:
+At callsites, we will have two types of constraints on generics to check:
 
-* Subtype constraints: The type must be a subtype of the constraining type
-* Witness constraints: The type(s) are arguments to a type function that must be reducible
+* Subtype constraints: The instantiated type must be a subtype of a given type
+* Witness constraints: The instantiated type(s) are arguments to a type function that must be then be reducible
 
 If a constraint is violated, we raise a type error at the callsite.
 
@@ -73,7 +71,7 @@ local function f(x)
     return x
 end
 
--- With the new inference rules, we instead infer `f` as `f: <T: string>(x: T) -> T`, maintaining our ability to
+-- With the new inference rules, we instead infer `f: <T: string>(x: T) -> T`, maintaining our ability to
 -- keep singletons without implicitly upcasting them to their `string` primitive.
 ```
 
