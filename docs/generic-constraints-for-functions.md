@@ -4,6 +4,8 @@
 
 Implement `G: T` syntax to specify that a function with generic parameter `G` has restricted the domain of that generic to be a subtype of `T`.
 
+Implement "`where`" clauses to specify that a type function must reduce on a generic parameter.
+
 Implement inference rules to automatically infer constraints on generics based on the body of the function:
 
 ```luau
@@ -24,7 +26,7 @@ local function f(s)
 end
 ```
 
-`f` should be inferred `f: <T, U: concat<T, string>>(T) -> ()`. Today, it raises a type error. A constraint on the generic
+`f` should be inferred `f: <T where concat<T, string>>(T) -> ()`. Today, it raises a type error. A constraint on the generic
 is required in this case to allow it to be checked.
 
 ## Motivation
@@ -32,6 +34,13 @@ is required in this case to allow it to be checked.
 Programmers write code that supports many types, but not all.
 
 ## Design
+
+At callsites, we have two types of constraints on generics to check
+
+* Subtype constraints: The type must be a subtype of the constraining type
+* Witness constraints: The type(s) are arguments to a type function that must reduce successfully
+
+If these constraints are violated, we raise a type error at the call site.
 
 ### Explicit constraints
 
@@ -43,13 +52,36 @@ local function iOnlyTakeStringsAndStringSingletons<T: string>(s: T): reallyReall
 end
 ```
 
+Witnesses may also be specified after all arguments to the type function with `where`:
+
+```luau
+local function f<T, U where check<T, U>>(t: T, u: U)
+end
+```
+
 ### Inferred constraints
 
-We currently fail to generalize a free type a mixed polarity if it has upper bounds. We can instead now convert those upper bounds
-into a constraint on the generic.
+We currently fail to generalize a free type with a mixed polarity if it has upper bounds. We can instead now convert those upper bounds
+into a subtype constraint on the generic.
 
-Additionally, if we find an internal type function that also depends on the generic, we place it as a witness in the generic parameter list
-and ensure it reduces successfully at callsites.
+```luau
+-- Currently, `x` is `string`. It should be generic as it is both an input and output of the function,
+-- but because there is an upper bound, we are just taking that instead for soundness.
+-- This leads to us losing singletons.
+local function f(x)
+    print(string.len(x))
+    return x
+end
+
+-- With this proposal, we instead infer `f` as `f: <T: string>(x: T) -> T`, maintaining our ability to
+-- keep singletons without implicitly upcasting them to their `string` primitive.
+local function f(x)
+    print(string.len(x))
+    return x
+end
+```
+
+Additionally, if we find an internal type function that also depends on the generic, we place it as a witness in the generic parameter list.
 
 ## Prior art
 
