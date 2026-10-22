@@ -26,7 +26,7 @@ types.newtable({
 
 ## Design
 
-As a solution, methods that accept a `key` arg on the table `type` instance, and keys in `props` table passed to `types.newtable` will allow strings. With luau implicitly converting these strings to type userdatas.
+As a solution, methods that accept a `key` arg on the table `type` instance, and keys in `props` table passed to `types.newtable` will allow strings. With Luau implicitly converting these strings to type userdatas.
 
 ### Changed methods
 
