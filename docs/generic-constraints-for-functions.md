@@ -40,7 +40,7 @@ Inference sometimes needs more tools to be able to express such code.
 At callsites, we will have two types of constraints on generics to check:
 
 * Subtype constraints: The instantiated type must be a subtype of a given type
-* Witness constraints: The instantiated type(s) are arguments to a type function that must be then be reducible
+* Witness constraints: The instantiated type(s) are arguments to a type function that must then be reducible
 
 If a constraint is violated, we raise a type error at the callsite.
 
@@ -81,6 +81,16 @@ end
 
 Additionally, if we find an internal type function that also depends on the generic, we take it as a witness constraint on the generics
 it depends on.
+
+Furthermore, if we find an internal type function that depends on a free type without a mixed polarity, it must be generalized to allow:
+
+```luau
+local function printConcat(s)
+    print(s .. ", World!")
+end
+```
+
+, to be checked.
 
 ## Prior art
 
