@@ -35,16 +35,16 @@ Programmers write code that supports many types, but not all.
 
 ## Design
 
-At callsites, we have two types of constraints on generics to check
+At callsites, we have two types of constraints on generics to check:
 
 * Subtype constraints: The type must be a subtype of the constraining type
-* Witness constraints: The type(s) are arguments to a type function that must reduce successfully
+* Witness constraints: The type(s) are arguments to a type function that must be reducible
 
-If these constraints are violated, we raise a type error at the call site.
+If a constraint is violated, we raise a type error at the callsite.
 
 ### Explicit constraints
 
-Constraints may be specified on individual generic parameters with `:`:
+Subtype constraints may be specified on individual generic parameters with `:`:
 
 ```luau
 local function iOnlyTakeStringsAndStringSingletons<T: string>(s: T): reallyReallyCoolTypeFunction<T>
@@ -52,17 +52,17 @@ local function iOnlyTakeStringsAndStringSingletons<T: string>(s: T): reallyReall
 end
 ```
 
-Witnesses may also be specified after all arguments to the type function with `where`:
+Witness constraints may be specified after all arguments to the type function with `where`:
 
 ```luau
-local function f<T, U where check<T, U>>(t: T, u: U)
+local function f<T, U where check<T, U>, UnrelatedV>(t: T, u: U, v: V)
 end
 ```
 
 ### Inferred constraints
 
 We currently fail to generalize a free type with a mixed polarity if it has upper bounds. We can instead now convert those upper bounds
-into a subtype constraint on the generic.
+into a subtype constraint on the generic:
 
 ```luau
 -- Currently, `x` is `string`. It should be generic as it is both an input and output of the function,
@@ -73,15 +73,12 @@ local function f(x)
     return x
 end
 
--- With this proposal, we instead infer `f` as `f: <T: string>(x: T) -> T`, maintaining our ability to
+-- With the new inference rules, we instead infer `f` as `f: <T: string>(x: T) -> T`, maintaining our ability to
 -- keep singletons without implicitly upcasting them to their `string` primitive.
-local function f(x)
-    print(string.len(x))
-    return x
-end
 ```
 
-Additionally, if we find an internal type function that also depends on the generic, we place it as a witness in the generic parameter list.
+Additionally, if we find an internal type function that also depends on the generic, we take it as a witness constraint on the generics
+it depends on.
 
 ## Prior art
 
