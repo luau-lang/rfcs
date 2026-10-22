@@ -25,12 +25,15 @@ local function f(s)
 end
 ```
 
-`f` should be inferred `f: <T where concat<T, string>>(T) -> ()`. Today, it raises a type error. A constraint on the generic
+`f` should be inferred `f: <T where concat<T, string>>(T) -> T`. Today, it raises a type error. A constraint on the generic
 is required in this case to allow it to be checked.
 
 ## Motivation
 
 Programmers write code that supports many types, but not all.
+
+Many programmers write code without annotations. We should still be able to infer good types for this code, to the best of our ability.
+Inference sometimes needs more tools to be able to express such code.
 
 ## Design
 
