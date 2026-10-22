@@ -1,4 +1,4 @@
-# Implicitly convert strings in type userdata methods that accept a `key` arg and allow strings as keys in the `props` table of `types.newtable`
+# Accept string values in string singleton type positions in type function APIs
 
 ## Summary
 
