@@ -14,12 +14,12 @@ Abbreviated from [lute](https://github.com/luau-lang/lute/blob/8965cd90c1a23bc56
 function fslib.removeDirectory(path: Pathlike, options: RemoveDirectoryOptions?): ()
     ...
     for _, entry in entries do
-				local entryPath = pathlib.join(path, entry.name)
-				if entry.type == "dir" then
-					fslib.removeDirectory(entryPath, { recursive = true })
-				else
-					fslib.remove(entryPath)
-				end
+        local entryPath = pathlib.join(path, entry.name)
+        if entry.type == "dir" then
+            fslib.removeDirectory(entryPath, { recursive = true })
+        else
+            fslib.remove(entryPath)
+        end
     end
     ...
 end
@@ -30,12 +30,12 @@ would become:
 function fslib.removeDirectory(path: Pathlike, options: RemoveDirectoryOptions?): ()
     ...
     for _, {name = name, type = entryType} in entries do
-				local entryPath = pathlib.join(path, name)
-				if entryType == "dir" then
-					fslib.removeDirectory(entryPath, { recursive = true })
-				else
-					fslib.remove(entryPath)
-				end
+		local entryPath = pathlib.join(path, name)
+        if entryType == "dir" then
+            fslib.removeDirectory(entryPath, { recursive = true })
+        else
+            fslib.remove(entryPath)
+        end
     end
     ...
 end
@@ -115,7 +115,6 @@ local {x, y, z} = {1,2,3,4,5}
 print(x, y, z) -- prints 1, 2, 3
 
 ```
-
 
 The semantics of structured bindings are as follows:
 ```luau
