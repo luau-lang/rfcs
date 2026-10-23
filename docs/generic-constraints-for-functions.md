@@ -42,7 +42,7 @@ Inference sometimes needs more tools to be able to express such code.
 At callsites, we will have two types of constraints on generics to check:
 
 * Subtype constraints: The instantiated type must be a subtype of a given type
-* Witness constraints: The instantiated type(s) are arguments to a type function that must then be reducible
+* inhabitance constraints: The instantiated type(s) are arguments to a type function that must be inhabited
 
 If a constraint is violated, we raise a type error at the callsite.
 
@@ -56,11 +56,23 @@ local function iOnlyTakeStringsAndStringSingletons<T: string>(s: T): reallyReall
 end
 ```
 
-Witness constraints may be specified after all arguments to the type function with `where`:
+Inhabitance constraints may be specified with the `with` keyword:
 
 ```luau
-local function f<T, U where check<T, U>, UnrelatedV>(t: T, u: U, v: V)
+-- GenericTypeList :: NAME ['with' SimpleType] [',' GenericTypeList] | 'with' SimpleType | GenericTypePackParameter {',' GenericTypePackParameter}
+local function f<T, U with check<T, U>, UnrelatedV>(t: T, u: U, v: V)
 end
+```
+
+They may appear anywhere in the generic type parameter list, but not after a generic type pack as type functions do not currently accept type packs.
+If multiple inhabitance constraints are present, they are separated with commas and each require an individual `with` keyword.
+
+```luau
+-- Ok!
+type f = <A, B with check1<A, B>>(A, B) -> ()
+-- Ok! `T` is a generic of an enclosing function.
+type g = <with check2<T>>(T) -> ()
+type h = <A with check1<A>, with check1<T>>(A, T) -> ()
 ```
 
 ### Inferred constraints
@@ -81,7 +93,7 @@ end
 -- keep singletons without implicitly upcasting them to their `string` primitive.
 ```
 
-Additionally, if we find an internal type function that also depends on the generic, we take it as a witness constraint on the generics
+Additionally, if we find an internal type function that also depends on the generic, we take it as a inhabitance constraint on the generics
 it depends on.
 
 ```luau
@@ -93,7 +105,7 @@ local function counter<T>(c: T)
 end
 ```
 
-The `+=` operation mints an `add<T, T>` type function. This is to be copied into a witness constraint, representing that `T` must support
+The `+=` operation mints an `add<T, T>` type function. This is to be copied into a inhabitance constraint, representing that `T` must support
 `+` with itself, but this is only relevant if the *inner* function is called. Thus, the constraint is applied onto that inner
 function instead of the `counter` function itself.
 
@@ -116,7 +128,14 @@ end
 
 More complexity.
 
-We may infer meaningless generics for functions like `<T: number>(x: T) -> T`. There are no "strict" subtypes of `number`, as of the time of writing.
+We may infer meaningless generics for functions like `<T: number>(x: T) -> T`. There are currently no strong subtypes of `number`.
+
+We introduce new syntax, which can make visually parsing text of the language more difficult.
+
+We are further overloading the meaning of `:`. It would now have both the meaning of method calls, binding annotations, as well as generic
+subtyping constraints.
+
+We introduce a new keyword, `with`, that does not appear to have precedence in prior art. C# uses `where`, and TypeScript uses `extends`.
 
 ## Alternatives
 
@@ -125,4 +144,8 @@ Do not.
 Luau currently supports intersecting generics with other types in the function parameter position, and will raise a type error if the intersection
 is uninhabited at callsites. However, this is much less rich than the features proposed in this RFC.
 
-Use a different keyword for witness constraints, such as `where` or `needs`.
+Use a different keyword for inhabitance constraints, such as `where` or `needs`.
+
+This proposal only includes subtyping and inhabitance constraints. We could consider non-subtype, equality, and non-equality constraints as well,
+however, those can also be implemented through inhabitance constraints with user-defined type functions. Subtyping constraints act as a short-cut
+for the common case, and additionally for inference to generalize free types without having to introduce a new type function.
