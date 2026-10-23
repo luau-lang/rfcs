@@ -4,7 +4,7 @@
 
 Implement `G: T` syntax to specify that a function with generic parameter `G` has restricted the domain of that generic to be a subtype of `T`.
 
-Implement "`where`" clauses to specify that a type function must be reducible given a set of generic parameters as arguments.
+Implement "`with`" clauses to specify that a type function must be reducible given a set of generic parameters as arguments.
 
 Implement inference rules to automatically infer constraints on generics based on the body of the function:
 
@@ -25,7 +25,7 @@ local function f(s)
 end
 ```
 
-`f` should be inferred `f: <T where concat<T, string>>(T) -> T`. Today, it raises a type error. A constraint on the generic
+`f` should be inferred `f: <T with concat<T, string>>(T) -> T`. Today, it raises a type error. A constraint on the generic
 is required in this case to allow it to be checked.
 
 ## Motivation
@@ -108,4 +108,6 @@ We may infer meaningless generics for functions like `<T: number>(x: T) -> T`. T
 Do not.
 
 Luau currently supports intersecting generics with other types in the function parameter position, and will raise a type error if the intersection
-is uninhabited at callsites, however, this is much less rich than the feature proposed in this RFC.
+is uninhabited at callsites. However, this is much less rich than the features proposed in this RFC.
+
+Use a different keyword for witness constraints, such as `where` or `needs`.
