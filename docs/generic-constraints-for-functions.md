@@ -19,14 +19,16 @@ The inferred type of `f` should be `f: <T: string>(s: T) -> { T }`. Today, it is
 preventing the use of string singletons.
 
 ```luau
-local function f(s)
-    print(s .. ", world!")
-    return s
+local function counter<T>(c: T)
+    return function(x: T)
+        c += x
+        return c, x
+    end
 end
 ```
 
-`f` should be inferred `f: <T with concat<T, string>>(T) -> T`. Today, it raises a type error. A constraint on the generic
-is required in this case to allow it to be checked.
+The inner function should be inferred as `<with add<T, T>>(T) -> (T, T)`. Today, it raises a type error. A constraint on the generic
+representing that `T + T` is valid is required in this case to allow it to be checked.
 
 ## Motivation
 
@@ -81,6 +83,19 @@ end
 
 Additionally, if we find an internal type function that also depends on the generic, we take it as a witness constraint on the generics
 it depends on.
+
+```luau
+local function counter<T>(c: T)
+    return function(x: T)
+        c += x
+        return c, x
+    end
+end
+```
+
+The `+=` operation mints an `add<T, T>` type function. This is to be copied into a witness constraint, representing that `T` must support
+`+` with itself, but this is only relevant if the *inner* function is called. Thus, the constraint is applied onto that inner
+function instead of the `counter` function itself.
 
 Furthermore, if we find an internal type function that depends on a free type without a mixed polarity, it must be generalized to allow:
 
