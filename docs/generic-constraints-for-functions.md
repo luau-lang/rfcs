@@ -145,7 +145,3 @@ Luau currently supports intersecting generics with other types in the function p
 is uninhabited at callsites. However, this is much less rich than the features proposed in this RFC.
 
 Use a different keyword for inhabitance constraints, such as `where` or `needs`.
-
-This proposal only includes subtyping and inhabitance constraints. We could consider non-subtype, equality, and non-equality constraints as well,
-however, those can also be implemented through inhabitance constraints with user-defined type functions. Subtyping constraints act as a short-cut
-for the common case, and additionally for inference to generalize free types without having to introduce a new type function.
