@@ -1,8 +1,8 @@
-# `table.drop` & `table.remove` lint improvement
+# `table.discard` & `table.remove` lint improvement
 
 ## Summary
 
-Add the `table.drop` standard library method for removing table elements by value rather than index, along with a linter improvement
+Add the `table.discard` standard library method for removing table elements by value rather than index, along with a linter improvement
 to prevent the `table.remove` footgun of accidental tail amputation.
 
 ## Motivation
@@ -20,7 +20,7 @@ However, `table.find` returns `nil` when it cannot find the element specified in
 
 First, I am proposing a standard library function for tables to remove elements by value rather than index:
 
-```table.drop(t: {V}, value: V, count: number?): number```
+```table.discard(t: {V}, value: V, count: number?): number```
 
 `t` refers to the table you're using, `value` is the value you want removed, and `count` is an optional argument specifying the limit of how many occurrences of `value` you want removed. If `count` is `nil`, every occurrence of `value` is removed from the table. The function returns the number of removed elements.
 
@@ -30,9 +30,9 @@ For example:
 ```luau
 local t = {"apple", "banana", "orange", "orange"}
 
-table.drop(t, "orange") -- t is now {"apple", "banana"}
+table.discard(t, "orange") -- t is now {"apple", "banana"}
 table.insert(t, "banana") -- t is now {"apple", "banana", "banana"}
-table.drop(t, "banana", 1) -- t is now {"apple", "banana"}
+table.discard(t, "banana", 1) -- t is now {"apple", "banana"}
 ```
 
 Next, I am proposing to add a linter rule warning the user about the `table.remove` footgun if their second argument has the `number?` type, underlining said argument.
@@ -41,7 +41,7 @@ Next, I am proposing to add a linter rule warning the user about the `table.remo
 local t = {"apple", "banana", "orange"}
 
 table.remove(t, nil) -- OK
-table.remove(t, table.find(t, "banana")) -- Warning: If this is nil, table.remove will remove the last element of the array. Consider using table.drop instead, or if order is not important, use a key/value table with true values for better performance.
+table.remove(t, table.find(t, "banana")) -- Warning: If this is nil, table.remove will remove the last element of the array. Consider using table.discard instead, or if order is not important, use a key/value table with true values for better performance.
 ```
 
 ## Drawbacks
@@ -51,5 +51,5 @@ While there are no compatibility concerns, this does add a new standard library 
 ## Alternatives
 
 - Simply adding the linter rule would help prevent the `table.remove` footgun, but it would leave `if` statements and `assert` calls as the only solutions, both of which being fairly verbose.
-- Renaming `table.drop` (`table.erase`, `table.remval`, etc).
-- Adding optional `start` and `finish` arguments to `table.drop` to specify search distance within the table.
+- Renaming `table.discard` (`table.erase`, `table.drop`, `table.delete`, etc).
+- Adding optional `start` and `finish` arguments to `table.discard` to specify search distance within the table.
