@@ -604,6 +604,25 @@ Instead of offering an `open` keyword to allow inheritance, we could follow in J
 
 We considered a `super` keyword, but found the justification for it to be very weak.  The developer can just write the actual name of the base class.  Additionally, we would have to answer some very awkward questions about what happens when the script defines another symbol named `super`. (which seems like a pretty good variable name!)
 
+In the future, we may also consider an `abstract` keyword, which would indicate a class which cannot be directly instantiated. Such a class could define concrete methods, but the class would need to be inherited from for those methods to be called. `abstract` classes could also define `abstract` methods which defining classes are required to implement. The current design is forwards compatible with `abstract class`.
+
+#### Method-level `open` or `final`
+
+A possible sub-feature here is a method-level `open` keyword, which would opt a particular method into being possibly overridden by an inheriting class. For classes where every method is intended to be overridable, this is potentially wordy:
+```luau
+local open class Point
+    public open function __init(self) end
+    public open function add(self, other) end
+    public open function length(self) end
+end
+```
+
+If we were to implement such a feature, we would also need to decide whether the "openness" of a method is inherited or not. 
+
+Alternatively, methods could have `final` modifiers on them which opt them out of being overriden by an inheriting class.
+
+It's worth noting here that the current design is not forwards compatible with opt-in overriding (`open` methods), while it is forwards compatible with opt-out overriding (`final` methods).
+
 ## Constructors
 
 ### Summary
