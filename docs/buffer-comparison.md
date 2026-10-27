@@ -21,18 +21,17 @@ Signature follows the same offset/count pattern as `buffer.copy`: a required sta
 **Defaults** (same spirit as `buffer.copy`):
 
 - If `b2_offset` is `nil` or omitted, it defaults to `0`.
-- If `count` is `nil` or omitted, compare from the given offsets through the end of each buffer: effectively `count = min(len(b1) - b1_offset, len(b2) - b2_offset)` (if either remaining length is negative, behavior matches other buffer functions: error on invalid offset).
+- If count is nil or omitted, it defaults to the shorter remaining tail: min(len(b1) - b1_offset, len(b2) - b2_offset)
 
-**Bounds**: If `count` is provided, both regions `[b1_offset, b1_offset + count)` and `[b2_offset, b2_offset + count)` must lie within their buffers; otherwise an error is thrown, consistent with `buffer.copy` and read/write helpers.
+**Bounds**: After the defaults are applied, use the same checks as `buffer.copy`. A negative offset, a negative `count`, or a window that extends past either buffer produces `buffer access out of bounds`. A `count` of `0` at `offset == buffer.len` is in range.
 
 **Semantics**:
 
 1. Validate types: `b1` and `b2` must be buffers; offsets and `count` must be numbers where applicable.
 2. Determine `n`, the number of bytes to compare: explicit `count` if given, otherwise the minimum remaining length from each offset as above.
 3. Compare `n` bytes at `b1_offset` and `b2_offset` in unsigned lexicographic order: on the first differing byte, return negative if `b1`’s byte is smaller, positive if larger (non-zero magnitude is implementation-defined; only the sign is guaranteed).
-4. If all `n` bytes match and `count` was **explicit**, return `0` (extra bytes beyond the window are ignored).
-5. If all `n` bytes match and `count` was **omitted** but the remaining lengths after the offsets differ, the shorter remaining region is less (negative if `b1`’s tail is shorter, positive if `b2`’s tail is shorter).
-6. If all compared bytes match and the compared spans are the same length, return `0`.
+4. If the `n` bytes match and `count` was passed in, return `0`. Bytes outside that window are ignored.
+5. If the `n` bytes match and `count` was defaulted, and one tail is longer than the other, the shorter tail is less.
 
 Equality for two full buffers from the start: `buffer.compare(b1, 0, b2, 0) == 0` or `buffer.compare(b1, 0, b2) == 0`.
 
