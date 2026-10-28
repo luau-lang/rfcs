@@ -596,6 +596,8 @@ Since `Animal` is `open`, we can no longer statically determine which method to 
 
 ### Alternatives
 
+We could decline to offer inheritance at all. This would mean that private fields would no longer need to be prefixed with `_`. However, we judge that the benefits discussed in the Motivation section above outweigh this cost.
+
 We consider only single implementation inheritance to avoid the diamond problem. This is the same approach that Java takes.
 
 We may consider multiple interface inheritance in the future.
