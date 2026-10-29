@@ -109,16 +109,6 @@ The `+=` operation mints an `add<T, T>` type function. This is to be copied into
 `+` with itself, but this is only relevant if the *inner* function is called. Thus, the constraint is applied onto that inner
 function instead of the `counter` function itself.
 
-Furthermore, if we find an internal type function that depends on a free type without a mixed polarity, it must be generalized to allow:
-
-```luau
-local function printConcat(s)
-    print(s .. ", World!")
-end
-```
-
-, to be checked.
-
 ## Prior art
 
 * C#
