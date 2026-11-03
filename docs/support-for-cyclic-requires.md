@@ -168,7 +168,7 @@ The order of operations in this program is:
 1. `main.luau` requires `folder.luau`. A placeholder is created for `folder` and it begins executing.
 2. `folder.luau` requires `file.luau`. A placeholder is created for `file` and it begins executing.
 3. `file.luau` requires `folder.luau`. Cycle detected — `folder`'s locked placeholder is returned immediately.
-4. `file.luau` attempts to access `folder.Folder`.  The placeholder is still incomplete and therefore has the `CyclicDependencyError` metatable attached to it.  We tell the developer that they `"Cannot access the exported field 'Folder' because it has a cyclic dependency on its requiring module"` and raise an exception.  The developer can use the stack trace to understand the cycle.
+4. `file.luau` attempts to access `folder.Folder`.  The placeholder is still incomplete and therefore has the `CyclicDependencyError` metatable attached to it.  We tell the developer that they `"Cannot access the exported field 'Folder' because it has a cyclic dependency on its requiring module"` and raise an exception.  The stack trace contains the information needed to reconstruct the cycle, though it may be noisy to work through (see [Drawbacks](#drawbacks)).
 
 #### Improper Reentrant Mutation
 
@@ -248,14 +248,6 @@ Only SCCs where all members use `export` are eligible for joint typechecking. Mi
 5. Run constraint solver once over the combined constraint graph for the entire SCC. This enables cross-cycle type inference, so constraints from `foo` that depend on types from `bar`, for example, are solved together.
 6. Distribute results and errors back to their original modules by their `moduleName`. Type checking runs on each module individually, and each module's public interface is then cloned and frozen via `clonePublicInterface`. The shared arena is frozen after all modules are processed.
 
-### Large Cycle Warning
-
-A problem that a developer might run into is that, if their application consists of a very large SCC (their whole application, perhaps\!), their incremental typechecking performance will be very bad: Luau will have to recheck all files whenever any file in the SCC has changed.
-
-To mitigate this and put some soft pressure on the developer, we'll report a warning when we encounter an SCC that consists of too many modules.  This warning will explain that large clusters of cyclic modules can cause typechecking performance to degrade badly.  We'll allow this limit to be configured via `FrontendOptions`, defaulting to 4 modules.  The warning will list the names of the modules in the SCC, up to a configurable limit (default 10).
-
-We need to take particular care not to break the old type solver.  We will probably need to write some extra logic to ensure that it continues to handle cyclic imports exactly as it does today.
-
 ## Drawbacks
 
 The restrictions on how cyclic imports can be used are subtle\!  If two mutually-recursive modules need access to one another at the top level, the code will fail to load, because the placeholder has not yet been populated at that point.
@@ -279,6 +271,8 @@ class Row extends widget.Label ... end
 ```
 
 With the described design, we will produce a sensible error, but the restriction itself is fairly complicated and is likely to confuse users.  They will likely have to think a little bit about how to adjust the design of their code and understand that cyclic references are only safe inside function bodies, not at the top level during module initialization.
+
+Diagnosing these errors may also be difficult.  The error message names the field being accessed, but not the cycle that caused it, so developers must reconstruct the cycle from the stack trace.  In practice, cycles might not always be as simple as `A -> B -> C -> A`: the stack may be very long, contain several frames from the same module, include leading frames unrelated to the cycle, or interleave mutually recursive calls.  Sifting through this to find the actual cycle could be tedious.  A future improvement would be to include the module cycle path (e.g. `main.luau -> folder.luau -> file.luau -> folder.luau`) directly in the error message.
 
 ## Alternatives
 
