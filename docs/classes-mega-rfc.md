@@ -834,7 +834,7 @@ All fields must be declared with an access modifier, (at this time, either `publ
 
 As is the case with public properties, using keywords as the names of private properties is forbidden.
 
-To avoid complications involved with the notion of a private metamethod or metatable and parsing ambiguity, declaring private property that begins with `__` is forbidden. Defining a private property named `_new` is also disallowed to maintain forwards compatibility with the case that we introduce private constructors.
+To avoid complications involved with the notion of a private metamethod or metatable and parsing ambiguity, declaring private property that begins with `__` is forbidden.
 
 Public fields will continue to be indicated with the `public` keyword. Methods with no access modifiers will continue to be interpreted as `public`. With the exception of metamethods, public properties may not begin with `_`. We considered having no keyword at all for non-private fields, but the lack of required separators between fields makes it difficult to introduce contextual keywords in the future, such as for `const` or `protected` fields.
 
