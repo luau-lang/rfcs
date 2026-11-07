@@ -80,7 +80,7 @@ type function CreateInstance(ty: type)
 end
 
 local NewInstance: <ClassName>(
-    className: ClassName & "",
+    className: (ClassName | ""),
     parent: Instance?
 ) -> CreateInstance<ClassName> = Instance.new
 
@@ -101,7 +101,7 @@ Local aliases do not shadow this lookup. For example, a local `type Instance = n
 ## Drawbacks
 
 * String-based lookup is less discoverable and less refactor-friendly than a direct type reference. Misspellings are diagnosed when the type function is evaluated rather than through ordinary name resolution.
-* Singleton strings are still finicky to interact with in certain use cases, requiring generics unioned with `""` to forcefully narrow the type down to a singleton string, which might be confusing.
+* Singleton strings are still finicky to interact with in certain use cases, requiring generics to be unioned with `""` to narrow the type down to a singleton string, which might be confusing.
 * Results depend on the extern types registered by the host. A type function that resolves a Roblox-specific class will not necessarily work in another embedding environment.
 * Resolving an extern type incurs serialization work, subject to the same complexity limits as other type-function operations.
 
