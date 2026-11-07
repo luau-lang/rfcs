@@ -46,42 +46,42 @@ In Roblox's own API, the `Instance.new` function could be implemented as a type 
 
 ```luau
 type function CreateInstance(ty: type)
-	if not ty:is("singleton") then
-		print("Expected a singleton, got:", ty.tag)
-		return nil
-	end
+    if not ty:is("singleton") then
+        print("Expected a singleton, got:", ty.tag)
+        return nil
+    end
 
-	local name = ty:value()
-	
-	if type(name) ~= "string" then
-		print("Expected a string, got:", name)
-	end
-	
-	local success, extern: type = pcall(function ()
-		return types.extern(name)
-	end)
-	
-	if not success then
-		print("Could not find extern type:", name)
-		return nil
-	end
-	
-	local root: type? = extern
-	
-	while root do
-		if tostring(root) == "Instance" then
-			return extern
-		end
-		
-		root = root:readparent()
-	end
-	
-	print(`Extern type: {name} is not an Instance.`)
+    local name = ty:value()
+    
+    if type(name) ~= "string" then
+        print("Expected a string, got:", name)
+    end
+    
+    local success, extern: type = pcall(function ()
+        return types.extern(name)
+    end)
+    
+    if not success then
+        print("Could not find extern type:", name)
+        return nil
+    end
+    
+    local root: type? = extern
+    
+    while root do
+        if tostring(root) == "Instance" then
+            return extern
+        end
+        
+        root = root:readparent()
+    end
+    
+    print(`Extern type '{name}' is not an Instance.`)
 end
 
 local NewInstance: <ClassName>(
-	className: ClassName & "",
-	parent: Instance?
+    className: ClassName & "",
+    parent: Instance?
 ) -> CreateInstance<ClassName> = Instance.new
 
 -- Resolved type for part would be: `Part`
