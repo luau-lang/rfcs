@@ -95,7 +95,9 @@ end
 -- keep singletons without implicitly upcasting them to their `string` primitive.
 ```
 
-Additionally, if we find an internal type function that also depends on the generic, we take it as a inhabitance constraint on the generics
+A subtype constraint will not be added on a generic that was written explicitly.
+
+If we find an internal type function that also depends on the generic, we take it as an inhabitance constraint on the generics
 it depends on.
 
 ```luau
@@ -111,6 +113,12 @@ The `+=` operation mints an `add<T, T>` type function. This is to be copied into
 `+` with itself, but this is only relevant if the *inner* function is called. Thus, the constraint is applied onto that inner
 function instead of the `counter` function itself.
 
+The resulting type of `counter` would be:
+
+```luau
+type Counter = <T>(c: T) -> <with add<T, T>>(x: T) -> (T, T)
+```
+
 ## Subtyping
 
 Intrinsically, function types which accept more kinds of arguments are subtypes of function types which accept less kinds of arguments.
@@ -120,13 +128,13 @@ Intrinsically, function types which accept more kinds of arguments are subtypes 
 <T>(T) -> T <: <T with add<T, number>>(T) -> T
 ```
 
-Additionally, we know from:
+Additionally, from:
 
 ```luau
 (unknown) -> unknown </: <T>(T) -> T
 ```
 
-, the relation is held:
+, it follows that:
 
 ```luau
 (string) -> string </: <T: string>(T) -> T
@@ -139,11 +147,11 @@ Additionally, we know from:
 
 ## Drawbacks
 
-More complexity.
+This increasing parsing, checking, and inference complexity.
 
-We may infer meaningless generics for functions like `<T: number>(x: T) -> T`. There are currently no strong subtypes of `number`.
+We introduce new syntax, which can make reading text of the language more difficult.
 
-We introduce new syntax, which can make visually parsing text of the language more difficult.
+We may begin to infer types that are more "correct," that are nonetheless more complicated than those that are inferred currently.
 
 We are further overloading the meaning of `:`. It would now have both the meaning of method calls, binding annotations, as well as generic
 subtyping constraints.
@@ -155,6 +163,6 @@ We introduce a new keyword, `with`, that does not appear to have precedence in p
 Do not.
 
 Luau currently supports intersecting generics with other types in the function parameter position, and will raise a type error if the intersection
-is uninhabited at callsites. However, this is much less rich than the features proposed in this RFC.
+is uninhabited at callsites. However, this is much less expressive than the features proposed in this RFC.
 
 Use a different keyword for inhabitance constraints, such as `where` or `needs`.
