@@ -147,7 +147,7 @@ Additionally, from:
 
 ## Drawbacks
 
-This increasing parsing, checking, and inference complexity.
+This increases parsing, checking, and inference complexity.
 
 We introduce new syntax, which can make reading text of the language more difficult.
 
