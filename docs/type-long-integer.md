@@ -2,7 +2,7 @@
 
 ## Summary
 
-A builtin 'integer' type to represent 64 bit integer numbers.
+A builtin 'integer' type to represent 64-bit integer numbers.
 
 ## Motivation
 
@@ -10,7 +10,7 @@ Current methods of representing 64-bit integers in Luau with the default environ
 
 In the case of a high-low pair implementation, each individual number takes 16 bytes (or 24) and needs to be handled together which can be confusing.
 
-In the case of vector implementations, ergonomics are improved by storing the entire integer in one value. However you have the same issues of implementation complexity and lack of integration with the type system.
+In the case of vector implementations, ergonomics are improved by storing the entire integer in one value. However, you have the same issues of implementation complexity and lack of integration with the type system.
 
 In both cases, performance is lacking compared to what could be provided by a native implementation.
 
@@ -27,8 +27,8 @@ Userdata remains the right mechanism for complex or embedder-specific numeric ty
 
 This will be implemented with a new type called `integer`.
 
-An additional character may be specified at the end of numeric literals `i` which will signify an 64 bit integer literal.
-64 bit integer literals will support separators, hex, and binary values:
+An additional character may be specified at the end of numeric literals `i` which will signify a 64-bit integer literal.
+64-bit integer literals will support separators, hexadecimal, and binary values:
 
 ```luau
 local a = 123i
@@ -39,27 +39,35 @@ local d = 0b1000_1000i
 
 Integer literal numbers have to be exactly representable, overflow is a parsing error.
 
-Operations performing a string formatting of an integer should format the number as signed by default.
+Binary and hexadecimal literals can specify the full value including the sign bit:
+```luau
+local a = 0xFFFF_FFFF_FFFF_FFFFi -- -1i
+local b = 0b11111111_11111111_11111111_11111111_11111111_11111111_11111111_11111111i -- -1i
+```
+
+Operations performing a string formatting of an integer should format the integer as signed by default.
 
 Integer values will have a built-in equality comparison, but will not have any other operators or metamethods defined.
 
 Integers are never automatically converted to numbers or strings, and vice-versa.
 Passing an integer to a function expecting a number (or string) will result in a type error.
 
-While there are no arithmentic operators defined for integers in this RFC, it is still worth noting that operations between `number` and `integer` are also not supported.
+While there are no arithmetic operators defined for integers in this RFC, it is still worth noting that operations between `number` and `integer` are also not supported.
 
-Functions for creating and manipulating this type will exist in a new library called 'integer`.
+Negative integer literals are allowed when unary `-` is applied to the literal directly in the AST: `-123i`, `-0b1000i`, but not `-(123i)`.
+
+Functions for creating and manipulating this type will exist in a new library called `integer`.
 
 ### Library
 
-Unless otherwise specified, all operations interpret integer values as signed two's complement 64 bit numbers.
+Unless otherwise specified, all operations interpret integer values as signed two's complement 64-bit numbers.
 Operations that treat the value as unsigned are explicitly prefixed with 'u'.
 
 `function integer.create(n: number): integer?`
 
 Converts a number to an integer.
 
-Returns `nil` If the double number cannot be represented as an integer exactly, i.e. it has a fractional part, is out of range or is NaN.
+Returns `nil` if the double number cannot be represented as an integer exactly, i.e. it has a fractional part, is out of range or is NaN.
 
 This behavior is chosen to closely match `math.tointeger` from Lua 5.4 and can have a relatively efficient implementation.
 
@@ -67,46 +75,66 @@ This behavior is chosen to closely match `math.tointeger` from Lua 5.4 and can h
 
 Converts a string representation of a number into an integer.
 
-Number inside the string has to be an integer.
-String is allowed to have leading and trailing spaces and number can be preceded by a sign.
-If base is not specified, number can have a `0x` or `0X` prefix to be converted in base 16, otherwise base 10 is used.
+The number inside the string has to be an integer.
+The string is allowed to have leading and trailing spaces and the number can be preceded by a '+' or '-' sign.
+If base is not specified, the number can have a `0x` or `0X` prefix to be converted in base 16, otherwise base 10 is used.
 
-When base is specified, it has to be in range between 2 and 36 inclusive.
+When base is specified, it has to be in the range between 2 and 36 inclusive.
 In base 10 and base 16, numbers are allowed to have a `0x` or `0X` prefix.
+
+```luau
+integer.fromstring("11", 2) -- 3i
+integer.fromstring("-11", 2) -- -3i
+
+integer.fromstring("-1", 10) -- -1i
+integer.fromstring("-11", 10) -- -11i
+
+integer.fromstring("-1", 16) -- -1i
+integer.fromstring("-11", 16) -- -17i
+
+integer.fromstring("-0x1", 10) -- -1i
+integer.fromstring("-0x11", 10) -- -17i
+```
+
+When base of the number is not 10, all integer bits can be specified, including the sign bit:
+
+```luau
+integer.fromstring("0x8000000000000000") -- 0x8000000000000000i
+integer.fromstring("0xFFFFFFFFFFFFFFFF") -- 0xFFFFFFFFFFFFFFFFi or -1i
+integer.fromstring("8000000000000000", 16) -- 0x8000000000000000i
+integer.fromstring("FFFFFFFFFFFFFFFF", 16) -- 0xFFFFFFFFFFFFFFFFi or -1i
+integer.fromstring("1777777777777777777777", 8) -- 0xFFFFFFFFFFFFFFFFi or -1i
+```
 
 Returns `nil` if the string doesn't contain a number.
 
 This behavior is chosen to match `tonumber`, but excludes floating-point numbers.
 
-`function integer.tostring(n: integer): string`
-
-Converts an integer to a string representation.
-
 `function integer.tonumber(n: integer): number`
 
-Converts an integer to a double.
+Converts an integer to a double number.
 
-If the value cannot be represented as a double exactly, round to nearest, tie to even rounding mode is used.
+Precision loss can occur if the integer is not exactly representable.
 
 `function integer.neg(a: integer): integer`
 
 Negates the value.
-Overflow wraps around according to rules of two-complement arithmetic.
+Overflow wraps around according to rules of two's complement arithmetic.
 
 `function integer.add(a: integer, b: integer): integer`
 
 Adds `a` to `b`.
-Overflow wraps around according to rules of two-complement arithmetic.
+Overflow wraps around according to rules of two's complement arithmetic.
 
 `function integer.sub(a: integer, b: integer): integer`
 
 Subtracts `b` from `a`.
-Overflow wraps around according to rules of two-complement arithmetic.
+Overflow wraps around according to rules of two's complement arithmetic.
 
 `function integer.mul(a: integer, b: integer): integer`
 
 Multiplies `a` and `b`.
-Overflow wraps around according to rules of two-complement arithmetic.
+Overflow wraps around according to rules of two's complement arithmetic.
 
 `function integer.div(a: integer, b: integer): integer`
 
@@ -144,59 +172,83 @@ If `a` is -2^63 and `b` is -1, result is 0.
 
 Performs unsigned division of `a` by `b`.
 
-If `b` is 0, throws an error.
+If `b` is 0, throws a division by zero error.
 
 `function integer.urem(a: integer, b: integer): integer`
 
 Computes remainder of the unsigned division of `a` by `b`.
 
-If `b` is 0, throws an error.
+If `b` is 0, throws a division by zero error.
 
-`function integer.min(a: integer, b: integer): integer`
+`function integer.min(a: integer, ...integer): integer`
 
-Returns the smallest of two integer numbers.
+Returns the smallest of the integer numbers.
 
-`function integer.max(a: integer, b: integer): integer`
+`function integer.max(a: integer, ...integer): integer`
 
-Returns the largest of two integer numbers.
+Returns the largest of the integer numbers.
 
 `function integer.clamp(a: integer, min: integer, max: integer): integer`
 
-Returns `a` if the number is in `[min, max]` range; otherwise, returns `min` when `a < min`, and `max` otherwise.
+Returns `a` if the integer number is in `[min, max]` range; otherwise, returns `min` when `a < min`, and `max` otherwise.
 
 The function errors if `min > max`, consistent with `math.clamp`.
 
-`function integer.band(a: integer, b: integer): integer`
-
-Performs a bitwise and of `a` and `b`.
-
-`function integer.bor(a: integer, b: integer): integer`
-
-Performs a bitwise or of `a` and `b`.
-
 `function integer.bnot(a: integer): integer`
 
-Returns a bitwise negation of the input number.
+Returns a bitwise negation of the input integer number.
 
-`function integer.bxor(a: integer, b: integer): integer`
+`function integer.band(...integer): integer`
 
-Performs a bitwise xor (exclusive or) of `a` and `b`.
+Performs a bitwise AND of all arguments.
+If there are no arguments, returns `-1i`, representing a value with all bits set.
+
+`function integer.bor(...integer): integer`
+
+Performs a bitwise OR of all arguments.
+If there are no arguments, returns `0i`.
+
+`function integer.bxor(...integer): integer`
+
+Performs a bitwise XOR (exclusive OR) of all arguments.
+If there are no arguments, returns `0i`.
+
+`function integer.btest(...integer): boolean`
+
+Performs a bitwise AND of all arguments and returns `true` iff the result is not 0.
+If there are no arguments, returns `true`.
 
 `function integer.lt(a: integer, b: integer): boolean`
 
-Compares signed less than (<) comparison of `a` and `b`.
+Performs a signed less-than (<) comparison of `a` and `b`.
 
 `function integer.le(a: integer, b: integer): boolean`
 
-Compares signed less than or equal (<=) comparison of `a` and `b`.
+Performs a signed less-than or equal (<=) comparison of `a` and `b`.
+
+`function integer.gt(a: integer, b: integer): boolean`
+
+Performs a signed greater-than (>) comparison of `a` and `b`.
+
+`function integer.ge(a: integer, b: integer): boolean`
+
+Performs a signed greater-than or equal (>=) comparison of `a` and `b`.
 
 `function integer.ult(a: integer, b: integer): boolean`
 
-Compares unsigned less than (<) comparison of `a` and `b`.
+Performs an unsigned less-than (<) comparison of `a` and `b`.
 
 `function integer.ule(a: integer, b: integer): boolean`
 
-Compares unsigned less than or equal (<=) comparison of `a` and `b`.
+Performs an unsigned less-than or equal (<=) comparison of `a` and `b`.
+
+`function integer.ugt(a: integer, b: integer): boolean`
+
+Performs an unsigned greater-than (>) comparison of `a` and `b`.
+
+`function integer.uge(a: integer, b: integer): boolean`
+
+Performs an unsigned greater-than or equal (>=) comparison of `a` and `b`.
 
 `function integer.lshift(n: integer, i: integer): integer`
 
@@ -254,10 +306,6 @@ Bits are indexed starting at 0.
 `w` has to be positive (> 0).
 `f + w` must be less than or equal to 64.
 
-`function integer.btest(a: integer, b: integer): boolean`
-
-Perform a bitwise and `a` and `b` and returns true iff the result is not 0.
-
 `function integer.countrz(n: integer): integer`
 
 Returns the number of consecutive zero bits starting from the right-most (least significant) bit.
@@ -272,6 +320,22 @@ Returns 64 if `n` is zero.
 
 Returns `n` with the order of the bytes swapped.
 
+`integer.maxsigned: integer`
+
+Integer value representing 2^63-1 (`9_223_372_036_854_775_807i`)
+
+`integer.minsigned: integer`
+
+Integer value representing -2^63 (`-9_223_372_036_854_775_808i`)
+
+### Extensions to the base library
+
+`tostring` will convert an integer to a string representation in signed form with no 'i' suffix.
+
+`rawequal` will be able to compare integers for equality.
+
+`type` and `typeof` will return "integer" for an integer value.
+
 ### Extensions to the buffer library
 
 Functions to read and write integer values are added.
@@ -285,25 +349,27 @@ Reads an integer out of a buffer at the given offset.
 
 Writes an integer to a buffer at the given offset.
 
-### Extensions to the math library
-
-For parity with Lua 5.3+, two additional constants are added to the math library.
-
-`math.maxinteger`
-
-Integer value representing 2^63-1 (`9_223_372_036_854_775_807i`)
-
-`math.mininteger`
-
-Integer value representing -2^63 (`-9_223_372_036_854_775_808i`)
-
 ### Extensions to the string library
 
 `string.format` function is updated to support integer arguments.
 
-'d', 'i' and '*' format specifiers will format an integer as a signed 64 bit integer number.
+'d', 'i' and '*' format specifiers will format an integer as a signed 64-bit integer number.
 
-'o', 'u', 'x' and 'X' format specifiers will format an integer as an unsigned 64 bit integer number.
+'o', 'u', 'x' and 'X' format specifiers will format an integer as an unsigned 64-bit integer number.
+
+Other format specifiers like 'e', 'f', 'g', etc will throw an error.
+
+`string.pack` and `string.unpack` are **not** extended to accept integer numbers.
+
+Today, signed and unsigned integer specifications in these functions work with double numbers.
+
+Allowing integers to be accepted would create a disparity between `string.pack` inputs and `string.unpack` results.
+
+New specifiers specific to integer numbers could be introduced in the future if there is a user need.
+
+### Extensions to the type library (type functions)
+
+`types.integer` constant will return a primitive integer type value.
 
 ### C API
 
@@ -333,7 +399,7 @@ Returns a value of an integer at `narg` or `def` if there is no value.
 
 Throws an error if there is a value but it is not an integer.
 
-`luaopen_integer(lua_State *L)`
+`int luaopen_integer(lua_State *L)`
 
 Registers the `integer` library.
 Included in `luaL_openlibs`.
