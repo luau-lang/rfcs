@@ -1,4 +1,4 @@
-# Make `function name()` const by default
+# Make Function Declarations Const by Default
 
 ## Summary
 
