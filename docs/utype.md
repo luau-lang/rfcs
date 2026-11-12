@@ -1,154 +1,61 @@
-# User-defined runtime types
+# Runtime user-defined tags (metafield __utype)
 
 ## Summary
 
-Allows users to attach a `user-type` to data that can be retrieved through the new `utypeof` function. Essentially an analogue of `__name` from Lua 5.4.
+This RFC adds a `__utype` metafield and a `utypeof()` function: a user-facing runtime identification channel, analogous to `__type`/`typeof()` for host values, but advisory in nature.
 
 ## Motivation
-> This concerns metatables and, possibly, to a small extent the classes from a future addition to the language.
 
-The most basic motivation is to be able to check user objects and data with a single function. Not to have a huge pile of validation options via structural comparison, prototype validation, or anything else, but to rely on the field specified in the metatable to determine exactly which resource has arrived.
+For a host application, there is a dedicated metafield `__type` that `typeof()` reads to identify an expected resource. It works only for userdata types created by the host application. It exists because code needs to defend itself against an unsafe user-code environment.
 
-Currently, in version 0.746, the language supports a special metamethod `__type`, which only works for host-userdata objects through the `typeof()` function. In the future, `class/object` will appear, built directly into the language as native types. Obviously, `type()` will return their runtime type for them, while `typeof()` *will not* return the class name, in order to avoid deceiving the host application.
+For user code, the situation is somewhat different. It is impossible to guarantee that A == B by a string tag. That problem is pushed onto the developers. But the user still needs to determine what the received object actually is. This is especially visible for tables and userdata created via `newproxy(true)`.
 
-Classes are a separate topic: according to PR #242, `class.isa(object, class)` is the only validation method. For them, we are forced to trace in the code, that is, `require(path.to.the.required.class)`, which may itself have a dependency on us and simply fail to load in that case. This limits what we could do. Although, as an example, `Roblox` with its `Instance` provides a `ClassName: string` field; this could probably be proposed as another solution to the issue. I am against this alone, because it is imposing an architecture.
+What is `__utype`? An analogue of `__type`, similar to `__name` from Lua 5.5.1 or Lua 5.4. Compared with the latter, it deliberately changes its concept.
+
+By itself, `__utype` solves the `__type` problem of resource identification. Loosely, `Instance.new "Part"` returns `Instance` from `typeof()`. It will work similarly for `DateTime.now()`, `RaycastParams.new()`, `Color3.new()`, `CFrame.new()`, and `Vector3.new()`. Some of them are classes and some are structs. The host application uses `__type` to catch their identifier, although `typeof()` is good for host types because the host itself decides what counts as a type. But when we have a conditional `Quaternion` that is a user implementation, we cannot cheaply verify that it is exactly what we need. There is no such channel that `typeof()` provides for the user.
+
+The original `__name` is used when `error(val)` and `tostring(val)` are called. It is displayed as `[__name]` and `[__name]: 0x0.......` address, respectively. In a program it can be used via `getmetatable(val).__name`. We can already write the same construct separately today. The difference is that a conventionally chosen name is not reserved, and it cannot be obtained through an official path with one function. There is no contract defining the boundaries.
+
+Ultimately, the main motivation is cheap and uniform identification of user data using `__utype`. At the same time, this addition must not replace RTTI, validation, or certification mechanisms.
 
 ## Design
-> Remember, `typeof()` is only for the host application. Never use `utypeof()` for RTTI unless you know what you are doing, because `utype` was actually intended as a tag-name.
 
-`utypeof(v)` returns the user tag of a value. For tables/userdata, this is `__utype` from the real metatable. For classes/objects, this is the class's `__utype`, and if it is absent, the runtime type, a.k.a. `typeof()`.
-
-To implement this, we need:
-- Add a new metamethod to the metatable: `__utype: string`
-- New global function: `utypeof: (v: userdata|table|class|object_of_class) -> string`
-+ v - unsupported
-    > Returns the result of `typeof()`
-+ v - userdata/table
-    > Returns the `__utype` field declared in the metatable, or the result of `typeof()`
-+ v - class/object_of_class
-    > Returns the class name. It is known that classes deliberately moved away from this behavior in order not to create conflicts between modules. This is a design limitation, but the runtime is managed directly by the developer, and therefore the right to determine what is what is not up to `class.isa()` alone.
-
-`utypeof()` reads the real metatable even if `__metatable` is defined. `utypeof()` will not read `__utype` from a metatable that has its own metatable; it is `rawget(rawgetmetatable(t), "__utype")`. Class names are not unique across modules; `utypeof` does not solve this and does not try to; moreover, it defends this behavior, and this is stated in Drawbacks.
-
-### Examples
-
-An example of the internal structure of `utypeof()`:
+To implement it, we only need to add the `__utype` metafield to the metatable and a dedicated global function `utypeof()`. Signatures:
 
 ```luau
-    function utypeof (v)
-        const T, TT = type(v), typeof(v)
-    
-        if T == "table" or TT == "userdata" then
-            const mt = rawmetatable(v)
-            const tag = mt and rawget(mt, "__utype")
-            if tag ~= nil then return tag end
-        end
-
-        if T == "object" then
-            const tag = rawget(classmetatable(v), "__utype")
-            if tag ~= nil then return tag end
-        end
-
-        if T == "class" then
-            return classname(v)
-        end
-
-        return TT
-    end
-```
-
-Then the usual examples:
-
-```luau
-    function foo (expect: resource_alpha)
-        assert(utypeof(expect) == "alpha", "wrong data received")
-    end
-```
-
-```luau
-    const user_object = newproxy(true)
-    const user_object_metatable = getmetatable(user_object)
-    const raw = Cryptography.Utilities.CSPRNG.RandomString(64)
-
-    user_object_metatable.__tostring = function () return raw end
-    user_object_metatable.__utype = "random_unique_key"
-
-    utypeof(user_object) -- "random_unique_key"
-```
-
-```luau
-    class Omega 
-        public bar: string
-    end
-
-    utypeof(Omega {}) == "Omega"
-
-    -- In this case, utypeof() returns the declared class name because classes do not allow
-    -- defining concrete values as a default. Obviously, there is nothing to ask the object for,
-    -- because it can be represented as a table with special rules for setting and reading data in it.
-```
-
-```luau
-    const data = {
-        __utype = "data",
-        __index = function (self, i)
-            const mt = getmetatable(self)
-            return mt and mt[i] or nil
-        end,
-
-        new = function (self)
-            return setmetatable({}, getmetatable(self))
-        end
+    type metatable = {
+        __utype: string?
     }
-    setmetatable(data, data)
-    
-    utypeof(data:new()) == "data"
+
+    type utypeof = (value: unknown) -> string
 ```
 
-```luau
-    -- In this case, imagine that the module is a dependency of a class. We have no right
-    -- to obtain the class as a top-level require or even as a lazy require, because let us assume
-    -- that all of the module's functions are used by dependency classes.
+The behavior of `utypeof()` is unambiguous. The function obtains the real metatable of the object in all cases. It ignores `__metatable`, reads `__utype`, and if it is a string, returns it. Otherwise the function returns `typeof()` of that object. In the type checker, `utypeof()` has no effect on anything. The result is always of type `string`. The value itself is taken at runtime analogously to `rawget(mt, "__utype")`.
 
-    const module = table.freeze {
-
-        get_super_data = function (self, of)
-            const UT = utypeof(of)
-
-            if UT == "point" then
-                -- ...
-            elseif UT == "vector" then
-                -- ...
-            elseif UT == "matrix" then
-                -- ...
-            elseif UT ==  "coordinate" then
-                -- ...
-            end
-        end
-    }
-```
-
+For classes and objects, the function will return the class name and nothing else. If classes do not support this and do not intend to, then the result is the same as `typeof()`. Collisions and all cases where this is used as "bad practice" remain the developer's responsibility, because #242 resolves these questions itself. `utypeof()` does not protect; it helps identify.
 
 ## Drawbacks
 
-`utypeof()` returns what was declared in `__utype`. This only enables verification of a resource based on what the metatable provides. It will not detect data substitution, nor function substitution. It is guaranteed to return the class name. Validation for them and for objects is simply the construct `(type(v) == "object" or type(v) == "class") and utypeof(v) == "needle"`. Checking resources will become easier, especially if they are frozen via `table.freeze()`, as are their metatables.
+Incorrect use of `utypeof()` leads to collisions between same-named classes from different modules. This must be resolved by the user through the `class` library functions, and `__utype` itself is not intended for such use.
 
-This RFC is philosophically incompatible with classes. While classes choose to validate themselves via unique data, `utypeof()` reports their raw name deliberately, because this is `user defined data`. A feature that globally affects the two most important elements of the language provides not an RTTI mechanism, but a `user_type`. A tag. `typeof(RobloxInstance)` will return `Instance`, and let `instance:IsA("something")` check which instance it is. `utype` itself is closer to `ClassName` than to the RTTI `:IsA()`. It is not `utypeof()`'s problem that the developer needs to understand which class this is. The developer knows what they want and knows how to work with it. If for some reason they use two different but identical classes, that is their problem, and the standard `class` mechanism is specifically intended for this, to decide who this is in the code. At the same time, the API between these two classes may be completely different, yet they define the same implementation. Is this a problem of `utypeof()`? Probably not. The language protects itself, while the user writes the code and sets it up themselves. It is possible to cut class support and return the same `typeof()` result. BUT then we will not be able to find out the name of this object. In the end, tracing will be through `__tostring()` or analogues, which, by the way, may be used for other purposes, and it may be locale-dependent, change at runtime, depend on state — that is exactly why a separate stable channel is needed. In other words, if `print(vector)` should return xyz, then why does a class not have the right to look like a `struct`? In C++, the difference between them is inverted in terms of access, and only by convention is it accepted that a struct is data and classes are a system, and at the same time Luau is already much closer to C/C++ simply because it is a Lego constructor that does not impose other people's rules.
+Substitution of `__utype` is allowed. It does not protect against spoofing, errors, or changes. Nor will it protect against collisions. That is not its role.
 
+`utypeof()` does not report the base type. A tag may accidentally be "table" or "userdata". `utypeof(v) == "table"` is not the same as `type(v) == "table"`. This is intentional. For the base type — `type()`, for host — `typeof()`, for the tag — `utypeof()`. Three functions, easy to confuse.
 
-One could ask "why" if it does not protect the code. Well, there is no automatic check for NaN either, and this is a "feature" of the language. Moreover, `utype` is not about protection, but about identification with a single function in a general, broader sense. Specific specifications and checks are performed by the user based on what they are working with.
+Mutation at runtime. `__utype` can be changed at any moment if the metatable is not frozen.
+
+Host application developers must be explicitly warned to use only `typeof()`, since `__type` is the only guaranteed-protected one.
 
 ## Alternatives
 
-`table_value.type`, `non_host_userdata.ClassName`, `__tostring`, `__metatable`, structural checks.
-
-You can safely reject this mechanism, and we will have to keep checking everything through painstaking certification or hope that the right information comes to us. At least the metatable can be frozen, and one can hope that no one will tamper with exploit code and remove the freeze through magic. Moreover, the metatable is not about objects, but about data properties.
+* The metatable is available: `getmetatable(val).name`
+* Deliberately give `__tostring()` the identification role: `__tostring(val)`
+* Deliberately allocate a whole string field `type` in objects
+* Implement `utypeof()` on top of `getmetatable(val).name` by convention (use `_G.utypeof()` or `require(global_module).utypeof()`).
+* Stay with structural checking at the same weak efficiency (`foreach`)
+    > Or separate values through architectural means. This does not always work.
 
 ## Prior Art
 
-This innovation does not affect anything other than the metatable and classes. It composes well with them and will work for as long as metatables are supported at all. Classes are the only ones that require special implementation.
-
-* **`type`/`typeof`.** `type` in Luau returns only the base type of a value (`"table"`, `"userdata"`, ...). `typeof` is an extension that, for *host*-userdata, can return the value of the `__type` field from the metatable. At the same time, for custom userdata created via `newproxy`, `typeof` deliberately returns `"userdata"`, "to make sure host-defined types can not be spoofed" ([Luau library](https://luau.org/library)). That is, Luau already has exactly the mechanism being proposed, but it is closed to user code. `__utype`/`utypeof` opens it up for tables and custom userdata.
-* **`__name`.** In Lua 5.3/5.4, the `__name` field in a metatable can be used by `tostring` and in error messages; this is also a user-defined string name, but without a separate function to retrieve it ([Lua 5.4 manual, §2.4](https://www.lua.org/manual/5.4/manual.html#2.4)). `__utype` is essentially `__name` with an explicit API and without affecting `tostring`.
-* **OOP libraries.** `middleclass`, `30log`, `Penlight`, and similar libraries for Lua usually check membership through the prototype chain and class identity, rather than through a string name. A class name does not guarantee uniqueness, so this approach is considered less reliable.
-* **Luau classes.** In [`syntax-classes.md`](syntax-classes.md), `type()` and `typeof()` return `"class"` for a class and `"object"` for an instance, rather than the class name. `utypeof()` deliberately breaks this.
+* Luau already implements `typeof()`. This RFC proposes implementing a channel for language users that represents an insecure but nevertheless public and simple way to identify objects.
+* `__name` is a diagnostic field defined in Lua 5.4 (it is absent in Luau). It is read by `tostring()` and `error()` when `__tostring()` is not set, and affects the displayed name of the object and the text of error messages. In other words, `__name` is about display and diagnostics. If an object should look different in `print()` or `error()`, it uses `__name`. `__utype` is about identification. It is read only by the new `utypeof()` function and does not affect either `tostring()` or error messages. It exists precisely so that code can cheaply answer the question "what is this value?" without depending on how the value looks when printed.
