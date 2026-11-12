@@ -33,7 +33,7 @@ The Luau Table format contains a single acyclic table definition at its root.
 
 Four primitive types are allowed: strings, booleans, numbers and vectors. All are represented identically in Luau Table as in Luau and permit their full range of values; numbers and vectors have well-defined float precision, strings are formed of bytes, and vectors are 3-wide. These four primitive types are allowed to appear as keys and values, so long as there are no duplicates. Duplicates are detected by value the same way they are in Luau, so `1` and `1.0` are the same key, as are `0` and `-0`. NaN can't be used as a key, just as in Luau.
 
-On top of those four primitive types, nested tables are allowed to appear as values only, never keys, as they have referential identity. Tables may have a contiguous array part with implicit keys, and a map part with explicit keys.
+On top of those four primitive types, nested tables are allowed to appear as values only, never keys, as they have referential identity. Tables may have a contiguous array part with implicit keys, and a map part with explicit keys. To prevent blowup and match Luau table declaration behaviour, nesting is capped at a depth of 255.
 
 Nil is specifically excluded from Luau Table as `[a] = nil` is identical to not writing a key for `[a]`, and `{1, nil, 3}` gives an array with a hole, which we choose not to support with implicit keys - arrays with holes are best represented as maps.
 
@@ -42,6 +42,8 @@ Nil is specifically excluded from Luau Table as `[a] = nil` is identical to not 
 #### Literals
 
 All literal string and number forms are allowed, specifically: single and double quote strings, raw strings of arbitrary level `[==[]==]`, every escape code (`\n`, `\x`, `\u{}`, `\z`, `\ddd`, etc.), decimal numbers, exponents, hex, binary, and underscore separators. Backtick strings are allowed only without interpolation `{}`, so they behave as plain constant strings. The boolean literals `true` and `false` are allowed.
+
+Note that, while escaped NULs in strings still work (`"\0"`), raw NUL bytes in files are always rejected no matter where they appear in a `.table` file.
 
 #### Blessed names
 
