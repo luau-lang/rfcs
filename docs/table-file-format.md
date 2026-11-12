@@ -41,7 +41,7 @@ Nil is specifically excluded from Luau Table as `[a] = nil` is identical to not 
 
 #### Literals
 
-All literal string and number forms are allowed, specifically: single and double quote strings, raw strings of arbitrary level `[==[]==]`, every escape code (`\n`, `\x`, `\u{}`, `\z`, `\ddd`, etc.), decimal numbers, exponents, hex, binary, and underscore separators. Backtick strings are allowed only without interpolation `{}`, so they behave as plain constant strings. The boolean literals `true` and `false` are allowed.
+All literal string and number forms are allowed, specifically: single and double quote strings, raw strings of arbitrary level `[==[]==]`, every escape code including unknown escapes (`\n`, `\x`, `\u{}`, `\z`, `\ddd`, etc.), decimal numbers, exponents, hex, binary, and underscore separators. Backtick strings are allowed only without interpolation `{}`, so they behave as plain constant strings. The boolean literals `true` and `false` are allowed.
 
 Note that, while escaped NULs in strings still work (`"\0"`), raw NUL bytes in files are always rejected no matter where they appear in a `.table` file.
 
