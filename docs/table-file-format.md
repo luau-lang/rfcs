@@ -113,7 +113,7 @@ Malformed files _must_ be rejected by all implementors by default in order to be
 
 Any well-formed `.table` file evaluates in standard Luau, whether as a table expression, or as a complete module if `return` is present (assuming `math` and `vector` exist and have the relevant members).
 
-`.table` files may be read either by parsing or by running it in a Luau VM. Both are guaranteed to yield identical results for well-formed files. However, running a file in a Luau VM won't reject malformed files, so it is a non-conformant convenience, in the same way as the non-rejecting alternative above: fine for trusted files, but not how a conformant implementation reads the Luau Table format.
+`.table` files should be read by parsing, not by evaluating them in a Luau VM. Luau Table makes a best effort to yield identical results for well-formed files. However, this is subject to Luau's own limits for parsing, including register counts. Furthermore, running a file in a Luau VM won't reject malformed files, so it is non-conformant, in the same way as the non-rejecting alternative above: fine for trusted files, but not how a conformant implementation reads the Luau Table format.
 
 ### Machine editing
 
