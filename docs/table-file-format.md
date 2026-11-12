@@ -73,7 +73,7 @@ Comments are allowed, identically to Luau.
 
 #### Top level
 
-A single `return` at the start of the file is ignored if present.
+For backwards compatibility with existing Luau configuration, a single `return` at the start of the file is ignored if present, and a single `;` at the end of the file is also ignored if present. We suggest implementors don't write these by default and output just the top-level table declaration.
 
 #### Type syntax
 
