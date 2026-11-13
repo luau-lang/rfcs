@@ -387,42 +387,8 @@ This works, but requires each exported field to be declared again. Export blocks
 
 ## Prior Art
 
-### luau table constructors
-
-luau and Luau already provide table constructors for grouping related values:
-
-```luau
-return {
-    a = something,
-    b = somethingElse,
-}
-```
-
-This is the closest existing language construct to the proposed export block syntax.
-
-Export blocks build on this familiar pattern while integrating it with Luau's module export mechanism. The primary difference is that the resulting table entries become module exports directly, rather than being returned as an ordinary table value.
-
-This familiarity is a significant advantage for migration and adoption.
-
-### JavaScript named exports
-
 JavaScript supports exporting multiple existing bindings through a single declaration:
 
 ```javascript
 export { a, b };
 ```
-
-The traditional Luau pattern of returning a table is the most relevant prior art:
-
-```luau
-local Module = {}
-
-Module.a = something
-Module.b = somethingElse
-
-return Module
-```
-
-Export blocks would make this pattern easier to migrate while preserving the familiar organization of a table-based public interface.
-
-The existing `export type` syntax and the new exported value declarations also establish the language's direction toward explicit module exports. Export blocks extend that model rather than replacing it.
