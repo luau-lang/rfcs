@@ -323,16 +323,9 @@ print(Module.frog) --> "Frog"
 print(Module.cat) --> "Cat"
 ```
 
-Supporting mixed tables would make export blocks more consistent with ordinary Luau table constructors and simplify migration from legacy return tables.
+However, numeric keys and named keys introduce additional considerations for static analysis and type inference. For simplicity, numeric keys behave like named keys; they cannot have a duplicated definition.
 
-However, numeric keys and named keys introduce additional considerations for static analysis and type inference. The implementation must define how numeric exports are represented in the inferred type of the required module and how duplicate keys are handled.
-
-I am against mixed tables in general, so I would prefer if exports were restricted to either pure arrays or key-value dictionaries, which would also help in implementation.
-
-### Interaction with existing export restrictions
-
-Export blocks should follow the same restrictions as existing value exports.
-The table-expression form must also define behavior for invalid results and conflicting keys, as described above.
+Note that supporting mixed tables would make export blocks more consistent with ordinary Luau table constructors and simplify migration from legacy return tables. But I want to avoid mixed tables as much as possible, so I would prefer if exports were restricted to either pure arrays or pure key-value dictionaries.
 
 ## Drawbacks
 
@@ -384,6 +377,18 @@ export const b = exports.b
 ```
 
 This works, but requires each exported field to be declared again. Export blocks eliminate this duplication.
+
+### Use the legacy behavior
+
+Simply use the old method:
+
+```luau
+return {
+    a = something,
+    b = somethingElse,
+}
+```
+Unfortunately, using returns voids all benefits of exports. This isn't preferred.
 
 ## Prior Art
 
