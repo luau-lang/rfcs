@@ -392,3 +392,7 @@ JavaScript supports exporting multiple existing bindings through a single declar
 ```javascript
 export { a, b };
 ```
+
+<details>
+<summary>Spoiler warning</summary>
+    AI was used to draft this RFC. If there are any issues I missed, please point it out!
