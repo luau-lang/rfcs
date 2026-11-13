@@ -21,7 +21,7 @@ The `__tostring` metamethod allows for the customization of how objects are repr
 
 ## Design
 
-A new function, `rawtostring<T>(e: T): string`, will be added to the standard library. This function will behave almost identically to `tostring`, with the only difference being that it will not invoke the `__tostring` metamethod.
+A new function, `rawtostring(obj: any): string`, will be added to the standard library. This function will behave almost identically to `tostring`, with the only difference being that it will not invoke the `__tostring` metamethod.
 
 ## Drawbacks
 
