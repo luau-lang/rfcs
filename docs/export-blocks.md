@@ -40,7 +40,7 @@ export {
 
 ### Simplified exporting of computed values
 
-Some modules construct their public interface dynamically or obtain multiple values from a helper function. With the current syntax, each value must be extracted and exported individually. Consider:
+Some modules construct their public interface through obtaining multiple values from a helper function. With the current syntax, each value must be extracted and exported individually. Consider:
 
 ```luau
 local function someReturnedExport()
@@ -80,7 +80,7 @@ export const reset = exportedValues.reset
 
 ... the third option of which is already legal code in Luau.
 
-### Grouping related exports
+### Better grouping related exports
 
 Instead of:
 ```luau
@@ -108,11 +108,9 @@ export {
 }
 ```
 
-This is particularly useful for modules that expose constants, configuration values, related functions, or other logically distinct groups of values.
-
 Grouping exports is already possible with individual declarations, but export blocks make the grouping explicit in the syntax, while also making it visually distinct.
 
-### Improved readability
+### Enhanced distinctness
 
 Individual export declarations can look very similar to ordinary local declarations:
 
@@ -182,88 +180,15 @@ export {
 
 Each field in the table constructor represents an exported value. Named fields become named exports, while list fields become numerically indexed exports.
 
-The second form accepts an expression that evaluautes to a table:
+The second form accepts an expression that evaluates directly into the first form:
 
 ```luau
 export someReturnedExport()
 ```
 
-The contents of the resulting table are exported as if they had been declared individually.
+The contents of the resulting table are exported as if they had been declared individually. As an added security measure, the linter can raise a warning of a possible runtime error if the type of the expression cannot be resolved.
 
 Both forms are restricted to the top level of a module, consistent with the existing export syntax.
-
-### Named export blocks
-
-Named export blocks allow multiple values to be exported through a single declaration.
-
-```luau
-local function getValue()
-    return 10
-end
-
-local function setValue(value)
-    -- Implementation
-end
-
-export {
-    get = getValue,
-    set = setValue,
-}
-```
-
-This is conceptually equivalent to:
-
-```luau
-local function getValue()
-    return 10
-end
-
-local function setValue(value)
-    -- Implementation
-end
-
-export const get = getValue
-export const set = setValue
-```
-
-The export block is syntactic sugar for the individual export declarations. It does not introduce a new scoping mechanism or change the semantics of the values being exported.
-
-The expressions assigned to each field are evaluauted according to normal Luau evaluaution rules.
-
-### Exporting a table expression
-
-An export statement may also accept an expression that evaluautes to a table.
-
-```luau
-local function createExports()
-    return {
-        get = function()
-            return 10
-        end,
-
-        set = function(value)
-            -- Implementation
-        end,
-    }
-end
-
-export createExports()
-```
-
-This form exports the entries of the returned table rather than exporting the table itself as a single value.
-
-It is conceptually equivalent to:
-
-```luau
-local exported = createExports()
-
-export const get = exported.get
-export const set = exported.set
-```
-
-This is especially useful when a module already has a helper that constructs its public interface, or when its exports are calculated by another function.
-
-The expression must evaluaute to a table. The language should reject an incompatible expression when its type is statically known, and provide a runtime error when the result cannot be verified statically.
 
 ### Multiple export blocks
 
