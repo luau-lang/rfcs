@@ -89,12 +89,12 @@ export const reset = exportedValues.reset
 
 Instead of:
 ```luau
-export apple1 = 1
-export apple2 = 2
+export const apple1 = 1
+export const apple2 = 2
 ...
 
-export banana1 = 1
-export banana2 = 2
+export const banana1 = 1
+export const banana2 = 2
 ...
 ```
 
