@@ -2,13 +2,12 @@
 
 ## Summary
 
-Adds a `try` construct at the statement and expression level. `try` constructs allow you to evaluate code and intercept errors that occur during execution with a `catch` statement. `try` expressions also permit a catchless evaluation of their expression: when `catch` is omitted, `try` expressions that result in an error evaluate to `nil`.
+Adds `try` / `catch` construct at the statement and expression level. `try` constructs allow you to evaluate code and intercept errors that occur during execution with a `catch`.
 
 ```lua
--- Expression form: try <expr> [catch <name> then <expr>]
-try a.b.c.d                         -- nil if anything in the chain errors
-try a.b.c.d catch err then f(err)   -- any fallback you write to handle the error
-try maybeErr()                      -- any error is ignored and execution continues
+-- Expression form: try <expr> catch <name> then <expr>
+local config = try loadConfig() catch err then DEFAULT_CONFIG
+local config = try loadConfig() catch err then f(err)
 
 -- Block form: try <block> catch <name> then <block> end
 try
@@ -21,77 +20,50 @@ end
 
 ## Motivation
 
-Safe navigation operators ([RFC \#142](https://github.com/luau-lang/luau/pull/142)) and optional chaining like `?.` have been proposed and discussed to short-circuit chains on `nil`, but it was removed via [\#501](https://github.com/luau-lang/luau/pull/501) because of incompatibilities with the Roblox Instance hierarchy. Namely `__index` on an Instance raises an error for a missing child instead of returning `nil`. 
+`pcall` and `xpcall` are currently the standard way to catch errors in Luau. They work, but can only protect a function call, so any code that isn’t already a single call has to be wrapped in a closure. That closure can’t `return`, `break`, or `continue` on the surrounding code, results have to be passed back out through return values or outer locals, and it easily becomes hard for the reader and the type checker to follow what happens inside the call. We want a concise and intuitive way to handle errors that reads like the rest of the code.
 
-For example, given `vehicle.Turret?.Frame.CFrame`, the error is raised by `vehicle.Turret` before `?.` sees a value, so the chain will throw if `Turret` is absent.
-
-We want a concise and intuitive way to allow users to write “get this value, or fall back if the path doesn’t resolve” that works for both tables and Instances without changing `__index` semantics. 
+`pcall` is also difficult to type check. `pcall` returns multiple values: a boolean which indicates whether the operation succeeded, plus either the return values of the protected function or the error. This means that the type of one variable depends on the value of another, which Luau can’t express.
 
 ### Today
 
-Direct indexing is readable and expects the child to exist, but Roblox Instances error if any link is missing:
+The protected code goes in a closure, so `break`, `continue`, and `return` inside it can't reach the surrounding loop or function. Results are passed out through outer locals, which the type checker can't connect to `ok`:
 
 ```lua
-local humanoid = workspace.NPC.Humanoid -- errors if the NPC or Humanoid is absent
-```
-
-`FindFirstChild` returns `nil`, but chaining it needs nested `if`s or repeated `and` checks, making the code harder to read if used repeatedly, and requires re-evaluating earlier links:
-
-```lua
-local result = instance.Parent
-if result then
-    result = result:FindFirstChildWhichIsA("Humanoid")
-    if result then
-        result:TakeDamage(100)
+for _, url in urls do
+    local weather: Weather? = nil
+    local ok, err = pcall(function()
+        weather = parseWeather(fetch(url)) -- can't `continue` the loop from in here
+    end)
+    if not ok then
+        print(`request failed: {err}`)
+        continue
     end
+    print(weather.temp) -- type error: `weather` could be nil
 end
-
--- or
-instance.Parent
-    and instance.Parent:FindFirstChildWhichIsA("Humanoid")
-    and instance.Parent:FindFirstChildWhichIsA("Humanoid"):TakeDamage(100)
-```
-
-Mixed chains also error easily, since any dotted access involving an Instance can still throw:
-
-```lua
-local label = gui and gui:FindFirstChild("HUD") and gui.HUD.Health.Label -- gui.HUD.Health may throw
-```
-
-`pcall` currently handles these cases, but it needs a closure, returns two values, and can hide intent:
-
-```lua
-local ok, d = pcall(function() return a.b.c.d end) 
-if not ok then d = nil end
 ```
 
 ### With `try`
 
 ```lua
-local label = try player.PlayerGui.HUD.Health.Label
-local health = try character.Humanoid.Health catch err then 0
-if label and health > 0 then
-    try character.Humanoid:TakeDamage(health - 10)
-    label.Text = tostring(health - 10)
+for _, url in urls do
+    local weather: Weather? = nil
+    try
+        weather = parseWeather(fetch(url))
+    catch err then
+        print(`request failed: {err}`)
+        continue
+    end
+    print(weather.temp) -- ok: `weather` was assigned
 end
 ```
 
-It also composes with [conditional bindings](https://github.com/luau-lang/rfcs/blob/if_local/docs/syntax-conditional-bindings.md):
+For a single call with a fallback, the expression form can further simplify the code and avoid the extra local and second return value:
 
 ```lua
-if local x = try foo() then
-    print(x)
-else
-    print("x is nil")
-end
-
-while local y = try foo() then
-   print(y)
-end
+local weather = try parseWeather(body) catch err then DEFAULT_WEATHER
 ```
 
-### Block form
-The block form can replace and simplify the `pcall` pattern as well:
+Errors can still be inspected and rethrown, similar to `pcall`:
 
 ```lua
 try
@@ -109,11 +81,10 @@ end
 
 ### Syntax
 
-There are two forms: In both, `catch` always binds the error.
+There are two forms: In both, `catch` is required and always binds the error.
 
 ```
 -- Expression form
-try <expr>
 try <expr> catch <name> then <expr>
 
 -- Block form
@@ -124,10 +95,10 @@ catch <name> then
 end
 ```
 
-More formally, 
+More formally,
 
 ```
-exp  ::= ... | 'try' exp [ 'catch' Name 'then' exp ]
+exp  ::= ... | 'try' exp 'catch' Name 'then' exp
 stat ::= ... | 'try' block 'catch' Name 'then' block 'end'
 ```
 
@@ -136,18 +107,13 @@ stat ::= ... | 'try' block 'catch' Name 'then' block 'end'
 * `try` catches the same errors `pcall` does
 
 ```lua
-local a = try error("error!")       -- nil: raised by error()
-local b = try a.field               -- nil: indexing a nil value
-local c = try workspace.NoSuchChild -- nil: __index on an Instance errors
+local a = try error("error!") catch e then 0 -- a is 0, error() raised an error
+
+local t = nil
+local b = try t.field catch e then 0         -- b is 0, indexing nil raised an error
 ```
 
-* `try x` is the same as `try x catch e then nil`
-
-```lua
-local a = try foo()
-local b = try foo() catch e then nil -- same as above
-```
-
+* Like `pcall`, code inside `try` can also yield  
 * In the block form, locals from the `try` block aren’t visible in the `catch` block. `return` , `break`, and `continue` work as in a `do` block, and assignments to globals and outer locals work
 
 ```lua
@@ -160,7 +126,7 @@ catch err then
 end
 
 for _, item in items do
-   try do
+   try
       process(item)
    catch err then 
       break                      -- exits loop
@@ -175,7 +141,7 @@ local d = try load() catch err then fallback()     -- fallback() only runs if lo
 local e = try load() catch err then error(`{err}`) -- stringify and propagate err
 ```
 
-* If an `error()` call is caught by `catch`, its argument is bound to the name which comes after it, so tables and other values can be rethrown with `error(err)` and is visible only in the `catch` part.
+* If an `error()` call is caught by `catch`, its argument is bound to the name which comes after it, so tables and other values can be rethrown with `error(err`. The name is visible only in the `catch` part. The bound value is the same one `pcall` would return, so string errors include the same position information (e.g. `script:12: message`).
 
 ```lua
 try 
@@ -188,8 +154,8 @@ end
 
 ### Type system
 
-* `try x` has type `T | nil` where `T` is the type of `x`  
-* `try x catch e then f` has type `T | U` where `U` is the type of `f`  
+* `try x catch e then f` has type `T | U` where `T` is the type of `x` and `U` is the type of `f`  
+* The bound error has type `unknown`. Any operation inside the `try`, including calls into other functions, metamethods, and host functions, can raise an error of any type, so it can’t be narrowed in general. It could be refined with `typeof` like any other `unknown` value.  
 * Inside a try catch block, any expression or statement that could raise an exception is treated as a control flow edge from that point to the catch block, for example:
 
 ```lua
@@ -211,25 +177,32 @@ end
 -- inventory: { [string]: Item }?, we might have errored during `getinventory()`
 ```
 
-* The operand is type-checked as usual, so a misspelled member on a typed Instance (`h.Helth`) can still be reported in strict mode  
-* The bound error has type `unknown`
+* After a try catch block, the type of a local is the union of its type at the end of the `try` block and at the end of the `catch` block. Since the `catch` block may run before an assignment in the `try` block, a local that’s only assigned in the `try` block is optional afterward. If the `catch` block returns, breaks, or rethrows, only the `try` block contributes.
+
+```lua
+local config
+try
+    config = loadConfig()
+catch err then
+    warn(err)
+    return
+end
+-- config: Config
+```
+
+* `try` doesn't change how the code inside it is type checked. Errors that would be reported outside a `try` are still reported inside one, such as a misspelled member (`h.Helth`) or indexing a value that could be `nil`, even though the error would be caught at runtime.
 
 ### Parsing and compatibility
 
 * `try` and `catch` are contextual keywords, like `continue` and `const`, so existing identifiers with those names still work as previously expected  
-* If `try` is parsed as a contextual keyword, the catch-less `try` form is potentially ambiguous with function calls and subtraction. To resolve these ambiguities, we make the decision that if the token following `try` is `(`, `{`, `”`, `’`, or `-` we will parse a function call or subtraction. In all other cases, we parse the relevant `try` node. This preserves backwards compatibility. The cost is that a `try` operand can’t start with `(`, `{`, single quotes, double quotes, or `-`, and adding parenthesis does not help (`try (-x)` is still a call). A workaround could be to write a function that constructs the value and call that with `try`.
+* In the expression form, `try` followed by `(`, `{`, `"`, `'`, `` ` ``, or `-` is potentially ambiguous with function calls and subtraction. Since `catch` is required, we can resolve this by checking whether `catch <name> then` follows the operand, which never happens in existing code. The parser checkpoints at `try` and, if no `catch` follows, rewinds and parses a function call or subtraction as before. This preserves backwards compatibility, and lets the operand start with any token:
 
-```lua
--- Error: This parses as a function call.
-local a = try {something_risky(), something_else()}
-
-function create_table()
-    return {something_risky(), something_else()}
-end
-
--- Ok
-local a = try create_table()
 ```
+local some = try { result = someThingThatCanFail(), requestId = nextId() } catch _ then table.clone(default)
+local hash = try `{getHashPortionThatCanFail()}:{nextId()}` catch _ then defaultHash
+```
+
+* In the block form, a statement starting with `try` is only valid today as a function call or assignment. If `try` is followed by `(`, `[`, `.`, `:`, `{`, a string, `=`, `,`, or a compound assignment operator, we parse it as before. In all other cases, we parse a `try` block. The cost is that the first statement in a `try` block can't start with `(`, which can be worked around by wrapping it in `do ... end`
 
 ## Drawbacks
 
@@ -245,48 +218,16 @@ local a = try create_table()
   local health = try takeDamage()
 ```
 
-`health` is `nil` whether the humanoid is missing (expected) or `Helth` is a typo (a bug). The typechecker and lint can help in typed code (i.e. strict mode), and the block form can allow users to inspect the error and rethrow based on specific errors. 
+`health` is `nil` whether `takeDamage` failed for an expected reason or `Helth` is a typo (a bug). The typechecker and lint can help in typed code (i.e. strict mode), and the block form can allow users to inspect the error and rethrow based on specific errors, which is the same tradeoff `pcall` has today.
 
 * `try` is a valid identifier today. It is a contextual keyword to avoid breaking existing code, so `try (x)`, `try { ... }`, `try “s”`, and `try -x` keep their current meaning.
 
 ## Alternatives
 
-* Do nothing and keep `pcall` and `FindFirstChild` as the existing solutions  
-* `?.` that suppresses indexing `nil`  
-  * This is a smaller change than this proposal, but it doesn’t help with Instances, the original problem in [\#501](https://github.com/luau-lang/luau/pull/501)  
-* `?.` that suppresses all errors  
-  * This would work for Instances, but a one-character operator that silently suppresses every error is easy to overuse, not as intuitive as `try` / `catch`, and hard to debug. If we choose to catch all errors, the syntax should explicitly say so.  
-* `?.` combined with a `__safeindex` metamethod or a third argument to `__index`  
-  * This only works if every access in the chain uses `?.` (`foo.bar?.baz` will still throw if `foo.bar` does). Additionally, this opens the door to `__safecall`, `__safenewindex`, etc. (see [\#501](https://github.com/luau-lang/luau/pull/501) for more details)  
-* Requiring `catch` on every `try`  
-  * This requires the user to state the failure behavior in every case, which while good coding practice, can increase verbosity and reduce readability:
-
-```lua
-local x = if try foo() catch e then nil then try foo() catch e then nil else nil
--- instead of
-local x = if try foo() then try bar() else nil
-```
-
-* Requiring `else` on the bare `try` form  
-  * This eliminates the ambiguity of parsing `try` as a function call or subtraction, since `try <expr> else <expr>` is not valid syntax today. However, it becomes quickly unreadable if nested in an if expression.
-
-```lua
-if c then try(x) else foo() end         -- valid today, `else` belongs to the `if`
-if local x = try foo() else nil then ... end    -- hard to read in a condition
-local x = if try foo() else false then 1 else 2
-```
-
-* Adding a glyph such as `?` to the bare `try` form  
-  * While this also eliminates parsing ambiguity, it diverges from Luau’s established design pattern of using keywords by introducing a new glyph in value contexts.
-
-```lua
-local d = try? a.b.c.d
-```
+* Do nothing and keep `pcall` as the existing solution.
 
 ## Prior Art 
 
 * Javascript, Java, C\#, Python, PHP all have `try` / `catch` as statements with a bounded error, and usually `finally`  
 * Kotlin and Scala have `try` as an expression: `val x = try { parse(s) } catch (e: Exception) { null }`  
-* Swift uses `try?` To turn an error into `nil` (`let x = try? foo()`) which is our catchless form  
-  * A `do { try f() } catch { ... }` block binds the error to an implicit `error`  
-* Javascript/Typescript have optional chaining with the `?.` operator as well as `??` for nullish coalescing
+* Swift has a `do { try f() } catch { ... }` block that binds the error to an implicit `error`, and `try?` to turn an error into `nil` (`let x = try? foo()`)
