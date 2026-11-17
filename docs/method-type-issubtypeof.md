@@ -1,5 +1,7 @@
 # type:issubtypeof
 
+**Status**: Implemented
+
 ## Summary
 
 New method on the [`type`](./user-defined-type-functions.md#type-instance) userdata in type functions for performing subtype checks.

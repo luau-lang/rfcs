@@ -1,20 +1,48 @@
 Background
 ===
 
-Whenever Luau language changes its syntax or semantics (including behavior of builtin libraries), we need to consider many implications of the changes.
+New user facing changes to Luau require deep consideration due to myriad downstream impacts. An RFC process ensures that we are able to consider
+the many implications of those changes and can effectively evolve the language in the best way possible.
 
-Whenever new syntax is introduced, we need to ask:
+In addition to these questions, we also need to consider that every addition carries a cost, and too many features will result in a language that is harder to learn, harder to implement and ensure consistent implementation quality throughout, slower, etc. In addition, any language is greater than the sum of its parts and features often have non-intuitive interactions with each other.
 
-- Is it backwards compatible?
+Reversing these decisions is incredibly costly and can be impossible due to backwards compatibility implications, so all user facing changes to Luau language and core libraries must go through an RFC process.
+
+RFC Design Principles
+===
+
+This section (non-exhaustively) articulates some design principles RFCs should follow.
+
+### Examples, examples, examples!
+
+Talking about code in the abstract is hard. The more examples you provide of your feature, the easier it is for everyone to participate in the discussion and visualize what life will be like with it. Feel free to draw upon prior art, especially if you cite the design of those features.
+
+### Is your change backwards compatible?
+
+Before opening an RFC, consider how your change interacts with other existing code. Luau has a fairly generous backwards compatibility guarantee: there are no tools for versioning such as epochs, language editions, or standards. Some common backwards compatibility concerns include: how might this feature interact with paren-less function calls in Luau? How might it interact with code using your new keyword as an identifier?
+
+### Is your feature compositional?
+
+We often propose new features to solve a problem users currently have. However, language changes do not exist in a vacuum, and not all features will compose nicely with each other. We consider removing features impossible: features that do not compose well together will be stuck in that state _forever_.
+
+### Do I need to care about performance?
+
+When we design language features, we should consider whether the feature is good for the language as a whole. Generic statements about a feature being non-performant are not useful without evidence, and oftentimes it is impossible to know without implementing the feature. Historically, the first implementation of a new language feature might be non-performant, but with additional time and care, can be made much faster. The introduction of your change should not regress performance for users who decide not to use this feature. Features developed under the RFC process explicitly spend time in an experimental/debug state internally so any performance issues may be surfaced at this time.
+
+### Your change is runtime focused, what about the type system?
+
+Changes to the runtime should also articulate what changes to the type system will occur. The type system may reject programs, but is ultimately an optional extension to the language. Additionally, changes that are type system forward need to consider the runtime behavior: types are optional and are not present at runtime, so features which depend on type inference for runtime behavior will be rejected outright.
+
+### Other questions you should think about:
+Whenever new syntax is introduced, you should also think about:
+
 - Is it easy for machines and humans to parse?
-- Does it create grammar ambiguities for current and future syntax?
 - Is it stylistically coherent with the rest of the language?
 - Does it present challenges with editor integration like autocomplete?
 
 For changes in semantics, we should be asking:
 
 - Is behavior easy to understand and non-surprising?
-- Can it be implemented performantly today?
 - Can it be sandboxed assuming malicious usage?
 - Is it compatible with type checking and other forms of static analysis?
 
@@ -25,9 +53,18 @@ For new standard library functions, we should be asking:
 - Is the behavior general and unambiguous, as opposed to solving a problem / providing an interface that's too specific?
 - Is the function interface amenable to type checking / linting?
 
-In addition to these questions, we also need to consider that every addition carries a cost, and too many features will result in a language that is harder to learn, harder to implement and ensure consistent implementation quality throughout, slower, etc. In addition, any language is greater than the sum of its parts and features often have non-intuitive interactions with each other.
 
-Since reversing these decisions is incredibly costly and can be impossible due to backwards compatibility implications, all user facing changes to Luau language and core libraries must go through an RFC process.
+
+## Non-constraints
+
+### Backtracking
+
+Historically, the Luau team has rejected RFCs that would require parser backtracking. This was originally done to keep our LL(2) parser simple to write, easy to reason about, and performant. 
+
+After much deliberation, the Luau team is lifting the blanket restriction on language features that involve parser backtracking or unbounded lookahead (as of Oct 15, 2026). Our new policy is to consider new features that would benefit from the lifting of this restriction on a case by case basis, paying careful attention to performance, the editor experience (syntax highlighting, autocomplete etc), and ergonomics. Our aim is still to ensure that our parser still remains reasonably fast, and that the error messages are of high quality.
+
+Parser changes will still be rejected if they are completely ambiguous.
+
 
 Process
 ===
