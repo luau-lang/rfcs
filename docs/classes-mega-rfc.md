@@ -973,7 +973,9 @@ local res = a:compare(b)
 local res2 = a:compare({x=5})
 ```
 
-In a prior revision, we considered having the VM do a runtime test to figure it out on the fly, but this hides a very scary maintenance bug:
+We could define that indexing always chooses the private field of the class enclosing the method, or that it always chooses a public field if available. 
+
+The first choice introduces a potential maintenance bug:
 
 ```
 open class BaseClass
@@ -1010,9 +1012,9 @@ As-written, this code would be completely fine:  When `third:test(b)` is invoked
 
 However, something spooky happens if the author updates the definition of `ThirdClass` to extend `BaseClass`: The `test` method does something completely different now *because the `equalTo` method now does something completely different*.
 
-This is pretty scary\!
+Other languages, such as C++ resolve this ambiguity by using static type-casts to determine which class's field to use. This option isn't available to us, since Luau doesn't use types to resolve runtime ambiguity. In either case, the behavior of the cases above isn't immediately obvious to someone who isn't familiar with this particular corner of Luau.
 
-Our stance is that, while it is unfortunate to take `._` as a special operator, it hits an important sweet spot: Developers are already used to prefixing nonpublic fields with underscores and it looks much nicer than a higher-profile glyph like `#`.
+While it is unfortunate to take `._` as a special operator, it hits an important sweet spot: It avoids this ambiguity entirely while allowing developers to continue using the familiar convention of prefixing nonpublic fields with underscores.
 
 Asking authors to write `o["_foo"]` every once and awhile seems like a worthy tradeoff.
 
