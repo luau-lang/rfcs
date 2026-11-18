@@ -47,9 +47,8 @@ return first() < middle() <= last()
 
 is equivalent to:
 ```luau
-local a = first()
 local b = middle()
-return a < b and b <= last()
+return first() < b and b <= last()
 ```
 
 Mixed directions are allowed: `a < b > c` checks `a < b` followed by `b > c`, reusing the evaluated value of `b`.
