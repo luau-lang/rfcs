@@ -34,10 +34,10 @@ export const b = b,
 ... other fields
 ```
 
-With export blocks, a simple find-and-replace of `return {}` to `export {}` would suffice:
+With export blocks, a simple find-and-replace of `return {}` to `export const {}` would suffice:
 
 ```luau
-export {
+export const {
     a = a,
     b = b,
 }
@@ -66,13 +66,13 @@ export const reset = exported.reset
 An export block that accepts a table expression could simplify this to:
 
 ```luau
-export someReturnedExport()
+export const someReturnedExport()
 ```
 
 Table expressions are functionally the same as doing:
 ```luau
 const exportedValues = someReturnedExport()
-export exportedValues
+export const exportedValues
 ```
 
 Which can be further desugared into:
@@ -100,13 +100,13 @@ export const banana2 = 2
 
 We can do:
 ```luau
-export {
+export const {
     apple1 = 1,
     apple2 = 2,
     ...
 }
 
-export {
+export const {
     banana1 = 1,
     banana2 = 2,
     ...
@@ -135,7 +135,7 @@ Export blocks make the distinction more apparent:
 local a = something
 local b = somethingElse
 
-export {
+export const {
     c = anotherThing,
     d = yetAnotherThing,
 }
@@ -156,7 +156,7 @@ There is currently no equivalent export feature to support this.
 Export blocks could support numeric keys by using the same table-constructor semantics as ordinary Luau tables.
 
 ```luau
-export {
+export const {
     something,
     somethingElse,
 }
@@ -177,7 +177,7 @@ This RFC proposes two forms of export blocks.
 The first form is an export block containing a table constructor:
 
 ```luau
-export {
+export const {
     a = something,
     b = somethingElse,
 }
@@ -188,7 +188,7 @@ Each field in the table constructor represents an exported value. Named fields b
 The second form accepts an expression that evaluates directly into the first form:
 
 ```luau
-export someReturnedExport()
+export const someReturnedExport()
 ```
 
 The contents of the resulting table are exported as if they had been declared individually. As an added security measure, the linter can raise a warning of a possible runtime error if the type of the expression cannot be resolved.
@@ -200,12 +200,12 @@ Both forms are restricted to the top level of a module, consistent with the exis
 A module may contain multiple export blocks.
 
 ```luau
-export {
+export const {
     apple1 = 1,
     apple2 = 3,
 }
 
-export {
+export const {
     banana1 = something,
     banana2 = somethingElse,
 }
@@ -215,6 +215,9 @@ All blocks contribute to the same module export table. The blocks are organizati
 
 Export names must remain unique across the entire module, not merely within an individual block. Duplicate names should produce an error, consistent with existing export rules.
 
+Note: originally, the syntax was `export {}` rather than `export const {}`. But the former was found not to be backwards compatible, as noted here:
+https://github.com/luau-lang/rfcs/pull/282#issuecomment-6872432176
+
 ### Array and mixed-table exports
 
 Export blocks should follow ordinary Luau table-constructor semantics.
@@ -222,7 +225,7 @@ Export blocks should follow ordinary Luau table-constructor semantics.
 For example:
 
 ```luau
-export {
+export const {
     "foo",
     "bar",
     frog = something,
@@ -269,7 +272,7 @@ This also increases the complexity of the parser, formatter, type checker, and l
 
 Most of the functionality provided by export blocks can already be achieved with individual export declarations.
 
-Developers who prefer explicit declarations may see export blocks as unnecessary syntactic sugar.
+Developers who prefer explicit declarations may see export blocks as unnecessary syntactic sugar. However, export blocks give way to gracefully support array-based exports.
 
 ### Less explicit declarations
 
