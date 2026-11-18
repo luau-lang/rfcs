@@ -57,7 +57,7 @@ Each comparison follows any existing type checking and metamethod rules for its 
 
 Parentheses preserve explicit grouping. `(a < b) < c` remains a comparison between the boolean result of `a < b` and `c` (which is an error).
 
-Only `<`, `<=`, `>`, and `>=` participate in chaining. The grouping of expressions with no parentheses mixing chains with `==` or `~=` remains to be decided.
+Only `<`, `<=`, `>`, and `>=` participate in chaining. The grouping of expressions with no parentheses mixing chains with `==` or `~=` isn't backwards compatible (`x == y == z` and `x ~= y ~= z` are technically legal in Luau as of writing this RFC).
 
 ## Drawbacks
 
@@ -65,7 +65,6 @@ Chaining introduces evaluation rules that readers and language tooling must unde
 
 ## Alternatives
 - Restrict chains to a consistent direction. This would exclude expressions such as `a < b > c`, despite their meaning following the same pairwise rule.
-- Include `==` and `~=` in chains. This would broaden the feature beyond ordering comparisons and introduce additional expectations about expressions such as `a ~= b ~= c`.
 
 ## Prior Art
 
