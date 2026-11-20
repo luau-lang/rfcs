@@ -81,7 +81,11 @@ readu32<<7>>(buffer.create(5)) -- TypeError: cannot instantiate with 7 bytes; ar
 As you can see, the issue is that there you cannot guarantee that a n-sized buffer respects a specific constraint without :
   > Using runtime checks as shown above.
   > Using branding, which is shown in the Alternatives section.
-Otherwise, the type solver can infer what N can be at the minimum by looking at the function body.
+Otherwise, the type solver can infer what N's bounds are by looking at the function body.
+Thus, a custom syntax could be implemented to describe buffers of >k or <k elements.
+
+At the end, typed buffers help differentiate two *similar* types that point to the same underlying type.
+Which in this case is *buffer*.
 
 ## Drawbacks
 
