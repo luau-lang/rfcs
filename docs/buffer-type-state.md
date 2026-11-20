@@ -20,9 +20,11 @@ type table1 = { [number]: object1 }
 type table2 = { [number]: object2 }
 ```
 
-table1 and table2 have the same type definition in this scenario even if they are different.
+table1 and table2 are the same type alias in this scenario even if they are different.
 
 ## Implementation
+
+### Syntax and semantics
 
 A typed buffer will be instantiated using the following :
 
@@ -32,7 +34,7 @@ type b = buffer<16>
 
 The value between the generic brackets will define the total size of said buffer's contents in bytes.
 
-This specific syntax also has no way to break existing code.
+This specific syntax is backwards compatible with previous code.
 Perhaps, the type errors for said issues would be in the following format :
   > TypeError: expected buffer of size <n>, but got size <n2>.
 
@@ -80,23 +82,24 @@ readu32<<7>>(buffer.create(5)) -- TypeError: cannot instantiate with 7 bytes; ar
 
 As you can see, the issue is that there you cannot guarantee that a n-sized buffer respects a specific constraint without :
   > Using runtime checks as shown above.
-  > Using branding, which is shown in the Alternatives section.
+  > Using branding, which is shown in the ``Alternatives`` section.
 Otherwise, the type solver can infer what N's bounds are by looking at the function body.
-Thus, a custom syntax could be implemented to describe buffers of >k or <k elements.
+Thus, a syntax could be implemented to describe buffers of >k or <k elements using the syntax.
 
 At the end, typed buffers help differentiate two *similar* types that point to the same underlying type.
 Which in this case is *buffer*.
 
 ## Drawbacks
 
-* The type solver cannot efficiently infer the minimum size of a generic at compile-time.
-* Constraints for valid buffer size literals.
-  > bigger or equal to zero, smaller or equal to than 1 GiB, no fractional numbers.
-* Complications to ensure type checking with buffer library methods.
-  > having a buffer of size n, and reading / writing at offset n+1.
+The type solver cannot efficiently infer the minimum size of a generic at compile-time.
+There must be constraints for valid buffer size literals, such as bigger or equal to zero, smaller or equal to than 1 GiB, no fractional numbers.
+There will have to be updates to the current ``buffer`` library, updating the type definition for each.
 
 ## Alternatives
 
-* Use a branding system to the type at the cost of having to use a table instead, as shown in the example below :
-  > `type object3 = { b: buffer, brand: 8 }`
+People can use a branding system to the type at the cost of having to use a table instead, as shown in the example below :
+```luau
+type object3 = { b: buffer, brand: 8 }
+```
 
+Otherwise, no designs can be implemented and ambiguousity will remain across type aliases with buffer.
