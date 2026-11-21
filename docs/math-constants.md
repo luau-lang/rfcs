@@ -34,7 +34,7 @@ Some history:
 
 Luau currently only supports `math.pi` and `math.huge`.
 
-Luau supports similar integer constants through its `integer` library, but other commonly used math constants are an easy value-add for users of the language.
+Integer types are not supported in Luau, so `math.maxinteger` and `math.mininteger` wouldn't make much sense, but adding other commonly used constants would be an easy value-add for users of the language.
 
 ## Design
 
