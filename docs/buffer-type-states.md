@@ -86,8 +86,8 @@ As you can see, the issue is that there you cannot guarantee a n-sized buffer re
   > Using branding, which is shown in the ``Alternatives`` section.
 
 Thus, a syntax could be implemented to describe buffers of >k or <k elements.
-buffer<n> represents a buffer of size n, but I propose the following semantics (syntax is up-to-change).
-Where ! is the clamped range bound symbol, not the negation symbol.
+**buffer<n> represents a buffer of size n, but I propose the following semantics (syntax is up-to-change).
+Where ! is the clamped range bound symbol, not the negation symbol.**
 
 ```luau
 type foo<T> = buffer<T!> -- T! represents T sized and over, clamped between T and 1 GiB.
@@ -96,6 +96,12 @@ type bar<T> = buffer<!T> -- !T represents T sized and under, clamped between 0 a
 
 At the end, typed buffers help differentiate two *similar* types that point to the same underlying type.
 Which in this case is *buffer*.
+
+### Parser & type solver
+
+The size of a typed buffer during its instantiation will be treated as a singleton values.
+Similar to constant values, the parser will directly replace the number with its direct number literal.
+Bounds validation will be done during the type solver stage rather than the parsing stage, returning TypeError outputs.
 
 ## Drawbacks
 
