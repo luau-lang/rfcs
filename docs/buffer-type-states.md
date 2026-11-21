@@ -35,7 +35,7 @@ The value between the generic brackets will define the total size of said buffer
 
 This specific syntax is backwards compatible with previous code.
 Perhaps, the type errors for said issues would be in the following format :
-  > TypeError: expected buffer of size <n>, but got size <n2>.
+  > TypeError: expected buffer of size n, but got size k.
 
 Here is a basic segment of code that utilizes buffer type states :
 
@@ -59,7 +59,7 @@ type foo = buffer<4> | buffer<8>
 
 Interaction with generics is possible. There are 2 rules.
   > The generic in place must be constrained to a valid buffer size literal.
-  > buffer<N> is a subtype of an unsized buffer, but the vice-versa is not true.
+  > Generic buffers are a subtype of unsized buffers, but the vice-versa is not true.
     Any input that expects a sized buffer requires a type refinement.
 
 ```luau
@@ -85,23 +85,37 @@ As you can see, the issue is that there you cannot guarantee a n-sized buffer re
   > Using runtime checks as shown above.
   > Using branding, which is shown in the ``Alternatives`` section.
 
-Thus, a syntax could be implemented to describe buffers of >k or <k elements.
-**buffer<n> represents a buffer of size n, but I propose the following semantics (syntax is up-to-change).
-Where ! is the clamped range bound symbol, not the negation symbol.**
+### Clamped range bounds
+
+Semantics will be implemented to describe buffers of >k or <k elements.
+A clamped generic buffer represents a buffer of size n and less or more, using the following semantics (syntax is up-to-change).
 
 ```luau
-type foo<T> = buffer<T!> -- T! represents T sized and over, clamped between T and 1 GiB.
-type bar<T> = buffer<!T> -- !T represents T sized and under, clamped between 0 and T.
+type foo<T> = buffer<T!> -- T! represents over T size, clamped between T and 1 GiB inclusive.
+type bar<T> = buffer<!T> -- !T represents under T size, clamped between 0 inclusive and T exclusive.
 ```
 
-At the end, typed buffers help differentiate two *similar* types that point to the same underlying type.
-Which in this case is *buffer*.
+```luau
+type foo = buffer<4!>
+type bar = buffer<!4> 
+```
+
+Further more, you can further develop this syntax by adding the ability to set both bounds.
+Though of course it will end up being more complex to comprehend, and more error-prone / more literals to check in bounds.
+```luau
+type foo<T,K> = buffer<T!K>
+```
 
 ### Parser & type solver
 
 The size of a typed buffer during its instantiation will be treated as a singleton values.
 Similar to constant values, the parser will directly replace the number with its direct number literal.
-Bounds validation will be done during the type solver stage rather than the parsing stage, returning TypeError outputs.
+Bounds validation will be done during the type solver stage rather than the parsing stage.
+
+### Conclusion
+
+At the end, typed buffers help differentiate two *similar* types that point to the same underlying type.
+Which in this case is *buffer*.
 
 ## Drawbacks
 
