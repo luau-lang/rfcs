@@ -1,17 +1,15 @@
 
-# Integral `number` singletons and heterogeneous arrays
+# Integral `number` singletons
 
 ## Summary
 Allow for singletons of the `number` primitive, similar to `boolean` (`true`/`false`) and `string`.
-
-Allow for them to be used like table properties to form heterogeneous arrays.
 
 ## Motivation
 Programmers may want to use numeric constants as enumerations. Consider:
 
 ```luau
 type Deserialized = {
-    Items: { string }
+    items: { string }
 }
 
 local function convertFromV1ToV2(_: { number }): { string }
@@ -21,41 +19,39 @@ end
 local function deserialize(Serialized): Deserialized
     local deserialized = {}
 
-    if Serialized.Version == 1 then
-        deserialized.Items = convertFromV1ToV2(Serialized.Data)
-    elseif Serialized.Version == 2 then
-        deserialized.Items = Serialized.Data
+    if Serialized.version == 1 then
+        deserialized.items = convertFromV1ToV2(Serialized.data)
+    elseif Serialized.version == 2 then
+        deserialized.items = Serialized.data
     else
-        error("unexpected version")
+        error("Unexpected version.")
     end
 
     return deserialized
 end
 ```
 
-As it stands, this code cannot be easily typechecked as the type of `Serialized` would have to be narrowed based on the numeric singleton `.Version`.
+As it stands, this code cannot be easily typechecked as the type of `Serialized` would have to be narrowed based on the numeric singleton `.version`.
 The desired type of `Serialized` would be:
 
 ```luau
 type SerializedStructure =
   | {
-        Version: 1,
-        Data: { number }
+        version: 1,
+        data: { number }
     }
   | {
-        Version: 2,
-        Data: { string }
+        version: 2,
+        data: { string }
     }
 ```
 
-, however, this is currently inexpressible. `Version` would have to be left annotated as `number`, which prevents `deserialize` from typechecking
-as the union of `Items` is not narrowed from `{ number } | { string }`.
+, however, this is currently inexpressible. `version` would have to be left annotated as `number`, which prevents `deserialize` from typechecking
+as the union of `items` is not narrowed from `{ number } | { string }`.
 
 Certain runtimes may expose platform-level APIs that use enumerations that are represented as `number`s.
 
 Programmers may want to annotate that a table only has a certain limited set of valid number indices.
-
-They may want to annotate that elements at different indices of a table have different types for their corresponding values (heterogeneous arrays).
 
 ## Design
 
@@ -75,41 +71,11 @@ if x == 1 or x == 2 then
 end
 ```
 
-They may be used to define a dependent type similar to table properties:
-
-```luau
-type T = {
-    [1]: string,
-    [2]: vector
-}
-
-local x: T = { "hello", vector.zero }
-local y = x[1] --> string
-local z = x[2] --> vector
-
-local a: 1 | 2 = getIndex()
-local w = x[a] --> string | vector
-```
-
-They intersect like table properties:
-
-```luau
-type T = {
-    [1]: boolean
-}
-
-type U = {
-    [2]: buffer
-}
-
-type V = T & U --> { [1]: boolean, [2]: buffer }
-```
-
 ## Drawbacks
-* Increases complexity of the type system
+* Increases complexity of the implementation of the type system, and we may begin to infer more complicated
+types than we do currently.
 
 ## Alternatives
 * Allow for decimals
-* Singletons for `integer`s
 * Intervals/bounds
 * Predefined singletons for special floating-point values like NaN or infinity
