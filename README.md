@@ -65,33 +65,90 @@ After much deliberation, the Luau team is lifting the blanket restriction on lan
 
 Parser changes will still be rejected if they are completely ambiguous.
 
+## Process
 
-Process
-===
+To open an RFC, a Pull Request must be opened which creates a new Markdown file in the `docs/` folder. The RFCs should follow the template `TEMPLATE.md`, and should have a file name that is a short human readable description of the feature (using lowercase alphanumeric characters and dashes only). They should use the general area of the RFC as a prefix, e.g. `syntax-generic-functions.md` or `function-debug-info.md`.
 
-To open an RFC, a Pull Request must be opened which creates a new Markdown file in `docs/` folder. The RFCs should follow the template `TEMPLATE.md`, and should have a file name that is a short human readable description of the feature (using lowercase alphanumeric characters and dashes only). Try using the general area of the RFC as a prefix, e.g. `syntax-generic-functions.md` or `function-debug-info.md`.
+RFCs follow an explicit set of stages heavily inspired by the [TC39 process for evolving ECMAScript (JavaScript)](https://tc39.es/process-document/). Unless otherwise specified, decisions referenced in this document can only be made by consensus amongst the “Luau reviewers”, which is the set of people who are members of the [luau-reviewer GitHub team](https://github.com/orgs/luau-lang/teams/luau-reviewer).
 
-Every open RFC will be open for at least two calendar weeks. This is to make sure that there is sufficient time to review the proposal and raise concerns or suggest improvements. The discussion points should be reflected on the PR comments; when discussion happens outside of the comment stream, the points salient to the RFC should be summarized as a followup.
+### (1) Proposal
 
-When the initial comment period expires, the RFC can be merged if there's consensus that the change is important and that the details of the syntax/semantics presented are workable. The decision to merge the RFC is made by the Luau team.
+**Status**: All RFCs start out in this state. The proposer, whoever opened the RFC pull request, will provide a problem and solution sketch following the template.
 
-When revisions on the RFC text that affect syntax/semantics are suggested, they need to be incorporated before a RFC is merged; a merged RFC represents a maximally accurate version of the language change that is going to be implemented.
+**What Happens**: Participants discuss the RFC, ask design questions, note any design issues or alternate solutions, etc.
 
-Each RFC will be assigned a shepherd.  This person will support you in getting feedback, request necessary changes, and ultimately either accept (and merge) the RFC or turn it away.
+**Next Stage**: A Luau reviewer must champion this RFC.
 
-In some cases RFCs may contain conditional compatibility clauses. E.g. there are cases where a change is potentially not backwards compatible, but is believed to be substantially beneficial that it can be implemented if, in practice, the backwards compatibility implications are minimal. As a strawman example, if we wanted to introduce a non-context-specific keyword `globallycoherent`, we would be able to do so if our analysis of Luau code (based on the Roblox platform at the moment) informs us that no script in existence uses this keyword. In cases like this an RFC may need to be revised after the initial implementation attempt based on the data that we gather.
+**Off Track**: A proposal without a champion may sit indefinitely, or may be closed if it is proposing something covered by an anti-RFC (an RFC stating why Luau won’t implement a class of features, see below).
 
-In general, RFCs can also be updated after merging to make the language of the RFC more clear, but should not change their meaning. When a new feature is built on top of an existing feature that has an RFC, a new RFC should be created instead of editing an existing RFC.
+### (2) Draft
 
-When there's no consensus that the feature is broadly beneficial and can be implemented, an RFC will be closed. The decision to close the RFC is made by the Luau team.
+**Status**: A proposed RFC that has a reviewer champion.
 
-Note that in some cases an RFC may be closed because we don't have sufficient data or believe that at this point in time, the stars do not line up sufficiently for this change to be worthwhile, but this doesn't mean that it may never be considered again; an RFC PR may be reopened if new data is available since the original discussion, or if the PR has changed substantially to address the core problems raised in the prior round.
+**What Happens**: The implementor or champion begins work on a prototype and the RFC is brought to Luau reviewers.
 
-Implementation
-===
+**Next Stage**:
 
-When an RFC gets merged, the feature *can* be implemented; however, there's no set timeline for that implementation. In some cases implementation may land in a matter of days after an RFC is merged, in some it may take months.
+1. Luau reviewers reach a consensus that this feature is a positive addition to Luau.
+1. There exists a prototype implementation: it does not need to be feature complete, but it should demonstrate core functionality.
 
-To avoid having permanently stale RFCs, in rare cases Luau team can *remove* a previously merged RFC when the landscape is believed to change enough for a feature like this to warrant further discussion.
+**Off Track**: Luau reviewers may fail to reach a consensus for a reason that will be recorded on the RFC, or may require further elaboration of the design constraints / goals. Proposals that cannot reach a consensus may remain in **Draft** indefinitely.
 
-When an RFC is implemented and the implementation is enabled via feature flags, RFC should be updated to include "**Status**: Implemented" at the top level (before *Summary* section).
+### (3) Implementing
+
+**Status**: This feature has a prototype implementation either merged into Luau behind a `Debug*` flag or as an open PR against the Luau repo.
+
+**What Happens**: The implementation is updated to be feature complete with respect to the design in the RFC, any edge cases that arise are addressed, discussed, and then added to the RFC.
+
+**Next Stage**:
+
+1. The implementor (generally the proposer) and a reviewer agree that the implementation meets the RFC specification.
+1. At this point, Luau reviewers will decide whether the RFC needs additional vetting. For otherwise “simple” changes, they can move straight to Stable instead of going through Experimental.
+1. If going through **Experimental**, the prototype implementation should be merged into the Luau repo and guarded by a flag starting with `LuauExperimental*`. If it has already been merged into the repo behind a `Debug*` flag, then it will be renamed to `LuauExperimental*`.
+
+**Off Track**: Luau reviewers may decide that, in the process of building the feature, the implementor or champion has uncovered design flaws which may mean that the RFC does not represent a coherent addition to Luau. This would move the feature back to Draft assuming its champion still supports it, or may entail an anti-RFC being opened explaining why the feature has been rejected from Luau in perpetuity.
+
+### (4) Experimental
+
+**Status**: This feature is ready for undirected community testing, but is not yet officially stable.
+
+**What Happens**: Until moving to the next stage, the feature is available as a `LuauExperimental*` flag. The champion and proposer collect feedback to ensure that the design as-is is suitable for moving out of experimental.
+
+**Next Stage**: Luau reviewers decide that the RFC has been sufficiently tested and can elect to stabilize it.
+
+**Off Track**: community feedback as received by the Luau reviewers indicates that this RFC has some sort of issue, for example:
+
+* It solves the problems stated, but otherwise feels awkward to use.
+* Some other aspect of the feature that was not considered is brought to light.
+
+This would move the feature back to **Implementing**, assuming that there are minor design revisions, or **Draft** in the case of major revisions. If the Luau reviewers are not able to reach a consensus on moving this to Stable, and the scope of changes are unclear, then this moves back to **Draft**.
+
+### (5) Stable
+
+Status: This feature is now a part of the Luau language and specification
+
+What Happens: The RFC pull request is now merged in, indicating that this RFC process has been finished. The flag can now be clipped.
+
+## Anti-RFCs
+
+Once in a blue moon, Luau reviewers may decide to release an "anti-RFC." This is to document why Luau doesn’t implement a commonly requested feature. A recent example of this is ["Do not implement JSX"](https://github.com/luau-lang/rfcs/pull/276).
+
+These are like RFCs in that they are technical documents, but otherwise:
+
+1. They are only authored by Luau reviewers (anti-RFCs from non-reviewers will not be accepted);
+1. They follow an expedited process (essentially just proposal and stable, per the above);
+1. They follow a different format:
+
+```markdown
+# Summary
+
+A brief overview of the feature and why it will not be added.
+
+# Motivation
+
+Details as to why the feature will not be added.
+
+# Conditions to Reconsider
+
+Any reasons that this decision may be revisited, to allow for the anti-RFC to be responded to with an anti-anti-RFC.
+```
