@@ -106,7 +106,7 @@ RFCs follow an explicit set of stages heavily inspired by the [TC39 process for 
 1. At this point, Luau reviewers will decide whether the RFC needs additional vetting. For otherwise “simple” changes, they can move straight to Stable instead of going through Experimental.
 1. If going through **Experimental**, the prototype implementation should be merged into the Luau repo and guarded by a flag starting with `LuauExperimental*`. If it has already been merged into the repo behind a `Debug*` flag, then it will be renamed to `LuauExperimental*`.
 
-**Off Track**: Luau reviewers may decide that, in the process of building the feature, the implementor or champion has uncovered design flaws which may mean that the RFC does not represent a coherent addition to Luau. This would move the feature back to Draft assuming its champion still supports it, or may entail an anti-RFC being opened explaining why the feature has been rejected from Luau in perpetuity.
+**Off Track**: Luau reviewers may decide that, in the process of building the feature, the implementor or champion has uncovered design flaws which may mean that the RFC does not represent a coherent addition to Luau. This would move the feature back to **Draft** assuming its champion still supports it, or may entail an anti-RFC being opened explaining why the feature has been rejected from Luau in perpetuity.
 
 ### (4) Experimental
 
@@ -121,13 +121,13 @@ RFCs follow an explicit set of stages heavily inspired by the [TC39 process for 
 * It solves the problems stated, but otherwise feels awkward to use.
 * Some other aspect of the feature that was not considered is brought to light.
 
-This would move the feature back to **Implementing**, assuming that there are minor design revisions, or **Draft** in the case of major revisions. If the Luau reviewers are not able to reach a consensus on moving this to Stable, and the scope of changes are unclear, then this moves back to **Draft**.
+If the Luau reviewers are not able to reach a consensus on moving this to **Stable**, and the scope of changes are unclear, then this moves back to **Draft**. If there are, instead, minor design concerns, this can be moved back to **Implementing**.
 
 ### (5) Stable
 
-Status: This feature is now a part of the Luau language and specification
+**Status**: This feature is now a part of the Luau language and specification.
 
-What Happens: The RFC pull request is now merged in, indicating that this RFC process has been finished. The flag can now be clipped.
+**What Happens**: The RFC pull request is now merged in, indicating that this RFC process has been finished. The flag can now be clipped.
 
 ## Anti-RFCs
 
