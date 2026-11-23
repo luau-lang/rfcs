@@ -71,6 +71,8 @@ if x == 1 or x == 2 then
 end
 ```
 
+Values within the range of a 64-bit signed integer will be supported (that is, `[-2^63..2^63-1]`).
+
 ## Drawbacks
 * Increases complexity of the implementation of the type system, and we may begin to infer more complicated
 types than we do currently.
