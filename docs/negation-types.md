@@ -6,9 +6,32 @@ A type that represents the complement of the type being negated, which is a unio
 
 ## Motivation
 
-Type refinements will produce negation types to get the complementation. For the most part, users will never need to write these negation types themselves, except for when they want to _maintain_ some invariants beyond the scope of the branch.
+Type refinements will produce negation types to get the complementation. For the most part, users will never need to write these negation types themselves, except for when they want to _maintain_ some invariants beyond the scope of the branch, or if the user has overloaded a specific type in a forall quantifier. For example, React has a function called `useState` whose signature is `<S>(state: (() -> S) | S, ...) -> (S, Dispatcher<BasicStateAction<S>>)`. The problem here is that both `S` and `() -> S` are valid unifiers for the function `() -> T`, so you end up with this monstrosity:
 
-A [cofinite set](https://en.wikipedia.org/wiki/Cofiniteness) arises when you have some negated `X` in conjunction with some supertype of `X`. For example, `string & ~"a"` is a cofinite string set that accepts any `string` excluding `"a"`. This happens often with type refinements where `typeof(x) == "string" and x ~= "a"` gives rise to the type `string & ~"a"`.
+```
+(state: (() -> (() -> T) | T) | (() -> T) | T) -> ((() -> T) | T, Dispatcher<BasicStateAction<(() -> T) | T>>)
+```
+
+Another consequence of this signature: functions whose arity does not satisfy the expected arity of `() -> S` will go into `S` which defeats the whole point. This is why when you write `if typeof(state) == "function" then state() else state`, you get a type error at `state()`: ``Cannot call a value of type `S & function` in union: `(() -> S) | (S & function)` ``. The current workaround is `(state :: () -> S)()` which is unsound. The counterexample:
+
+```luau
+local function useState<S>(state: (() -> S) | S): S
+  return if typeof(state) == "function"
+    then (state :: () -> S)()
+    else state
+end
+
+local function foo(x: number)
+  return x + 1
+end
+
+-- s: ((x: number) -> number) | number
+local s = useState(foo) -- no type errors here
+```
+
+This program passes the type checker like nothing is wrong, but it's clear that `S` in this case is intended to be the _residual_ of whatever the unifier of `() -> S` is, and a residual is a complement, so the correct signature for `useState` requires negation types: `<S: ~(...unknown) -> ...unknown>(state: (() -> S) | S, ...) -> (S, Dispatcher<BasicStateAction<S>>)`.
+
+...which is perfectly valid use case of negation types. By allowing negation types on non-testable types, the intersection `S & function` becomes absurd from the bound `S: ~(...unknown) -> ...unknown`, so `S & function` normalizes to `never`, leaving `state` with the type `() -> S` in the then branch, and the type `S` in the else branch. We can also now reject code that has no unifiers for `() -> S` and `S: ~(...unknown) -> ...unknown` like `useState(foo)`, and type inference behaves as expected for these overloaded polymorphic functions where you are expected to pass in either a function of the signature `() -> T` _or_ a value of type `T` and nothing in-between.
 
 ## Design
 
@@ -33,45 +56,13 @@ ty ::= `~` ty
 
 The basis set we want to perform set exclusion on is `unknown`, _not_ `any`. This means given the type `~"a"`, it is equivalent to the type `unknown & ~"a"`.
 
-Choosing `unknown` as the basis makes a lot of things fall in place properly, including the property we wish to maintain where `~~T` is equivalent to `T`. It's crucial that we handle negation of error types properly, otherwise double negations won't actually be consistent. It'd allow error suppression to be improperly suppressed! See below, where `~~any` ends up as `unknown` instead of `any`.
-
-1. `~~any`
-2. `~~(unknown | *error*)`
-3. `~(~unknown & ~*error*)`
-4. `~(never & unknown)`
-5. `~never`
-6. `unknown` (not equivalent to `any`!)
-
-As you can see, since through the series of rewrites `~~any` did not produce a type equivalent to `any`, our basis set must be `unknown`, and negation of an error suppression is still an error suppressing type. Therefore `~*error*` is `*error*`. This fixes the double-negation inconsistency:
-
-1. `~~any`
-2. `~~(unknown | *error*)`
-3. `~(~unknown & ~*error*)`
-4. `~(never & *error*)`
-5. `~never | ~*error*`
-6. `unknown | *error*` (`any` is an alias to `unknown | *error*`, so equivalence is achieved)
-
-### Restrictions
-
-We currently only support negation of _testable_ types. Intuitively, a testable type is one that can be tested by type refinements at runtime. This includes singleton types, primitive types, and classes. Of course, unions and intersections can be negated as well if and only if all of its constituent types are also testable types, due to the distributivity property of unions and intersections.
-
-Since types like `{ p: P }` and `(T) -> U` are structural types and the runtime offers no way to test for them, they cannot be negated. An attempt to negate this will just turn the negation type into an error suppressed type. This means `~{ p: P }` and `~(T) -> U` are nonsensical. In the event that you negate some non-testable type, you get a type error.
-
-Another restriction is that negation types cannot negate generic types. So `<T>(T) -> ~T` is also not legible.
+A [cofinite set](https://en.wikipedia.org/wiki/Cofiniteness) arises when you have some negated `X` in conjunction with some supertype of `X`. For example, `string & ~"a"` is a cofinite string set that accepts any `string` excluding `"a"`. This happens often with type refinements where `typeof(x) == "string" and x ~= "a"` gives rise to the type `string & ~"a"`.
 
 ### Implementation
 
-Most of the implementation of negation types are already in place. The three things missing are:
-
-1. the syntax,
-2. some guarantee that no negation types survive if it negates non-testables, and
-3. a type error if it negates a non-testable type in any way, shape, or form.
-
 The parser change for this is trivial, so this is of no concern.
 
-We can use type families to have this guarantee. Add a `negate<T>` type family which would be internal to the type inference engine, and have the syntax `~T` produce that type family, not a `NegationType`.
-
-As for the type error, we can just consider `negate<{ p: P }>` to be an uninhabited type family, and resolve that as an error type.
+Most of the real work would be spent on revising the type system to handle negation types of non-testable types in normalization, simplification, and subtyping rules, as well as adjusting `types.negationof` to allow function types and table types.
 
 ## Drawbacks
 
@@ -81,6 +72,6 @@ Language design has a concept called weirdness budget. It's a fine line to balan
 
 We could provide a set of type aliases for some common use cases, e.g. `not_nil` for `~nil` and `not_string` for `~string` and so on. But this is limited, i.e. no way to negate for a specific string singleton except by a `typeof` hack.
 
-Alternatively, provide a type family `not<T>`, which can be generalized to any type, so long as they obey the restrictions above! This alternative proposal is essentially the above proposal, sans syntax.
+Alternatively, provide a type family `not<T>`, which can be generalized to any type! This alternative proposal is essentially the same as the proposal, sans syntax. Unless we rename it to `negate`, this still requires changing the parser anyway since `not` is a keyword.
 
 We could also use the set exclusion syntax `T \ U` which does provide an advantage of an explicit set to exclude a subset of, but there are downsides with this, e.g. it is neither commutative nor associative, which makes for the implementation more annoying since you cannot fold over them as easily.
