@@ -32,6 +32,7 @@ return {
         linterrors = true,
         typeerrors = true,
         globals = {"expect"},
+        globaldefinitions = "./embed.d.luau",
         aliases = {
             src = "./src"
         }
@@ -81,6 +82,7 @@ type LuauConfig = {
     linterrors: boolean?,
     typeerrors: boolean?,
     globals: { string }?,
+    globaldefinitions: string?,
     aliases: { [string]: string }?,
 }
 
